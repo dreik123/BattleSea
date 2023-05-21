@@ -1,20 +1,10 @@
 ﻿// BattleSea.cpp : This file contains the 'main' function. Program execution begins and ends there.
 //
+#include "GameInterfaces.h"
+#include "MVCFactory.h"
 
-class GameController;
 
-struct IGame {};
-class BattleSeaGame : public IGame {};
-
-struct IView {};
-class TerminalPresenter : public IView {};
-
-GameController* CreateController(IGame* game, IView* presenter) { return nullptr; }
-
-struct GameConfig {}; // containing info about amount and type of ships
-IGame* CreateGame(const GameConfig&) { return nullptr; }
-
-IView* CreatePresenter() { return new TerminalPresenter(); }
+class GameController : public IController {};
 
 
 int main(int argc, char* argv[])
@@ -22,7 +12,7 @@ int main(int argc, char* argv[])
     // Classic MVC
     IGame* game = CreateGame(GameConfig());
     IView* presenter = CreatePresenter();
-    GameController* controller = CreateController(game, presenter);
+    IController* controller = CreateController(game, presenter);
 
     return 0;
 }
