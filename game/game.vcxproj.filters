@@ -9,6 +9,7 @@
     <ClCompile Include="src\main.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="src\BattleSeaGame.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\GameInterfaces.h">
@@ -20,5 +21,10 @@
     <ClInclude Include="src\CoreTypes.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="src\MVCInterfaces.h" />
+    <ClInclude Include="src\MVCFactory.h" />
+    <ClInclude Include="src\BattleSeaGame.h" />
+    <ClInclude Include="src\WarShipGenerators.h" />
+    <ClInclude Include="src\WarShip.h" />
   </ItemGroup>
 </Project>

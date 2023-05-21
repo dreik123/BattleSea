@@ -1,7 +1,11 @@
 #pragma once
 #include "CoreTypes.h"
 #include "GameConfig.h"
+#include "WarShipGenerators.h"
+#include "WarShip.h"
+
 #include <vector>
+#include <memory>
 
 
 // Model is shortly presented by 2 game grids (10x10) for 2 players
@@ -18,26 +22,11 @@
 // Model must validate order of turns.
 
 
-struct IWarShip
-{
-    virtual std::vector<CellIndex> GetOccupiedCells() const = 0;
-    virtual int GetOccupiedCellsAmount() const = 0; // aka ship type
-
-    //virtual bool IsDamaged() const = 0; // optional
-    virtual bool IsDestroyed() const = 0;
-
-    virtual bool DoesOccupyTheCell(const CellIndex& cell) const = 0;
-    virtual void ShootShipAtCell(const CellIndex& cell) = 0;
-    virtual bool TryShootShipAtCell(const CellIndex& cell) = 0; // optional
-};
-
-
-
 struct IBattleSeaGameObserver
 {
     // Notify methods
-    virtual void OnShipDestroyed(const IWarShip& InShip) = 0;
-    virtual void OnShipDamaged(const IWarShip& InShip, const CellIndex& cell) = 0;
+    virtual void OnShipDestroyed(const WarShip& InShip) = 0;
+    virtual void OnShipDamaged(const WarShip& InShip, const CellIndex& cell) = 0;
     virtual void OnShotMissed(const CellIndex& cell) = 0;
     virtual void OnShotDone(const CellIndex& cell) = 0;
     virtual void OnPlayerSwitched(CurrentPlayer nextPlayer) = 0;
@@ -45,8 +34,6 @@ struct IBattleSeaGameObserver
     virtual void OnGameStarted() = 0;
     virtual void OnGameFinished(CurrentPlayer winner) = 0;
 };
-
-
 
 
 
@@ -60,8 +47,10 @@ struct IBattleSeaGameObserver
 // Interface for major functionality of Battle sea game
 struct IBattleSeaGame
 {
+    virtual void SetWarShipGenerator(const std::unique_ptr<IWarShipGenerator>& generator) = 0;
+
     virtual void GenerateShipsForGrid(const int gridIndex, const GameConfig& params) = 0;
-    virtual bool InitShipPositionsForGrid(const int gridIndex, const std::vector<IWarShip>& ships) = 0;
+    virtual bool InitShipPositionsForGrid(const int gridIndex, const std::vector<WarShip>& ships) = 0;
     // Returned boolean value can indicate the shot success
     virtual bool ShootTheGridAt(const int gridIndex, const CellIndex& cell) = 0;
 

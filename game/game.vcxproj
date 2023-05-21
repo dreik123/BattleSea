@@ -88,12 +88,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\BattleSeaGame.cpp" />
     <ClCompile Include="src\main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\BattleSeaGame.h" />
     <ClInclude Include="src\CoreTypes.h" />
     <ClInclude Include="src\GameInterfaces.h" />
     <ClInclude Include="src\GameConfig.h" />
+    <ClInclude Include="src\MVCFactory.h" />
+    <ClInclude Include="src\MVCInterfaces.h" />
+    <ClInclude Include="src\WarShip.h" />
+    <ClInclude Include="src\WarShipGenerators.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
