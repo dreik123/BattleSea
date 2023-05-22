@@ -1,5 +1,5 @@
 #pragma once
-#include "CoreTypes.h"
+#include "CellIndex.h"
 
 // TODO AP impl this
 class WarShip

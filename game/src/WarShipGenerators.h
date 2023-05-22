@@ -1,31 +1,26 @@
 #pragma once
 #include <vector>
+#include <array>
+
 #include "WarShip.h"
 #include "GameConfig.h"
 #include "CoreTypes.h"
 
 struct IWarShipGenerator
 {
-    virtual std::vector<WarShip> GenerateShips(const GameConfig& params) = 0;
+    virtual const std::vector<WarShip> GenerateShips(const GameConfig& params) = 0;
 };
 
 
-class PredefinedWarShipGenerator : public IWarShipGenerator
+class PredefinedClassicWarShipGenerator : public IWarShipGenerator
 {
-    virtual std::vector<WarShip> GenerateShips(const GameConfig& params) override
-    {
-        // TODO DS extend mock version
-        std::vector<CellIndex> cells = { {'a', 1}, {'a', 2} };
-        WarShip ship_1(cells);
-        return {ship_1};
-    }
+public:
+    virtual const std::vector<WarShip> GenerateShips(const GameConfig&) override;
 };
+
 
 class WarShipGenerator : public IWarShipGenerator
 {
-    virtual std::vector<WarShip> GenerateShips(const GameConfig& params) override
-    {
-        // TODO AP real version
-        return {};
-    }
+public:
+    virtual const std::vector<WarShip> GenerateShips(const GameConfig& params) override;
 };

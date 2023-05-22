@@ -90,9 +90,11 @@
   <ItemGroup>
     <ClCompile Include="src\BattleSeaGame.cpp" />
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\WarShipGenerators.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\BattleSeaGame.h" />
+    <ClInclude Include="src\CellIndex.h" />
     <ClInclude Include="src\CoreTypes.h" />
     <ClInclude Include="src\GameInterfaces.h" />
     <ClInclude Include="src\GameConfig.h" />
