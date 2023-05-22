@@ -1,7 +1,6 @@
 #pragma once
 #include <array>
 
-using CellIndex = std::pair<char, char>;
 
 enum class CellState
 {
@@ -12,9 +11,10 @@ enum class CellState
 };
 
 
-
 // README if we decide to customize grid size based on config, need to consider std::vector instead of static array
-using GridData = std::array<std::array<CellState, 10>, 10>;
+constexpr int GridRowCount = 10;
+constexpr int GridColumnCount = 10;
+using GridData = std::array<std::array<CellState, GridColumnCount>, GridRowCount>;
 
 
 enum class CurrentPlayer : int8_t
@@ -23,3 +23,4 @@ enum class CurrentPlayer : int8_t
     Player_1 = 0,
     Player_2,
 };
+
