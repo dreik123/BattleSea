@@ -1,10 +1,21 @@
 #pragma once
-#include "MVCInterfaces.h"
+#include "Controllers.h"
 #include "GameConfig.h"
+#include "Views.h"
+
+struct IBattleSeaGame;
 
 // TODO declare a factory class with these methods
-IController* CreateController(IGame* game, IView* presenter) { return nullptr; }
+// TODO prefer unique_ptr instead of raw ptrs
 
-IGame* CreateGame(const GameConfig&) { return nullptr; }
+IBattleSeaGame* CreateGame(const GameConfig&) { return nullptr; }
 
-IView* CreatePresenter() { return new TerminalPresenter(); }
+IBattleSeaView* CreatePresenter(const IBattleSeaGame* InGame)
+{
+    return new TerminalView(InGame);
+}
+
+IController* CreateController(IBattleSeaGame* InGame, IBattleSeaView* InView)
+{
+    return new GameController(InGame, InView);
+}

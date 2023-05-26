@@ -23,7 +23,7 @@ static const std::string IndexToDigitStr(const int InValue)
 class CellIndex
 {
 public:
-    // Input like 'a', '2', but a '10' is imposible to keep as is
+    // Input in indexes view
     CellIndex(int x, int y)
         : InternalCoordinates{ static_cast<int8_t>(x), static_cast<int8_t>(y) }
     {
