@@ -3,19 +3,20 @@
 #include "GameConfig.h"
 #include "Views.h"
 
+#include <memory>
+
 struct IBattleSeaGame;
 
 // TODO declare a factory class with these methods
-// TODO prefer unique_ptr instead of raw ptrs
 
-IBattleSeaGame* CreateGame(const GameConfig&) { return nullptr; }
+std::shared_ptr<IBattleSeaGame> CreateGame(const GameConfig&) { return nullptr; }
 
-IBattleSeaView* CreatePresenter(const IBattleSeaGame* InGame)
+std::shared_ptr<IBattleSeaView> CreatePresenter(std::shared_ptr<IBattleSeaGame>& InGame)
 {
-    return new TerminalView(InGame);
+    return std::make_shared<TerminalView>(InGame);
 }
 
-IController* CreateController(IBattleSeaGame* InGame, IBattleSeaView* InView)
+std::shared_ptr<IController> CreateController(std::shared_ptr<IBattleSeaGame>& InGame, std::shared_ptr<IBattleSeaView>& InView)
 {
-    return new GameController(InGame, InView);
+    return std::make_shared<GameController>(InGame, InView);
 }

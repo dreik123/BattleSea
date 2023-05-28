@@ -1,4 +1,5 @@
 #pragma once
+#include <memory>
 
 struct IBattleSeaGame;
 struct IBattleSeaView;
@@ -13,7 +14,7 @@ struct IController
 class GameController : public IController 
 {
 public:
-    GameController(IBattleSeaGame* InGame, IBattleSeaView* InView)
+    GameController(std::shared_ptr<IBattleSeaGame>& InGame, std::shared_ptr<IBattleSeaView>& InView)
         : Game(InGame)
         , View(InView)
     {
@@ -22,6 +23,6 @@ public:
     virtual void RunGame() override;
 
 protected:
-    IBattleSeaGame* Game;
-    IBattleSeaView* View;
+    std::shared_ptr<IBattleSeaGame> Game;
+    std::shared_ptr<IBattleSeaView> View;
 };

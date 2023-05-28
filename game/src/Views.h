@@ -1,6 +1,8 @@
 #pragma once
 #include "CoreTypes.h"
 
+#include <memory>
+
 struct IBattleSeaGame;
 class CellIndex;
 
@@ -11,7 +13,7 @@ struct IBattleSeaView {
 class TerminalView : public IBattleSeaView 
 {
 public:
-    TerminalView(const IBattleSeaGame* InGame)
+    TerminalView(const std::shared_ptr<IBattleSeaGame>& InGame)
         : Game(InGame)
     {
     }
@@ -23,6 +25,9 @@ private:
     void RenderGrid(const GridData& InGridData);
     void RenderCell(const CellIndex& InIndex, const CellState InState);
 
+    void RenderHorizontalDelimitersPerCell();
+    void RenderVerticalDelimitersPerCell();
+
 protected:
-    const IBattleSeaGame* Game;
+    const std::shared_ptr<IBattleSeaGame> Game;
 };

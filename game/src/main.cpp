@@ -7,9 +7,9 @@
 int main(int argc, char* argv[])
 {
     // Classic MVC (will be redone in the next PRs)
-    IBattleSeaGame* game = CreateGame(GameConfig());
-    IBattleSeaView* presenter = CreatePresenter(game);
-    IController* controller = CreateController(game, presenter);
+    auto game = CreateGame(GameConfig());
+    auto presenter = CreatePresenter(game);
+    auto controller = CreateController(game, presenter);
 
     controller->RunGame();
 
