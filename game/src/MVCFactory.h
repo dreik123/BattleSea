@@ -7,16 +7,34 @@
 
 struct IBattleSeaGame;
 
-// TODO declare a factory class with these methods
-
-std::shared_ptr<IBattleSeaGame> CreateGame(const GameConfig&) { return nullptr; }
-
-std::shared_ptr<IBattleSeaView> CreatePresenter(std::shared_ptr<IBattleSeaGame>& InGame)
+struct IBattleSeaFactory
 {
-    return std::make_shared<TerminalView>(InGame);
-}
+    virtual std::shared_ptr<IBattleSeaGame> CreateGame(const GameConfig&) = 0;
+    virtual std::shared_ptr<IBattleSeaView> CreatePresenter(std::shared_ptr<IBattleSeaGame>& InGame) = 0;
+    virtual std::shared_ptr<IController> CreateController(std::shared_ptr<IBattleSeaGame>& InGame, std::shared_ptr<IBattleSeaView>& InView) = 0;
+};
 
-std::shared_ptr<IController> CreateController(std::shared_ptr<IBattleSeaGame>& InGame, std::shared_ptr<IBattleSeaView>& InView)
+
+struct ConsoleBattleSeaFactory : public IBattleSeaFactory
 {
-    return std::make_shared<GameController>(InGame, InView);
-}
+    virtual std::shared_ptr<IBattleSeaGame> CreateGame(const GameConfig&) override { return nullptr; }
+    virtual std::shared_ptr<IBattleSeaView> CreatePresenter(std::shared_ptr<IBattleSeaGame>& InGame) override
+    {
+        return std::make_shared<TerminalView>(InGame);
+    }
+    virtual std::shared_ptr<IController> CreateController(std::shared_ptr<IBattleSeaGame>& InGame, std::shared_ptr<IBattleSeaView>& InView) override
+    {
+        return std::make_shared<GameController>(InGame, InView);
+    }
+};
+
+
+class FactoryInterface
+{
+public:
+    // TODO extend functionality with polimophic opportunity if need
+    static std::unique_ptr<IBattleSeaFactory> GetFactory()
+    {
+        return std::make_unique<ConsoleBattleSeaFactory>();
+    }
+};
