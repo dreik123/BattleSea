@@ -11,6 +11,7 @@
     </ClCompile>
     <ClCompile Include="src\BattleSeaGame.cpp" />
     <ClCompile Include="src\WarShipGenerators.cpp" />
+    <ClCompile Include="src\WarShip.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\GameInterfaces.h">
