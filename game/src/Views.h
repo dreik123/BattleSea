@@ -13,10 +13,7 @@ struct IBattleSeaView {
 class TerminalView : public IBattleSeaView 
 {
 public:
-    TerminalView(const std::shared_ptr<IBattleSeaGame>& InGame)
-        : Game(InGame)
-    {
-    }
+    TerminalView(const std::shared_ptr<IBattleSeaGame>& InGame);
 
     virtual void RenderGame() override;
 

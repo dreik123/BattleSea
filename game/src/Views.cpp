@@ -58,6 +58,11 @@ static const GridData GetTestData()
     return gridData;
 }
 
+TerminalView::TerminalView(const std::shared_ptr<IBattleSeaGame>& InGame)
+    : Game(InGame)
+{
+}
+
 void TerminalView::RenderGame()
 {
     // TODO DS link to model data

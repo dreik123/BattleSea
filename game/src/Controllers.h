@@ -14,11 +14,7 @@ struct IController
 class GameController : public IController 
 {
 public:
-    GameController(std::shared_ptr<IBattleSeaGame>& InGame, std::shared_ptr<IBattleSeaView>& InView)
-        : Game(InGame)
-        , View(InView)
-    {
-    }
+    GameController(std::shared_ptr<IBattleSeaGame>& InGame, std::shared_ptr<IBattleSeaView>& InView);
 
     virtual void RunGame() override;
 
