@@ -4,8 +4,9 @@
 #include <iostream>  // is temporary used for console presentation
 
 
+// TODO DS adjust with code-style as soon as we choose it
 // Constants
-namespace 
+namespace
 {
     constexpr unsigned char LEFT_TOP_EDGE = 201;
     constexpr unsigned char RIGHT_TOP_EDGE = 187;
@@ -29,6 +30,12 @@ namespace
 constexpr static uint8_t HorizontalSymbolsAmountPerCell = 3;
 constexpr static uint8_t VerticalSymbolsAmountPerCell = 1;
 
+// TODO probably make sense to take the data from model when model is implemented
+constexpr static std::array<char, 10> RowAxisNames =
+{
+    'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'
+};
+
 
 static const GridData GetTestData()
 {
@@ -45,6 +52,8 @@ static const GridData GetTestData()
     gridData[6][6] = CellState::Missed;
     gridData[0][0] = CellState::Missed;
     gridData[1][1] = CellState::Damaged;
+
+    gridData[2][3] = CellState::Destroyed;
 
     return gridData;
 }
@@ -63,6 +72,15 @@ void TerminalView::RenderGrid(const GridData& InGridData)
     const size_t RowCount = InGridData.size();
     const size_t ColCount = InGridData[0].size();
 
+    RenderLetterAxisWithAlignment(' ');
+    for (int i(1); i <= ColCount; i++)
+    {
+        // TODO improve this to be dependent on some formatting approach
+        std::cout << "  " << i << " ";
+    }
+    std::cout << std::endl;
+
+    RenderLetterAxisWithAlignment(' ');
     std::cout << LEFT_TOP_EDGE;
     for (int i(0); i < RowCount - 1; i++)
     {
@@ -75,6 +93,7 @@ void TerminalView::RenderGrid(const GridData& InGridData)
 
     for (int i(0); i < ColCount - 1; i++)
     {
+        RenderLetterAxisWithAlignment(RowAxisNames[i]);
         for (int j(0); j < RowCount; j++)
         {
             RenderVerticalDelimitersPerCell();
@@ -84,6 +103,7 @@ void TerminalView::RenderGrid(const GridData& InGridData)
         RenderVerticalDelimitersPerCell();
         std::cout << std::endl;
 
+        RenderLetterAxisWithAlignment(' ');
         std::cout << LEFT_CENTER_PIECE;
         for (int j(0); j < RowCount - 1; j++)
         {
@@ -94,16 +114,18 @@ void TerminalView::RenderGrid(const GridData& InGridData)
         std::cout << RIGHT_CENTER_PIECE << std::endl;
     }
 
+    RenderLetterAxisWithAlignment(RowAxisNames.back());
     for (int i(0); i < RowCount; i++)
     {
         RenderVerticalDelimitersPerCell();
         const CellIndex Index = CellIndex(RowCount - 1, i);
-        RenderCell(Index, InGridData[RowCount - 1][i]);
+        RenderCell(Index, InGridData.back()[i]);
     }
 
     RenderVerticalDelimitersPerCell();
     std::cout << std::endl;
 
+    RenderLetterAxisWithAlignment(' ');
     std::cout << LEFT_BOTTOM_EDGE;
     for (int i(0); i < RowCount - 1; i++)
     {
@@ -119,26 +141,42 @@ void TerminalView::RenderCell(const CellIndex&, const CellState InState)
 {
     switch (InState)
     {
-        case CellState::Concealed:
+    case CellState::Concealed:
+    {
+        RenderSymbolNTimes(' ', HorizontalSymbolsAmountPerCell);
+        break;
+    }
+    case CellState::Damaged:
+    {
+        // HACK for now, should be fixed with formatting approach
+        if (HorizontalSymbolsAmountPerCell == 1)
         {
-            std::cout << "   ";
-            break;
+            std::cout << "x";
         }
-        case CellState::Damaged:
+        else if (HorizontalSymbolsAmountPerCell == 3)
         {
             std::cout << " x ";
-            break;
         }
-        case CellState::Destroyed:
+        break;
+    }
+    case CellState::Destroyed:
+    {
+        // HACK for now, should be fixed with formatting approach
+        if (HorizontalSymbolsAmountPerCell == 1)
+        {
+            std::cout << "X";
+        }
+        else if (HorizontalSymbolsAmountPerCell == 3)
         {
             std::cout << " X ";
-            break;
         }
-        case CellState::Missed:
-        {
-            std::cout << EMPTY_FILLER << EMPTY_FILLER << EMPTY_FILLER;
-            break;
-        }
+        break;
+    }
+    case CellState::Missed:
+    {
+        RenderSymbolNTimes(EMPTY_FILLER, HorizontalSymbolsAmountPerCell);
+        break;
+    }
     default:
         break;
     }
@@ -146,16 +184,23 @@ void TerminalView::RenderCell(const CellIndex&, const CellState InState)
 
 void TerminalView::RenderHorizontalDelimitersPerCell()
 {
-    for (size_t i = 0; i < HorizontalSymbolsAmountPerCell; i++)
-    {
-        std::cout << HORIZONTAL_PIECE;
-    }
+    RenderSymbolNTimes(HORIZONTAL_PIECE, HorizontalSymbolsAmountPerCell);
 }
 
 void TerminalView::RenderVerticalDelimitersPerCell()
 {
-    for (size_t i = 0; i < VerticalSymbolsAmountPerCell; i++)
+    RenderSymbolNTimes(VERTICAL_PIECE, VerticalSymbolsAmountPerCell);
+}
+
+void TerminalView::RenderLetterAxisWithAlignment(const char InSymbol)
+{
+    std::cout << " " << InSymbol << " ";
+}
+
+void TerminalView::RenderSymbolNTimes(const char InSymbol, const unsigned int InTimes)
+{
+    for (size_t i = 0; i < InTimes; i++)
     {
-        std::cout << VERTICAL_PIECE;
+        std::cout << InSymbol;
     }
 }

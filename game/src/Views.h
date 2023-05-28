@@ -1,5 +1,5 @@
 #pragma once
-#include "CoreTypes.h"
+#include "CoreTypes.h"          // for GridData
 
 #include <memory>
 
@@ -27,6 +27,10 @@ private:
 
     void RenderHorizontalDelimitersPerCell();
     void RenderVerticalDelimitersPerCell();
+
+    void RenderLetterAxisWithAlignment(const char InSymbol);
+
+    void RenderSymbolNTimes(const char InSymbol, const unsigned int InTimes);
 
 protected:
     const std::shared_ptr<IBattleSeaGame> Game;
