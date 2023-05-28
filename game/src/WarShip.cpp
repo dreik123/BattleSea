@@ -28,7 +28,7 @@ int WarShip::GetOccupiedCellsAmount() const
 
 bool WarShip::IsDestroyed() const 
 {
-    auto count = std::count_if(ShipDecks.begin(), ShipDecks.end(), 
+    const int count = std::count_if(ShipDecks.begin(), ShipDecks.end(), 
                                [](std::pair<CellIndex, bool> p){ return p.second == true; }); 
     return count == 0;
 }
@@ -36,7 +36,7 @@ bool WarShip::IsDestroyed() const
 bool WarShip::DoesOccupyTheCell(const CellIndex& cell) const 
 {
     auto it = std::find_if(ShipDecks.begin(), ShipDecks.end(), 
-                           [&cell](const std::pair<CellIndex, bool> p) {return p.first == cell; });
+                           [&cell](const std::pair<CellIndex, bool> p) { return p.first == cell; });
     return it != ShipDecks.end();
 }
 
@@ -45,7 +45,7 @@ void WarShip::ShootShipAtCell(const CellIndex& cell)
     if (DoesOccupyTheCell(cell))
     {
         auto it = std::find_if(ShipDecks.begin(), ShipDecks.end(), 
-                               [&cell](const std::pair<CellIndex, bool> p) {return p.first == cell; });
+                               [&cell](const std::pair<CellIndex, bool> p) { return p.first == cell; });
         it->second = false;
     }
 }
