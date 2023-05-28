@@ -1,7 +1,7 @@
 #pragma once
 #include "CellIndex.h"
 #include <vector>
-// TODO AP impl this
+
 class WarShip
 {
 public:

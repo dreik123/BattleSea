@@ -1,50 +1,43 @@
 #include "WarShip.h"
 #include <algorithm>
+#include <iterator>
 
 WarShip::WarShip(const std::vector<CellIndex>& cells)
 {
-    for (auto& cell : cells)
+    for (const auto& cell : cells)
     {
-        ShipDecks.push_back(std::pair<CellIndex, bool>(cell, true));
+        ShipDecks.emplace_back(cell, true);
     }
 }
 
 std::vector<CellIndex> WarShip::GetOccupiedCells() const
 {
     std::vector<CellIndex> cells;
-    for(auto& shipdeck : ShipDecks)
+    for(const auto& shipdeck : ShipDecks)
     {
-        cells.push_back(shipdeck.first);
+        std::transform(ShipDecks.cbegin(), ShipDecks.cend(), std::back_inserter(cells),
+            [](std::pair<CellIndex, bool> p) { return p.first; });
     }
     return cells;
 }
 
 int WarShip::GetOccupiedCellsAmount() const 
 {
-    return (int)ShipDecks.size();
+    return static_cast<int>(ShipDecks.size());
 }
 
 bool WarShip::IsDestroyed() const 
 {
-    if (auto count = std::count_if(ShipDecks.begin(), ShipDecks.end(), 
-                                   [](std::pair<CellIndex, bool> p){ return p.second == true; }); 
-        count == 0)
-    {
-        return true;
-    }
-    return false; 
+    auto count = std::count_if(ShipDecks.begin(), ShipDecks.end(), 
+                               [](std::pair<CellIndex, bool> p){ return p.second == true; }); 
+    return count == 0;
 }
 
 bool WarShip::DoesOccupyTheCell(const CellIndex& cell) const 
 {
-    if (auto it = std::find_if(ShipDecks.begin(), ShipDecks.end(), 
-                               [cell](std::pair<CellIndex, bool> p) {return p.first.ToString() == cell.ToString(); });
-        it != ShipDecks.end())
-    {
-        return true;
-    }
-
-    return false; 
+    auto it = std::find_if(ShipDecks.begin(), ShipDecks.end(), 
+                           [&cell](const std::pair<CellIndex, bool> p) {return p.first == cell; });
+    return it != ShipDecks.end();
 }
 
 void WarShip::ShootShipAtCell(const CellIndex& cell) 
@@ -52,7 +45,7 @@ void WarShip::ShootShipAtCell(const CellIndex& cell)
     if (DoesOccupyTheCell(cell))
     {
         auto it = std::find_if(ShipDecks.begin(), ShipDecks.end(), 
-                               [cell](std::pair<CellIndex, bool> p) {return p.first.ToString() == cell.ToString(); });
+                               [&cell](const std::pair<CellIndex, bool> p) {return p.first == cell; });
         it->second = false;
     }
 }

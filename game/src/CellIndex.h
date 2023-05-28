@@ -81,10 +81,16 @@ public:
         return result;
     }
 
+    friend bool operator==(const CellIndex& c1, const CellIndex& c2);
+
 private:
     std::pair<int8_t, int8_t> InternalCoordinates;
 };
 
+inline bool operator==(const CellIndex& c1, const CellIndex& c2)
+{
+    return c1.InternalCoordinates == c2.InternalCoordinates;
+}
 
 // TODO impl CellRange if need
 
