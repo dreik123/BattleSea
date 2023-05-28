@@ -92,6 +92,7 @@
     <ClCompile Include="src\BattleSeaGame.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\Views.cpp" />
+    <ClCompile Include="src\WarShip.cpp" />
     <ClCompile Include="src\WarShipGenerators.cpp" />
   </ItemGroup>
   <ItemGroup>
