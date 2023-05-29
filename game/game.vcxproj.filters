@@ -12,6 +12,8 @@
     <ClCompile Include="src\BattleSeaGame.cpp" />
     <ClCompile Include="src\WarShipGenerators.cpp" />
     <ClCompile Include="src\WarShip.cpp" />
+    <ClCompile Include="src\Views.cpp" />
+    <ClCompile Include="src\Controllers.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\GameInterfaces.h">
@@ -23,11 +25,12 @@
     <ClInclude Include="src\CoreTypes.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="src\MVCInterfaces.h" />
     <ClInclude Include="src\MVCFactory.h" />
     <ClInclude Include="src\BattleSeaGame.h" />
     <ClInclude Include="src\WarShipGenerators.h" />
     <ClInclude Include="src\WarShip.h" />
     <ClInclude Include="src\CellIndex.h" />
+    <ClInclude Include="src\Views.h" />
+    <ClInclude Include="src\Controllers.h" />
   </ItemGroup>
 </Project>

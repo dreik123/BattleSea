@@ -1,8 +1,7 @@
 #pragma once
-#include "MVCInterfaces.h"
 #include "GameInterfaces.h"
 
-class BattleSeaGame : public IGame, public IBattleSeaGame 
+class BattleSeaGame : public IBattleSeaGame
 {
     // TODO impl
 };

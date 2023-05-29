@@ -1,10 +1,40 @@
 #pragma once
-#include "MVCInterfaces.h"
+#include "Controllers.h"
 #include "GameConfig.h"
+#include "Views.h"
 
-// TODO declare a factory class with these methods
-IController* CreateController(IGame* game, IView* presenter) { return nullptr; }
+#include <memory>
 
-IGame* CreateGame(const GameConfig&) { return nullptr; }
+struct IBattleSeaGame;
 
-IView* CreatePresenter() { return new TerminalPresenter(); }
+struct IBattleSeaFactory
+{
+    virtual std::shared_ptr<IBattleSeaGame> CreateGame(const GameConfig&) = 0;
+    virtual std::shared_ptr<IBattleSeaView> CreatePresenter(std::shared_ptr<IBattleSeaGame>& InGame) = 0;
+    virtual std::shared_ptr<IController> CreateController(std::shared_ptr<IBattleSeaGame>& InGame, std::shared_ptr<IBattleSeaView>& InView) = 0;
+};
+
+
+struct ConsoleBattleSeaFactory : public IBattleSeaFactory
+{
+    virtual std::shared_ptr<IBattleSeaGame> CreateGame(const GameConfig&) override { return nullptr; }
+    virtual std::shared_ptr<IBattleSeaView> CreatePresenter(std::shared_ptr<IBattleSeaGame>& InGame) override
+    {
+        return std::make_shared<TerminalView>(InGame);
+    }
+    virtual std::shared_ptr<IController> CreateController(std::shared_ptr<IBattleSeaGame>& InGame, std::shared_ptr<IBattleSeaView>& InView) override
+    {
+        return std::make_shared<GameController>(InGame, InView);
+    }
+};
+
+
+class FactoryInterface
+{
+public:
+    // TODO extend functionality with polimophic opportunity if need
+    static std::unique_ptr<IBattleSeaFactory> GetFactory()
+    {
+        return std::make_unique<ConsoleBattleSeaFactory>();
+    }
+};
