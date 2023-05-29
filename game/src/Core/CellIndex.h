@@ -4,9 +4,7 @@
 #include <assert.h>
 #include <stdint.h>
 
-#include "CoreTypes.h"
-
-// TODO move to core folder (will be done in the next pull requests)
+#include "Core/CoreTypes.h"
 
 
 class CellIndex

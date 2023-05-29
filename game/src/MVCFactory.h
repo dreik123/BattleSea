@@ -1,6 +1,6 @@
 #pragma once
 #include "Controllers.h"
-#include "GameConfig.h"
+#include "Game/GameConfig.h"
 #include "Views.h"
 
 #include <memory>

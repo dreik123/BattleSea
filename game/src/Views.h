@@ -1,5 +1,5 @@
 #pragma once
-#include "CoreTypes.h"          // for GridData
+#include "Core/CoreTypes.h"          // for GridData
 
 #include <memory>
 

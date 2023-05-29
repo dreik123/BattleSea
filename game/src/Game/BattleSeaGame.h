@@ -1,5 +1,5 @@
 #pragma once
-#include "GameInterfaces.h"
+#include "Game/GameInterfaces.h"
 
 class BattleSeaGame : public IBattleSeaGame
 {

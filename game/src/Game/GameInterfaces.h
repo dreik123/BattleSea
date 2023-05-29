@@ -1,8 +1,8 @@
 #pragma once
-#include "CoreTypes.h"
-#include "GameConfig.h"
-#include "WarShipGenerators.h"
-#include "WarShip.h"
+#include "Core/CoreTypes.h"
+#include "Game/GameConfig.h"
+#include "Game/WarShipGenerators.h"
+#include "Game/WarShip.h"
 
 #include <vector>
 #include <memory>

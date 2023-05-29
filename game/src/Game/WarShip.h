@@ -1,5 +1,5 @@
 #pragma once
-#include "CellIndex.h"
+#include "Core/CellIndex.h"
 #include <vector>
 
 class WarShip
