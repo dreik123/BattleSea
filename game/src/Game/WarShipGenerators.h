@@ -1,9 +1,9 @@
 #pragma once
 #include <vector>
 
-#include "WarShip.h"
-#include "GameConfig.h"
-#include "CoreTypes.h"
+#include "Game/WarShip.h"
+#include "Game/GameConfig.h"
+#include "Core/CoreTypes.h"
 
 struct IWarShipGenerator
 {

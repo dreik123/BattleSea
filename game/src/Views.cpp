@@ -1,5 +1,5 @@
 #include "Views.h"
-#include "GameInterfaces.h"         // for IBattleSeaGame
+#include "Game/GameInterfaces.h"         // for IBattleSeaGame
 
 #include <iostream>  // is temporary used for console presentation
 

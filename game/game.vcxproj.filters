@@ -4,34 +4,66 @@
     <Filter Include="src">
       <UniqueIdentifier>{4ab7e8f3-c48d-41b4-8551-0fd454d68793}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\Core">
+      <UniqueIdentifier>{790ca833-dbe4-4737-ba8f-6da3088bfa78}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Game">
+      <UniqueIdentifier>{eb7323c7-61a0-41fe-8e07-8e6202c1a202}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="src\BattleSeaGame.cpp" />
-    <ClCompile Include="src\WarShipGenerators.cpp" />
-    <ClCompile Include="src\WarShip.cpp" />
-    <ClCompile Include="src\Views.cpp" />
-    <ClCompile Include="src\Controllers.cpp" />
-    <ClCompile Include="src\CellIndex.cpp" />
+    <ClCompile Include="src\Controllers.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Views.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Core\CellIndex.cpp">
+      <Filter>src\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Game\BattleSeaGame.cpp">
+      <Filter>src\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Game\WarShip.cpp">
+      <Filter>src\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Game\WarShipGenerators.cpp">
+      <Filter>src\Game</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\GameInterfaces.h">
+    <ClInclude Include="src\Controllers.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="src\GameConfig.h">
+    <ClInclude Include="src\MVCFactory.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="src\CoreTypes.h">
+    <ClInclude Include="src\Views.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="src\MVCFactory.h" />
-    <ClInclude Include="src\BattleSeaGame.h" />
-    <ClInclude Include="src\WarShipGenerators.h" />
-    <ClInclude Include="src\WarShip.h" />
-    <ClInclude Include="src\CellIndex.h" />
-    <ClInclude Include="src\Views.h" />
-    <ClInclude Include="src\Controllers.h" />
+    <ClInclude Include="src\Core\CellIndex.h">
+      <Filter>src\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\CoreTypes.h">
+      <Filter>src\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Game\BattleSeaGame.h">
+      <Filter>src\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Game\GameConfig.h">
+      <Filter>src\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Game\GameInterfaces.h">
+      <Filter>src\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Game\WarShip.h">
+      <Filter>src\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Game\WarShipGenerators.h">
+      <Filter>src\Game</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
