@@ -14,6 +14,7 @@
     <ClCompile Include="src\WarShip.cpp" />
     <ClCompile Include="src\Views.cpp" />
     <ClCompile Include="src\Controllers.cpp" />
+    <ClCompile Include="src\CellIndex.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\GameInterfaces.h">
