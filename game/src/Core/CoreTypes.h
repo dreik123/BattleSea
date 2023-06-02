@@ -17,7 +17,7 @@ constexpr int GridColumnCount = 10;
 using GridData = std::array<std::array<CellState, GridColumnCount>, GridRowCount>;
 
 
-enum class CurrentPlayer : int8_t
+enum class EPlayer : int8_t
 {
     Invalid = -1,
     Player_1 = 0,
