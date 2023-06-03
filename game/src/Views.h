@@ -19,11 +19,13 @@ public:
 
 private:
     // DS TODO implement the method for both grids
-    void RenderGrid(const GridData& InGridData);
+    void RenderSingleGrid(const GridData& InGridData);
+    void RenderTwoGrids(const GridData& InGridDataLeft, const GridData& InGridDataRight, const bool bIsHorizontally = true);
     void RenderCell(const CellIndex& InIndex, const CellState InState);
 
     void RenderHorizontalDelimitersPerCell();
     void RenderVerticalDelimitersPerCell();
+    void RenderGridOffset();
 
     void RenderLetterAxisWithAlignment(const char InSymbol);
 
