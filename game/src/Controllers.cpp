@@ -5,6 +5,12 @@
 #include <iostream>
 #include <string>
 
+// TODOs:
+// cls after turn and render grids again
+// introduce Iplayer and encapsulate turn logic there
+// create RealPlayer
+// create seconds player as AIPlayer
+
 GameController::GameController(std::shared_ptr<IBattleSeaGame>& InGame, std::shared_ptr<IBattleSeaView>& InView)
     : Game(InGame)
     , View(InView)
@@ -14,8 +20,8 @@ GameController::GameController(std::shared_ptr<IBattleSeaGame>& InGame, std::sha
 void GameController::RunGame()
 {
     // Temporary
-    Game->GenerateShipsForPlayer(EPlayer::Player_1, DefaultGameConfig);
-    Game->GenerateShipsForPlayer(EPlayer::Player_2, DefaultGameConfig);
+    Game->GenerateShipsForPlayer(EPlayer::Player_1);
+    Game->GenerateShipsForPlayer(EPlayer::Player_2);
     Game->SetInitialPlayer(EPlayer::Player_1);
     View->RenderGame();
 

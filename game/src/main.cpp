@@ -3,12 +3,11 @@
 #include "MVCFactory.h"
 
 
-
 int main(int argc, char* argv[])
 {
     // Classic MVC (will be redone in the next PRs)
     auto factory = FactoryInterface::GetFactory();
-    auto game = factory->CreateGame(GameConfig());
+    auto game = factory->CreateGame();
     auto presenter = factory->CreatePresenter(game);
     auto controller = factory->CreateController(game, presenter);
 

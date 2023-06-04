@@ -24,6 +24,7 @@ namespace
     constexpr unsigned char CENTER_PIECE = 206;
 
     constexpr unsigned char EMPTY_FILLER = 176;
+    constexpr unsigned char SHIP_FILLER = 219;
 }
 
 
@@ -294,6 +295,11 @@ void TerminalView::RenderCell(const CellIndex&, const CellState InState)
     case CellState::Missed:
     {
         RenderSymbolNTimes(EMPTY_FILLER, HorizontalSymbolsAmountPerCell);
+        break;
+    }
+    case CellState::Ship:
+    {
+        RenderSymbolNTimes(SHIP_FILLER, HorizontalSymbolsAmountPerCell);
         break;
     }
     default:

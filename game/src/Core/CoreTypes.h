@@ -4,10 +4,11 @@
 
 enum class CellState
 {
-    Concealed = 0,
-    Missed,
-    Damaged,
-    Destroyed,
+    Concealed = 0,      // No shot has been done to the cell
+    Ship,               // Ship presentation on grid (for local player only)
+    Missed,             // Shot has been done, but no ship part damaged
+    Damaged,            // Shot right on target, but ship is NOT destroyed
+    Destroyed,          // Shot right on target, but ship is destroyed
 };
 
 

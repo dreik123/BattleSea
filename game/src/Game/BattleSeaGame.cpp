@@ -3,20 +3,23 @@
 #include "Game/WarShip.h"
 
 
-BattleSeaGame::BattleSeaGame(IWarShipGenerator* InGenerator)
-    : GridGenerator(InGenerator)
-    , CurrentPlayer(EPlayer::Player_1)
+BattleSeaGame::BattleSeaGame(std::unique_ptr<IWarShipGenerator>&& InGenerator, const GameConfig& InConfig)
+    : GridGenerator(std::move(InGenerator))
+    , Config(InConfig)
+    , CurrentPlayer(EPlayer::Invalid)
+    , InitialPlayer(EPlayer::Invalid)
+    , LocalPlayer(EPlayer::Invalid)
 {
-    // TODO DS impl PlayerGrids and PlayerShips initialization
+    // TODO DS impl PlayerGrids and PlayerShips initialization (release is broken right now)
     for (GridData& gridData : PlayerGrids)
     {
         gridData = GridData();
     }
 }
 
-void BattleSeaGame::GenerateShipsForPlayer(const EPlayer player, const GameConfig& params)
+void BattleSeaGame::GenerateShipsForPlayer(const EPlayer player)
 {
-    const std::vector<WarShip> warShips = GridGenerator->GenerateShips(params);
+    const std::vector<WarShip> warShips = GridGenerator->GenerateShips(Config);
     InitShipPositionsForPlayer(player, warShips);
 }
 
@@ -36,6 +39,8 @@ bool BattleSeaGame::InitShipPositionsForPlayer(const EPlayer player, const std::
 
 bool BattleSeaGame::ShootThePlayerGridAt(const CellIndex& cell)
 {
+    assert(GetCurrentPlayer() != EPlayer::Invalid);
+
     const int oppositePlayerIndex = GetIndexFromPlayer(GetOppositePlayer(GetCurrentPlayer()));
     GridData& gridData = PlayerGrids[oppositePlayerIndex];
     std::vector<WarShip>& ships = PlayerShips[oppositePlayerIndex];
@@ -89,14 +94,36 @@ EPlayer BattleSeaGame::GetCurrentPlayer() const
     return CurrentPlayer;
 }
 
+EPlayer BattleSeaGame::GetInitialPlayer() const
+{
+    return InitialPlayer;
+}
+
+EPlayer BattleSeaGame::GetLocalPlayer() const
+{
+    return LocalPlayer;
+}
+
 void BattleSeaGame::SetInitialPlayer(EPlayer player)
 {
+    InitialPlayer = player;
     CurrentPlayer = player;
+}
+
+void BattleSeaGame::SetLocalPlayer(EPlayer player)
+{
+    LocalPlayer = player;
 }
 
 const GridData& BattleSeaGame::GetPlayerGridInfo(const EPlayer player) const
 {
-    return PlayerGrids[GetIndexFromPlayer(player)];
+    // Create a copy of grid data to make the ship data visible for local player only
+    GridData gridDataCopy = PlayerGrids[GetIndexFromPlayer(player)];
+    if (GetLocalPlayer() == player)
+    {
+        // TODO modify gridDataCopy with setting CellState::Ship to it
+    }
+    return gridDataCopy;
 }
 
 CellState BattleSeaGame::GetPlayerGridCellState(const EPlayer player, const CellIndex& cell) const
@@ -116,6 +143,7 @@ void BattleSeaGame::SetGridCellState(GridData& outGridData, const CellIndex& cel
 
 void BattleSeaGame::SurroundDestroyedShip(GridData& outGridData, const WarShip& ship)
 {
+    // Example of class template auto deduction (CTAD)
     constexpr std::array kPossibleDirections =
     {
         std::make_pair(-1, 0),      // up

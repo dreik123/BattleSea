@@ -11,18 +11,19 @@ struct IBattleSeaGame;
 
 struct IBattleSeaFactory
 {
-    virtual std::shared_ptr<IBattleSeaGame> CreateGame(const GameConfig&) = 0;
+    virtual std::shared_ptr<IBattleSeaGame> CreateGame() = 0;
     virtual std::shared_ptr<IBattleSeaView> CreatePresenter(std::shared_ptr<IBattleSeaGame>& InGame) = 0;
     virtual std::shared_ptr<IController> CreateController(std::shared_ptr<IBattleSeaGame>& InGame, std::shared_ptr<IBattleSeaView>& InView) = 0;
 };
 
 
-struct ConsoleBattleSeaFactory : public IBattleSeaFactory
+struct ClassicConsoleBattleSeaFactory : public IBattleSeaFactory
 {
-    virtual std::shared_ptr<IBattleSeaGame> CreateGame(const GameConfig&) override
+    virtual std::shared_ptr<IBattleSeaGame> CreateGame() override
     {
-        auto generator = new PredefinedClassicWarShipGenerator();
-        return std::make_shared<BattleSeaGame>(generator);
+        const GameConfig& gameConfig = DefaultGameConfig;
+        auto generator = std::make_unique<PredefinedClassicWarShipGenerator>();
+        return std::make_shared<BattleSeaGame>(std::move(generator), gameConfig);
     }
     virtual std::shared_ptr<IBattleSeaView> CreatePresenter(std::shared_ptr<IBattleSeaGame>& InGame) override
     {
@@ -34,6 +35,16 @@ struct ConsoleBattleSeaFactory : public IBattleSeaFactory
     }
 };
 
+struct HasbroConsoleBattleSeaFactory : public ClassicConsoleBattleSeaFactory
+{
+    virtual std::shared_ptr<IBattleSeaGame> CreateGame() override
+    {
+        const GameConfig& gameConfig = HasbroGameConfig;
+        auto generator = std::make_unique<PredefinedClassicWarShipGenerator>();
+        return std::make_shared<BattleSeaGame>(std::move(generator), gameConfig);
+    }
+};
+
 
 class FactoryInterface
 {
@@ -41,6 +52,6 @@ public:
     // TODO extend functionality with polimophic opportunity if need
     static std::unique_ptr<IBattleSeaFactory> GetFactory()
     {
-        return std::make_unique<ConsoleBattleSeaFactory>();
+        return std::make_unique<ClassicConsoleBattleSeaFactory>();
     }
 };
