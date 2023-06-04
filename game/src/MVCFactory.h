@@ -1,6 +1,8 @@
 #pragma once
 #include "Controllers.h"
 #include "Game/GameConfig.h"
+#include "Game/WarShipGenerators.h"
+#include "Game/BattleSeaGame.h"
 #include "Views.h"
 
 #include <memory>
@@ -17,7 +19,11 @@ struct IBattleSeaFactory
 
 struct ConsoleBattleSeaFactory : public IBattleSeaFactory
 {
-    virtual std::shared_ptr<IBattleSeaGame> CreateGame(const GameConfig&) override { return nullptr; }
+    virtual std::shared_ptr<IBattleSeaGame> CreateGame(const GameConfig&) override
+    {
+        auto generator = new PredefinedClassicWarShipGenerator();
+        return std::make_shared<BattleSeaGame>(generator);
+    }
     virtual std::shared_ptr<IBattleSeaView> CreatePresenter(std::shared_ptr<IBattleSeaGame>& InGame) override
     {
         return std::make_shared<TerminalView>(InGame);

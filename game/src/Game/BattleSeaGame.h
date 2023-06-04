@@ -8,13 +8,13 @@ class BattleSeaGame : public IBattleSeaGame
 public:
 	constexpr static uint8_t kPlayerAmount = 2;
 
-	BattleSeaGame();
+	// TODO expose warship generation via ctor and unique
+	BattleSeaGame(IWarShipGenerator* InGenerator);
 
 	// Inherited via IBattleSeaGame
-	//virtual void SetWarShipGenerator(const std::unique_ptr<IWarShipGenerator>& generator) override;
 	virtual void GenerateShipsForPlayer(const EPlayer player, const GameConfig& params) override;
 	virtual bool InitShipPositionsForPlayer(const EPlayer player, const std::vector<WarShip>& ships) override;
-	virtual bool ShootThePlayerGridAt(const EPlayer player, const CellIndex& cell) override;
+	virtual bool ShootThePlayerGridAt(const CellIndex& cell) override;
 	virtual bool IsGameOver() const override;
 	virtual EPlayer GetCurrentPlayer() const override;
 	virtual void SetInitialPlayer(EPlayer player) override;
@@ -26,8 +26,6 @@ public:
 private:
 	void SetGridCellState(GridData& outGridData, const CellIndex& cell, const CellState& state);
 	void SurroundDestroyedShip(GridData& outGridData, const WarShip& ship);
-
-	EPlayer GetNextPlayer() const;
 
 private:
 	std::unique_ptr<IWarShipGenerator> GridGenerator;

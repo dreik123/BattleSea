@@ -24,3 +24,8 @@ enum class EPlayer : int8_t
     Player_2,
 };
 
+__forceinline EPlayer GetOppositePlayer(const EPlayer player)
+{
+    if (player == EPlayer::Invalid) return EPlayer::Invalid;
+    return (player == EPlayer::Player_1) ? EPlayer::Player_2 : EPlayer::Player_1;
+}

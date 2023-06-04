@@ -51,14 +51,14 @@ struct IBattleSeaGame
 
     virtual void GenerateShipsForPlayer(const EPlayer player, const GameConfig& params) = 0;
     virtual bool InitShipPositionsForPlayer(const EPlayer player, const std::vector<WarShip>& ships) = 0;
-    // Returned boolean value can indicate the shot success
-    virtual bool ShootThePlayerGridAt(const EPlayer player, const CellIndex& cell) = 0;
+    // ShootThePlayerGridAt method contains logic of the shot by current player(starting from initial one). 
+    // Returned boolean value indicates the shot success.
+    virtual bool ShootThePlayerGridAt(const CellIndex& cell) = 0;
 
     virtual bool IsGameOver() const = 0;
 
     virtual EPlayer GetCurrentPlayer() const = 0;
     virtual void SetInitialPlayer(EPlayer player) = 0;
-
 
     virtual const GridData& GetPlayerGridInfo(const EPlayer player) const = 0;
     virtual CellState GetPlayerGridCellState(const EPlayer player, const CellIndex& cell) const = 0;

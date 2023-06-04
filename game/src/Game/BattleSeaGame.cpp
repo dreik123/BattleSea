@@ -2,19 +2,17 @@
 #include "Game/WarShipGenerators.h"
 #include "Game/WarShip.h"
 
-BattleSeaGame::BattleSeaGame()
+
+BattleSeaGame::BattleSeaGame(IWarShipGenerator* InGenerator)
+    : GridGenerator(InGenerator)
+    , CurrentPlayer(EPlayer::Player_1)
 {
-    //auto generator = std::make_unique<PredefinedClassicWarShipGenerator>();
-    //SetWarShipGenerator(std::move(generator));
-    GridGenerator = std::make_unique<PredefinedClassicWarShipGenerator>();
-    CurrentPlayer = EPlayer::Player_1;
-
-    // TODO DS impl PlayerGrids initialization
+    // TODO DS impl PlayerGrids and PlayerShips initialization
+    for (GridData& gridData : PlayerGrids)
+    {
+        gridData = GridData();
+    }
 }
-
-//void BattleSeaGame::SetWarShipGenerator(const std::unique_ptr<IWarShipGenerator>& generator)
-//{
-//}
 
 void BattleSeaGame::GenerateShipsForPlayer(const EPlayer player, const GameConfig& params)
 {
@@ -36,13 +34,15 @@ bool BattleSeaGame::InitShipPositionsForPlayer(const EPlayer player, const std::
     return true;
 }
 
-bool BattleSeaGame::ShootThePlayerGridAt(const EPlayer player, const CellIndex& cell)
+bool BattleSeaGame::ShootThePlayerGridAt(const CellIndex& cell)
 {
-    GridData& gridData = PlayerGrids[GetIndexFromPlayer(player)];
-    auto& ships = PlayerShips[GetIndexFromPlayer(player)];
+    const int oppositePlayerIndex = GetIndexFromPlayer(GetOppositePlayer(GetCurrentPlayer()));
+    GridData& gridData = PlayerGrids[oppositePlayerIndex];
+    std::vector<WarShip>& ships = PlayerShips[oppositePlayerIndex];
 
     bool playerSwitch = true;
 
+    // FIXME it corrupts damaged and destroyed states
     SetGridCellState(gridData, cell, CellState::Missed);
     for (WarShip& ship : ships)
     {
@@ -74,8 +74,9 @@ bool BattleSeaGame::ShootThePlayerGridAt(const EPlayer player, const CellIndex& 
 
     if (playerSwitch)
     {
-        CurrentPlayer = GetNextPlayer();
+        CurrentPlayer = GetOppositePlayer(CurrentPlayer);
     }
+    return !playerSwitch;
 }
 
 bool BattleSeaGame::IsGameOver() const
@@ -146,11 +147,4 @@ void BattleSeaGame::SurroundDestroyedShip(GridData& outGridData, const WarShip& 
             }
         }
     }
-}
-
-EPlayer BattleSeaGame::GetNextPlayer() const
-{
-    assert(CurrentPlayer != EPlayer::Invalid);
-
-    return (CurrentPlayer == EPlayer::Player_1) ? EPlayer::Player_2 : EPlayer::Player_1;
 }
