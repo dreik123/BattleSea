@@ -48,7 +48,7 @@ namespace CharUtilities
 
 
 CellIndex::CellIndex(int x, int y)
-    : InternalCoordinates{ static_cast<int8_t>(x), static_cast<int8_t>(y) }
+    : m_internalCoordinates{ static_cast<int8_t>(x), static_cast<int8_t>(y) }
 {
     // TODO range validation (based on Model data)
 }
@@ -61,28 +61,28 @@ CellIndex::CellIndex(const std::string& coord)
         (coord.size() == 3 && isalpha(coord[0]) && coord[1] == '1' && coord[2] == '0')
     );
 
-    InternalCoordinates.first = CharUtilities::LetterCharToInt(coord[0], true);
-    assert(InternalCoordinates.first >= 0 && InternalCoordinates.first < GridRowCount);
+    m_internalCoordinates.first = CharUtilities::LetterCharToInt(coord[0], true);
+    assert(m_internalCoordinates.first >= 0 && m_internalCoordinates.first < GridRowCount);
     if (coord.size() == 2)
     {
-        InternalCoordinates.second = CharUtilities::DigitCharToInt(coord[1]) - 1; // -1 to handle array index and view difference
+        m_internalCoordinates.second = CharUtilities::DigitCharToInt(coord[1]) - 1; // -1 to handle array index and view difference
     }
     else if (coord[1] == '1' && coord[2] == '0')
     {
-        InternalCoordinates.second = GridRowCount - 1; // -1 to handle array index and view difference
+        m_internalCoordinates.second = GridRowCount - 1; // -1 to handle array index and view difference
     }
     else
     {
         assert(false && "Incorrect passing argument to initiate CellIndex object.");
     }
-    assert(InternalCoordinates.second >= 0 && InternalCoordinates.second < GridColumnCount);
+    assert(m_internalCoordinates.second >= 0 && m_internalCoordinates.second < GridColumnCount);
 }
 
-const std::string CellIndex::ToString(const bool InIsUpperCase) const
+const std::string CellIndex::toString(const bool InIsUpperCase) const
 {
     std::string result;
-    result.push_back(CharUtilities::IndexToLetterChar(InternalCoordinates.first, InIsUpperCase));
-    result += CharUtilities::IndexToDigitStr(InternalCoordinates.second);
+    result.push_back(CharUtilities::IndexToLetterChar(m_internalCoordinates.first, InIsUpperCase));
+    result += CharUtilities::IndexToDigitStr(m_internalCoordinates.second);
 
     return result;
 }

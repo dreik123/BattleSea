@@ -7,16 +7,16 @@ class WarShip
 public:
     WarShip(const std::vector<CellIndex>& cells);
 
-    [[nodiscard]] const std::vector<CellIndex> GetOccupiedCells() const;
-    [[nodiscard]] int GetOccupiedCellsAmount() const; // aka ship type
+    [[nodiscard]] const std::vector<CellIndex> getOccupiedCells() const;
+    [[nodiscard]] int getOccupiedCellsAmount() const; // aka ship type
 
     //bool IsDamaged() const; // optional
-    [[nodiscard]] bool IsDestroyed() const;
+    [[nodiscard]] bool isDestroyed() const;
 
-    [[nodiscard]] bool DoesOccupyTheCell(const CellIndex& cell) const;
-    void ShootShipAtCell(const CellIndex& cell);
+    [[nodiscard]] bool doesOccupyTheCell(const CellIndex& cell) const;
+    void shootShipAtCell(const CellIndex& cell);
     //bool TryShootShipAtCell(const CellIndex& cell); // optional
 
 private:
-    std::vector<std::pair<CellIndex, bool>> ShipDecks;
+    std::vector<std::pair<CellIndex, bool>> m_shipDecks;
 };

@@ -6,46 +6,67 @@ WarShip::WarShip(const std::vector<CellIndex>& cells)
 {
     for (const auto& cell : cells)
     {
-        ShipDecks.emplace_back(cell, true);
+        m_shipDecks.emplace_back(cell, true);
     }
 }
 
-const std::vector<CellIndex> WarShip::GetOccupiedCells() const
+const std::vector<CellIndex> WarShip::getOccupiedCells() const
 {
     std::vector<CellIndex> cells;
-    for(const auto& shipdeck : ShipDecks)
+    for (const auto& shipDeck : m_shipDecks)
     {
-        std::transform(ShipDecks.cbegin(), ShipDecks.cend(), std::back_inserter(cells),
-                       [](const std::pair<CellIndex, bool>& p) { return p.first; });
+        std::transform(
+            m_shipDecks.cbegin(),
+            m_shipDecks.cend(),
+            std::back_inserter(cells),
+            [](const std::pair<CellIndex, bool>& p)
+            {
+                return p.first;
+            });
     }
     return cells;
 }
 
-int WarShip::GetOccupiedCellsAmount() const 
+int WarShip::getOccupiedCellsAmount() const
 {
-    return static_cast<int>(ShipDecks.size());
+    return static_cast<int>(m_shipDecks.size());
 }
 
-bool WarShip::IsDestroyed() const 
+bool WarShip::isDestroyed() const
 {
-    const int count = std::count_if(ShipDecks.cbegin(), ShipDecks.cend(), 
-                                    [](const std::pair<CellIndex, bool>& p){ return p.second == true; }); 
+    const int count = std::count_if(
+        m_shipDecks.cbegin(),
+        m_shipDecks.cend(),
+        [](const std::pair<CellIndex, bool>& p)
+        {
+            return p.second == true;
+        });
     return count == 0;
 }
 
-bool WarShip::DoesOccupyTheCell(const CellIndex& cell) const 
+bool WarShip::doesOccupyTheCell(const CellIndex& cell) const
 {
-    auto it = std::find_if(ShipDecks.cbegin(), ShipDecks.cend(), 
-                           [&cell](const std::pair<CellIndex, bool>& p) { return p.first == cell; });
-    return it != ShipDecks.end();
+    auto it = std::find_if(
+        m_shipDecks.cbegin(),
+        m_shipDecks.cend(),
+        [&cell](const std::pair<CellIndex, bool>& p)
+        {
+            return p.first == cell;
+        });
+    return it != m_shipDecks.end();
 }
 
-void WarShip::ShootShipAtCell(const CellIndex& cell) 
+void WarShip::shootShipAtCell(const CellIndex& cell)
 {
-    if (DoesOccupyTheCell(cell))
+    if (doesOccupyTheCell(cell))
     {
-        auto it = std::find_if(ShipDecks.begin(), ShipDecks.end(), 
-                               [&cell](const std::pair<CellIndex, bool>& p) { return p.first == cell; });
+        auto it = std::find_if(
+            m_shipDecks.begin(),
+            m_shipDecks.end(),
+            [&cell](const std::pair<CellIndex, bool>& p)
+            {
+                return p.first == cell;
+            });
         it->second = false;
     }
 }
