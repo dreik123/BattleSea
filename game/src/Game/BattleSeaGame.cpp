@@ -52,6 +52,9 @@ bool BattleSeaGame::ShootThePlayerGridAt(const CellIndex& cell)
     GridData& gridData = PlayerGrids[oppositePlayerIndex];
     std::vector<WarShip>& ships = PlayerShips[oppositePlayerIndex];
 
+    // TODO need to properly validate the double shot at cell outside
+    assert(gridData[cell.X()][cell.Y()] == CellState::Concealed && "Double shot");
+
     bool playerSwitch = true;
 
     // FIXME it corrupts damaged and destroyed states
@@ -157,7 +160,9 @@ CellState BattleSeaGame::GetPlayerGridCellState(const EPlayer player, const Cell
 
 int BattleSeaGame::GetIndexFromPlayer(const EPlayer& player)
 {
-    return static_cast<int>(player);
+    static_assert(static_cast<int>(EPlayer::Player_1) == 1);
+    static_assert(static_cast<int>(EPlayer::Player_2) == 2);
+    return static_cast<int>(player) - 1; // Excluding Invalid value from start
 }
 
 void BattleSeaGame::SetGridCellState(GridData& outGridData, const CellIndex& cell, const CellState& state)
