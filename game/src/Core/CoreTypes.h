@@ -20,10 +20,14 @@ using GridData = std::array<std::array<CellState, GridColumnCount>, GridRowCount
 
 enum class EPlayer : int8_t
 {
-    Invalid = -1,
-    Player_1 = 0,
+    Invalid = 0,
+    Player_1,
     Player_2,
+
+    Count = Player_2 + 1, // to cover starting count from zero
 };
+
+static_assert(static_cast<int>(EPlayer::Count) == 3);
 
 __forceinline EPlayer GetOppositePlayer(const EPlayer player)
 {

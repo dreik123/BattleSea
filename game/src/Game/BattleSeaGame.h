@@ -35,9 +35,11 @@ private:
 	std::array<GridData, kPlayerAmount> PlayerGrids;
 	std::array<std::vector<WarShip>, kPlayerAmount> PlayerShips;
 
-	// TODO use bit fields for EPlayer
-	EPlayer CurrentPlayer;
-	EPlayer InitialPlayer;
-	EPlayer LocalPlayer;
+	static_assert(static_cast<int>(EPlayer::Count) < 4);
+	// 2 bits covers 0..3 possible values, so it's okay to keep EPlayer values in 2 bits
+	EPlayer CurrentPlayer : 2;
+	EPlayer InitialPlayer : 2;
+	EPlayer LocalPlayer : 2;
+	char : 0; // alignment to fit current byte
 };
 
