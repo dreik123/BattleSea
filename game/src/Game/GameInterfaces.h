@@ -53,14 +53,15 @@ struct IBattleSeaGame
     // Returned boolean value indicates the shot success.
     virtual bool ShootThePlayerGridAt(const CellIndex& cell) = 0;
 
+    // TODO Need to consider additing initial/local player to StartGame as part of GameParams
+    virtual void StartGame(const EPlayer initialPlayer) = 0;
     virtual bool IsGameOver() const = 0;
 
     virtual EPlayer GetCurrentPlayer() const = 0;
     virtual EPlayer GetInitialPlayer() const = 0;
-    virtual void SetInitialPlayer(const EPlayer player) = 0;
     virtual EPlayer GetLocalPlayer() const = 0;
     virtual void SetLocalPlayer(const EPlayer player) = 0;
 
-    virtual const GridData& GetPlayerGridInfo(const EPlayer player) const = 0;
+    virtual const GridData GetPlayerGridInfo(const EPlayer player) const = 0;
     virtual CellState GetPlayerGridCellState(const EPlayer player, const CellIndex& cell) const = 0;
 };

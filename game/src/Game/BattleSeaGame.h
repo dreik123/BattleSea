@@ -13,13 +13,13 @@ public:
 	virtual void GenerateShipsForPlayer(const EPlayer player) override;
 	virtual bool InitShipPositionsForPlayer(const EPlayer player, const std::vector<WarShip>& ships) override;
 	virtual bool ShootThePlayerGridAt(const CellIndex& cell) override;
+	virtual void StartGame(const EPlayer initialPlayer) override;
 	virtual bool IsGameOver() const override;
 	virtual EPlayer GetCurrentPlayer() const override;
 	virtual EPlayer GetInitialPlayer() const override;
-	virtual void SetInitialPlayer(const EPlayer player) override;
 	virtual EPlayer GetLocalPlayer() const override;
 	virtual void SetLocalPlayer(const EPlayer player) override;
-	virtual const GridData& GetPlayerGridInfo(const EPlayer player) const override;
+	virtual const GridData GetPlayerGridInfo(const EPlayer player) const override;
 	virtual CellState GetPlayerGridCellState(const EPlayer player, const CellIndex& cell) const override;
 
 	static int GetIndexFromPlayer(const EPlayer& player);

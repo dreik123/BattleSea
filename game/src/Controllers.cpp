@@ -6,7 +6,6 @@
 #include <string>
 
 // TODOs:
-// cls after turn and render grids again
 // introduce Iplayer and encapsulate turn logic there
 // create RealPlayer
 // create seconds player as AIPlayer
@@ -19,19 +18,24 @@ GameController::GameController(std::shared_ptr<IBattleSeaGame>& InGame, std::sha
 
 void GameController::RunGame()
 {
-    // Temporary
+    // [Temporary] TODO DS Player can regenerate ships many times before game start
     Game->GenerateShipsForPlayer(EPlayer::Player_1);
     Game->GenerateShipsForPlayer(EPlayer::Player_2);
-    Game->SetInitialPlayer(EPlayer::Player_1);
-    View->RenderGame();
+
+    const EPlayer initialPlayer  = EPlayer::Player_1;
+    Game->SetLocalPlayer(EPlayer::Player_1); // will be refactored with IPlayer
+    // TODO DS Probably local player data must be part of StartGame() + generated ships as well
+    Game->StartGame(initialPlayer); // Does StartGame cover main menu or is this actual game (shooting) start?
 
     //if (std::cin.bad()) // TODO check
 
     bool hasGameBeenInterrupted = false;
-    EPlayer currentPlayerHACK = EPlayer::Player_1;
     while (!hasGameBeenInterrupted && !Game->IsGameOver())
     {
-        std::cout << "Player " << ((currentPlayerHACK == EPlayer::Player_1) ? "1" : "2") << " turns:" << std::endl;
+        // Shows grids before first turn
+        View->RenderGame();
+
+        std::cout << "Player " << ((Game->GetCurrentPlayer() == EPlayer::Player_1) ? "1" : "2") << " turns:" << std::endl;
         std::string user_input;
         std::cin >> user_input;
 
@@ -41,13 +45,10 @@ void GameController::RunGame()
             continue;
         }
 
-        // TODO validate
-        bool hit = Game->ShootThePlayerGridAt(CellIndex(user_input));
-        if (!hit)
-        {
-            // Temp HACK: since no hit has been done, player switched
-            currentPlayerHACK = GetOppositePlayer(currentPlayerHACK);
-        }
-        View->RenderGame();
+        // TODO validate input
+        /*bool hit = */Game->ShootThePlayerGridAt(CellIndex(user_input));
+
+        // Clear screen to refresh the grids in place
+        system("cls");
     }
 }

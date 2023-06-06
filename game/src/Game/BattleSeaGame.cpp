@@ -6,14 +6,21 @@
 BattleSeaGame::BattleSeaGame(std::unique_ptr<IWarShipGenerator>&& InGenerator, const GameConfig& InConfig)
     : GridGenerator(std::move(InGenerator))
     , Config(InConfig)
+    , PlayerGrids{}
+    , PlayerShips{}
     , CurrentPlayer(EPlayer::Invalid)
     , InitialPlayer(EPlayer::Invalid)
     , LocalPlayer(EPlayer::Invalid)
 {
-    // TODO DS impl PlayerGrids and PlayerShips initialization (release is broken right now)
     for (GridData& gridData : PlayerGrids)
     {
-        gridData = GridData();
+        for (auto& gridRow : gridData)
+        {
+            for (CellState& cell : gridRow)
+            {
+                cell = CellState::Concealed;
+            }
+        }
     }
 }
 
@@ -84,8 +91,18 @@ bool BattleSeaGame::ShootThePlayerGridAt(const CellIndex& cell)
     return !playerSwitch;
 }
 
+void BattleSeaGame::StartGame(const EPlayer initialPlayer)
+{
+    InitialPlayer = initialPlayer;
+    CurrentPlayer = initialPlayer;
+
+    // Validations before actual game
+    assert(GetLocalPlayer() != EPlayer::Invalid);
+}
+
 bool BattleSeaGame::IsGameOver() const
 {
+    // TODO impl
     return false;
 }
 
@@ -104,24 +121,31 @@ EPlayer BattleSeaGame::GetLocalPlayer() const
     return LocalPlayer;
 }
 
-void BattleSeaGame::SetInitialPlayer(EPlayer player)
-{
-    InitialPlayer = player;
-    CurrentPlayer = player;
-}
-
 void BattleSeaGame::SetLocalPlayer(EPlayer player)
 {
     LocalPlayer = player;
 }
 
-const GridData& BattleSeaGame::GetPlayerGridInfo(const EPlayer player) const
+const GridData BattleSeaGame::GetPlayerGridInfo(const EPlayer player) const
 {
     // Create a copy of grid data to make the ship data visible for local player only
-    GridData gridDataCopy = PlayerGrids[GetIndexFromPlayer(player)];
+    const int playerIndex = GetIndexFromPlayer(player);
+    GridData gridDataCopy = PlayerGrids[playerIndex];
+    const std::vector<WarShip>& warShips = PlayerShips[playerIndex];
+
     if (GetLocalPlayer() == player)
     {
-        // TODO modify gridDataCopy with setting CellState::Ship to it
+        for (const WarShip& ship : warShips)
+        {
+            for (const CellIndex& cell : ship.GetOccupiedCells())
+            {
+                const auto& [x, y] = cell.AsIndexesPair();
+                if (gridDataCopy[x][y] == CellState::Concealed)
+                {
+                    gridDataCopy[x][y] = CellState::Ship;
+                }
+            }
+        }
     }
     return gridDataCopy;
 }
