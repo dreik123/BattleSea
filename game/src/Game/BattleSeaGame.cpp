@@ -26,7 +26,7 @@ BattleSeaGame::BattleSeaGame(std::unique_ptr<IWarShipGenerator>&& InGenerator, c
 
 void BattleSeaGame::GenerateShipsForPlayer(const EPlayer player)
 {
-    const std::vector<WarShip> warShips = GridGenerator->GenerateShips(Config);
+    const std::vector<WarShip> warShips = GridGenerator->generateShips(Config);
     InitShipPositionsForPlayer(player, warShips);
 }
 
@@ -53,7 +53,7 @@ bool BattleSeaGame::ShootThePlayerGridAt(const CellIndex& cell)
     std::vector<WarShip>& ships = PlayerShips[oppositePlayerIndex];
 
     // TODO need to properly validate the double shot at cell outside
-    assert(gridData[cell.X()][cell.Y()] == CellState::Concealed && "Double shot");
+    assert(gridData[cell.x()][cell.y()] == CellState::Concealed && "Double shot");
 
     bool playerSwitch = true;
 
@@ -61,21 +61,21 @@ bool BattleSeaGame::ShootThePlayerGridAt(const CellIndex& cell)
     SetGridCellState(gridData, cell, CellState::Missed);
     for (WarShip& ship : ships)
     {
-        if (ship.IsDestroyed() || !ship.DoesOccupyTheCell(cell))
+        if (ship.isDestroyed() || !ship.doesOccupyTheCell(cell))
         {
             continue;
         }
 
-        ship.ShootShipAtCell(cell);
+        ship.shootShipAtCell(cell);
 
-        if (!ship.IsDestroyed())
+        if (!ship.isDestroyed())
         {
             SetGridCellState(gridData, cell, CellState::Damaged);
         }
         else
         {
             // Mark the whole ship in destroyed
-            for (const CellIndex& shipCell : ship.GetOccupiedCells())
+            for (const CellIndex& shipCell : ship.getOccupiedCells())
             {
                 SetGridCellState(gridData, cell, CellState::Destroyed);
             }
@@ -140,9 +140,9 @@ const GridData BattleSeaGame::GetPlayerGridInfo(const EPlayer player) const
     {
         for (const WarShip& ship : warShips)
         {
-            for (const CellIndex& cell : ship.GetOccupiedCells())
+            for (const CellIndex& cell : ship.getOccupiedCells())
             {
-                const auto& [x, y] = cell.AsIndexesPair();
+                const auto& [x, y] = cell.asIndexesPair();
                 if (gridDataCopy[x][y] == CellState::Concealed)
                 {
                     gridDataCopy[x][y] = CellState::Ship;
@@ -155,7 +155,7 @@ const GridData BattleSeaGame::GetPlayerGridInfo(const EPlayer player) const
 
 CellState BattleSeaGame::GetPlayerGridCellState(const EPlayer player, const CellIndex& cell) const
 {
-    return GetPlayerGridInfo(player)[cell.X()][cell.Y()];
+    return GetPlayerGridInfo(player)[cell.x()][cell.y()];
 }
 
 int BattleSeaGame::GetIndexFromPlayer(const EPlayer& player)
@@ -167,7 +167,7 @@ int BattleSeaGame::GetIndexFromPlayer(const EPlayer& player)
 
 void BattleSeaGame::SetGridCellState(GridData& outGridData, const CellIndex& cell, const CellState& state)
 {
-    outGridData[cell.X()][cell.Y()] = state;
+    outGridData[cell.x()][cell.y()] = state;
 }
 
 void BattleSeaGame::SurroundDestroyedShip(GridData& outGridData, const WarShip& ship)
@@ -186,9 +186,9 @@ void BattleSeaGame::SurroundDestroyedShip(GridData& outGridData, const WarShip& 
     };
 
     // Forehead solution
-    for (const CellIndex& cell : ship.GetOccupiedCells())
+    for (const CellIndex& cell : ship.getOccupiedCells())
     {
-        const auto& [x, y] = cell.AsIndexesPair();
+        const auto& [x, y] = cell.asIndexesPair();
         for (const auto& [dX, dY] : kPossibleDirections)
         {
             const int newX = x + dX;
