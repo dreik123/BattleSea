@@ -1,8 +1,7 @@
 #include "WarShipGenerators.h"
 #include "GameConfig.h"
+#include "Core/GridUtilities.h"
 #include <algorithm>
-#include <iostream> //DEBUG
-#include <random>
 
 
 const std::vector<WarShip> PredefinedClassicWarShipGenerator::generateShips(const GameConfig&)
@@ -48,6 +47,9 @@ const std::vector<WarShip> PredefinedClassicWarShipGenerator::generateShips(cons
     return result;
 }
 
+WarShipGenerator::WarShipGenerator() : rd(), mt(rd())
+{
+}
 
 bool WarShipGenerator::setShipCell(
     const CellIndex& coord,
@@ -70,25 +72,10 @@ void WarShipGenerator::fillAreaAroundShip(const std::vector<CellIndex>& shipCell
 {
     for (auto& cell : shipCells)
     {
-        std::vector<CellIndex> tempCells{
-        CellIndex(cell.x(), cell.y() - 1),
-        CellIndex(cell.x() + 1, cell.y()),
-        CellIndex(cell.x(), cell.y() + 1),
-        CellIndex(cell.x() - 1, cell.y()),
-        CellIndex(cell.x() + 1, cell.y() - 1),
-        CellIndex(cell.x() - 1, cell.y() - 1),
-        CellIndex(cell.x() + 1, cell.y() + 1),
-        CellIndex(cell.x() - 1, cell.y() + 1) };
-
-        for (auto& c : tempCells)
+        SafeCellWalkthrough(cell, [&cells](int safeX, int safeY) {if (cells[safeX][safeY] == 0)
         {
-            if (c.x() >= 0 && c.x() < params.sizeX &&
-                c.y() >= 0 && c.y() < params.sizeY &&
-                cells[c.x()][c.y()] == 0)
-            {
-                cells[c.x()][c.y()] = 2;
-            }
-        }
+            cells[safeX][safeY] = 2;
+        }});
     }
 }
 
@@ -105,10 +92,7 @@ const std::vector<WarShip> WarShipGenerator::generateShips(const GameConfig& par
         std::vector<CellIndex> shipCells;
 
         const int amountOfShipDecks = static_cast<int>(*shipIt);
-        std::random_device rd;
-        std::mt19937 mt(rd());
 
-        
         std::uniform_int_distribution<int> distX(0, params.sizeX - 1);
         std::uniform_int_distribution<int> distY(0, params.sizeY - 1);
 
@@ -183,10 +167,7 @@ const std::vector<WarShip> WarShipGenerator::generateShips(const GameConfig& par
                     break;
                 }
             }
-            if (!isValid)
-            {
-                continue;
-            }
+
         } while (!isValid);
 
         if (permissionDirections.empty())

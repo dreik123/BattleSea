@@ -1,9 +1,10 @@
 #pragma once
-#include <vector>
 
 #include "WarShip.h"
-
 #include "Core/CoreTypes.h"
+
+#include <vector>
+#include <random>
 
 struct GameConfig;
 
@@ -31,6 +32,7 @@ public:
 class WarShipGenerator : public IWarShipGenerator
 {
 public:
+    WarShipGenerator();
     virtual const std::vector<WarShip> generateShips(const GameConfig& params) override;
 private:
     bool setShipCell(
@@ -40,4 +42,7 @@ private:
         const std::vector<std::vector<int>>& cells,
         std::vector<CellIndex>& shipCells);
     void fillAreaAroundShip(const std::vector<CellIndex>& shipCells, std::vector<std::vector<int>>& cells, const GameConfig& params);
+private:
+    std::random_device rd;
+    std::mt19937 mt;
 };
