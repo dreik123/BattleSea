@@ -47,20 +47,22 @@ const std::vector<WarShip> PredefinedClassicWarShipGenerator::generateShips(cons
     return result;
 }
 
-WarShipGenerator::WarShipGenerator() : rd(), mt(rd())
+WarShipGenerator::WarShipGenerator()
+    : rd{}
+    , mt(rd())
 {
 }
 
 bool WarShipGenerator::setShipCell(
     const CellIndex& coord,
     const Direction& direction,
-    std::vector<Direction>& permissionDirections,
+    DirectionMask& permissionDirections,
     const std::vector<std::vector<int>>& cells,
     std::vector<CellIndex>& shipCells)
 {
     if (cells[coord.x()][coord.y()] != 0)
     {
-        permissionDirections.erase(std::remove(permissionDirections.begin(), permissionDirections.end(), direction), permissionDirections.end());
+        permissionDirections.clearFlag(direction);
         return false;
     }
 
@@ -70,18 +72,22 @@ bool WarShipGenerator::setShipCell(
 
 void WarShipGenerator::fillAreaAroundShip(const std::vector<CellIndex>& shipCells, std::vector<std::vector<int>>& cells, const GameConfig& params)
 {
-    for (auto& cell : shipCells)
+    for (const auto& cell : shipCells)
     {
-        SafeCellWalkthrough(cell, [&cells](int safeX, int safeY) {if (cells[safeX][safeY] == 0)
-        {
-            cells[safeX][safeY] = 2;
-        }});
+        SafeCellWalkthrough(cell, [&cells](int safeX, int safeY)
+            {
+                if (cells[safeX][safeY] == 0)
+                {
+                    cells[safeX][safeY] = 2;
+                }
+            }
+        );
     }
 }
 
 const std::vector<WarShip> WarShipGenerator::generateShips(const GameConfig& params)
 {
-    std::vector<int> temp(params.sizeY);
+    std::vector<int> temp(params.sizeY, 0);
     std::vector<std::vector<int>> cells(params.sizeX, temp);
 
     std::vector<WarShip> resWarships;
@@ -103,45 +109,48 @@ const std::vector<WarShip> WarShipGenerator::generateShips(const GameConfig& par
             --shipIt;
             continue;
         }
-        std::vector<Direction> permissionDirections{ Direction::North,
-                                                     Direction::East,
-                                                     Direction::South,
-                                                     Direction::West };
+
+        // TODO add ctor with ALL flags set
+        DirectionMask permissionDirections;
+        permissionDirections.setAllFlags();
 
         if (firstCell.y() - amountOfShipDecks - 1 < 0)
         {
-            permissionDirections.erase(std::remove(permissionDirections.begin(), permissionDirections.end(), Direction::North), permissionDirections.end());
+            permissionDirections.clearFlag(Direction::North);
         }
         if (firstCell.x() + amountOfShipDecks - 1 >= params.sizeX)
         {
-            permissionDirections.erase(std::remove(permissionDirections.begin(), permissionDirections.end(), Direction::East), permissionDirections.end());
+            permissionDirections.clearFlag(Direction::East);
         }
         if (firstCell.y() + amountOfShipDecks - 1 >= params.sizeY)
         {
-            permissionDirections.erase(std::remove(permissionDirections.begin(), permissionDirections.end(), Direction::South), permissionDirections.end());
+            permissionDirections.clearFlag(Direction::South);
         }
         if (firstCell.x() - amountOfShipDecks - 1 < 0)
         {
-            permissionDirections.erase(std::remove(permissionDirections.begin(), permissionDirections.end(), Direction::West), permissionDirections.end());
+            permissionDirections.clearFlag(Direction::West);
         }
 
-        if (permissionDirections.empty())
+        if (permissionDirections.isEmpty())
         {
             --shipIt;
             continue;
         }
+
         bool isValid = true;
 
         do
         {
-            if (permissionDirections.empty())
+            if (permissionDirections.isEmpty())
             {
                 break;
             }
             isValid = true;
 
-            std::uniform_int_distribution<int> directionRand(0, permissionDirections.size() - 1);
-            Direction direction = permissionDirections.at(directionRand(mt));
+            const std::vector<Direction> possibleDirections = permissionDirections.getSetFlagsAsValues();
+            std::uniform_int_distribution<int> directionRand(0, static_cast<int>(possibleDirections.size()) - 1);
+            const int randomIndex = directionRand(mt);
+            const Direction direction = possibleDirections.at(randomIndex);
 
             for (int i = 1; i < amountOfShipDecks; ++i)
             {
@@ -164,13 +173,14 @@ const std::vector<WarShip> WarShipGenerator::generateShips(const GameConfig& par
                     isValid = setShipCell(CellIndex(firstCell.x() - i, firstCell.y()), direction, permissionDirections, cells, shipCells);
                     break;
                 default:
+                    assert(false && "Unexpected Direction type");
                     break;
                 }
             }
 
         } while (!isValid);
 
-        if (permissionDirections.empty())
+        if (permissionDirections.isEmpty())
         {
             --shipIt;
             continue;
@@ -178,7 +188,7 @@ const std::vector<WarShip> WarShipGenerator::generateShips(const GameConfig& par
         cells[firstCell.x()][firstCell.y()] = 1;
         shipCells.push_back(firstCell);
 
-        for (auto& c : shipCells)
+        for (const CellIndex& c : shipCells)
         {
             cells[c.x()][c.y()] = 1;
         }

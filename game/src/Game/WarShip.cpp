@@ -34,7 +34,7 @@ int WarShip::getOccupiedCellsAmount() const
 
 bool WarShip::isDestroyed() const
 {
-    const int count = std::count_if(
+    const int64_t count = std::count_if(
         m_shipDecks.cbegin(),
         m_shipDecks.cend(),
         [](const std::pair<CellIndex, bool>& p)
