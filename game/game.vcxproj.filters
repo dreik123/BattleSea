@@ -65,5 +65,9 @@
     <ClInclude Include="src\Game\WarShipGenerators.h">
       <Filter>src\Game</Filter>
     </ClInclude>
+    <ClInclude Include="src\Core\GridUtilities.h">
+      <Filter>src\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\BitMask.h" />
   </ItemGroup>
 </Project>

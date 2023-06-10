@@ -4,7 +4,7 @@
 #include <assert.h>
 #include <stdint.h>
 
-#include "Core/CoreTypes.h"
+#include "CoreTypes.h"
 
 
 class CellIndex
@@ -17,30 +17,30 @@ public:
     CellIndex(const std::string& coord);
 
     // Returns array indexes
-    [[nodiscard]] inline std::pair<int, int> AsIndexesPair() const { return { X(), Y() }; }
+    [[nodiscard]] inline std::pair<int, int> asIndexesPair() const { return { x(), y() }; }
 
-    [[nodiscard]] inline int X() const { return InternalCoordinates.first; }
+    [[nodiscard]] inline int x() const { return m_internalCoordinates.first; }
 
-    [[nodiscard]] inline int Y() const { return InternalCoordinates.second; }
+    [[nodiscard]] inline int y() const { return m_internalCoordinates.second; }
 
-    [[nodiscard]] const std::string ToString(const bool InIsUpperCase = false) const;
+    [[nodiscard]] const std::string toString(const bool isUpperCase = false) const;
 
     friend bool operator==(const CellIndex& c1, const CellIndex& c2);
     friend bool operator!=(const CellIndex& c1, const CellIndex& c2);
 
 private:
-    std::pair<int8_t, int8_t> InternalCoordinates;
+    std::pair<int8_t, int8_t> m_internalCoordinates;
 };
 
 
 inline bool operator==(const CellIndex& c1, const CellIndex& c2)
 {
-    return c1.InternalCoordinates == c2.InternalCoordinates;
+    return c1.m_internalCoordinates == c2.m_internalCoordinates;
 }
 
 inline bool operator!=(const CellIndex& c1, const CellIndex& c2)
 {
-    return c1.InternalCoordinates != c2.InternalCoordinates;
+    return c1.m_internalCoordinates != c2.m_internalCoordinates;
 }
 
 
