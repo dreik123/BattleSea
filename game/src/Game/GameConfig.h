@@ -4,10 +4,10 @@
 
 struct GameConfig
 {
-    std::multiset<uint8_t> m_amountOfShip;
+    std::multiset<uint8_t> numberOfMultiDeckShips;
 
-    uint8_t m_sizeX = 10;
-    uint8_t m_sizeY = 10;
+    uint8_t sizeX = 10;
+    uint8_t sizeY = 10;
 };
 
 // TODO DS make this creation a bit user friendly

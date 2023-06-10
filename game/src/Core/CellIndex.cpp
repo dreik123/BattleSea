@@ -1,48 +1,48 @@
 #include "CellIndex.h"
 
-namespace CharUtilities
+namespace char_utilities
 {
     // Compile time analog of tolower()
-    static constexpr char CharToLower(const char InValue) {
-        return (InValue >= 'A' && InValue <= 'Z') ? InValue + ('a' - 'A') : InValue;
+    static constexpr char CharToLower(const char value) {
+        return (value >= 'A' && value <= 'Z') ? value + ('a' - 'A') : value;
     }
 
     // Compile time analog of isdigit()
-    static constexpr char IsDigit(const char InValue) {
-        return InValue >= '0' && InValue <= '9';
+    static constexpr char IsDigit(const char value) {
+        return value >= '0' && value <= '9';
     }
 
     // Compile time analog of isalpha()
-    static constexpr char IsAlpha(const char InValue) {
-        return (InValue >= 'A' && InValue <= 'Z') || (InValue >= 'a' && InValue <= 'z');
+    static constexpr char IsAlpha(const char value) {
+        return (value >= 'A' && value <= 'Z') || (value >= 'a' && value <= 'z');
     }
 
-    static constexpr int8_t DigitCharToInt(const char InValue)
+    static constexpr int8_t DigitCharToInt(const char value)
     {
-        assert(IsDigit(InValue));
-        return InValue - '0';
+        assert(IsDigit(value));
+        return value - '0';
     }
 
-    static constexpr int8_t LetterCharToInt(const char InValue, bool InIsCaseInsensetive = true)
+    static constexpr int8_t LetterCharToInt(const char value, bool isCaseInsensetive = true)
     {
-        assert(IsAlpha(InValue));
-        const char value = InIsCaseInsensetive ? CharToLower(InValue) : InValue;
+        assert(IsAlpha(value));
+        const char val = isCaseInsensetive ? CharToLower(value) : value;
 
-        return value - 'a';
+        return val - 'a';
     }
 
     // InValue is in [0-9]. 0 means 'a'
-    static constexpr char IndexToLetterChar(const int InValue, bool InIsUpperCase)
+    static constexpr char IndexToLetterChar(const int value, bool isUpperCase)
     {
-        assert(InValue >= 0);
-        return InValue + (InIsUpperCase ? 'A' : 'a');
+        assert(value >= 0);
+        return value + (isUpperCase ? 'A' : 'a');
     }
 
     // TODO constexpr for static_assert support (will be done in the next commits)
-    static const std::string IndexToDigitStr(const int InValue)
+    static const std::string IndexToDigitStr(const int value)
     {
-        assert(InValue >= 0);
-        return std::to_string(InValue + 1); // convert to user-friendly value
+        assert(value >= 0);
+        return std::to_string(value + 1); // convert to user-friendly value
     }
 }
 
@@ -61,11 +61,11 @@ CellIndex::CellIndex(const std::string& coord)
         (coord.size() == 3 && isalpha(coord[0]) && coord[1] == '1' && coord[2] == '0')
     );
 
-    m_internalCoordinates.first = CharUtilities::LetterCharToInt(coord[0], true);
+    m_internalCoordinates.first = char_utilities::LetterCharToInt(coord[0], true);
     assert(m_internalCoordinates.first >= 0 && m_internalCoordinates.first < GridRowCount);
     if (coord.size() == 2)
     {
-        m_internalCoordinates.second = CharUtilities::DigitCharToInt(coord[1]) - 1; // -1 to handle array index and view difference
+        m_internalCoordinates.second = char_utilities::DigitCharToInt(coord[1]) - 1; // -1 to handle array index and view difference
     }
     else if (coord[1] == '1' && coord[2] == '0')
     {
@@ -78,11 +78,11 @@ CellIndex::CellIndex(const std::string& coord)
     assert(m_internalCoordinates.second >= 0 && m_internalCoordinates.second < GridColumnCount);
 }
 
-const std::string CellIndex::toString(const bool InIsUpperCase) const
+const std::string CellIndex::toString(const bool isUpperCase) const
 {
     std::string result;
-    result.push_back(CharUtilities::IndexToLetterChar(m_internalCoordinates.first, InIsUpperCase));
-    result += CharUtilities::IndexToDigitStr(m_internalCoordinates.second);
+    result.push_back(char_utilities::IndexToLetterChar(m_internalCoordinates.first, isUpperCase));
+    result += char_utilities::IndexToDigitStr(m_internalCoordinates.second);
 
     return result;
 }
@@ -91,7 +91,7 @@ const std::string CellIndex::toString(const bool InIsUpperCase) const
 // TODO consider separate place and approach if need for these tests
 constexpr void CellIndexTests()
 {
-    using namespace CharUtilities;
+    using namespace char_utilities;
 
     static_assert(LetterCharToInt('a') == 0);
     static_assert(LetterCharToInt('b') == 1);

@@ -2,17 +2,17 @@
 #include <vector>
 
 #include "WarShip.h"
-#include "GameConfig.h"
+
 #include "Core/CoreTypes.h"
-#include <algorithm>
-#include <list>
+
+struct GameConfig;
 
 enum class Direction
 {
-    NORTH = 0,
-    EAST,
-    SOUTH,
-    WEST
+    North = 0,
+    East,
+    South,
+    West
 };
 
 struct IWarShipGenerator

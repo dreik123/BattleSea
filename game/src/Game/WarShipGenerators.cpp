@@ -1,4 +1,5 @@
 #include "WarShipGenerators.h"
+#include "GameConfig.h"
 #include <algorithm>
 #include <iostream> //DEBUG
 #include <random>
@@ -81,8 +82,8 @@ void WarShipGenerator::fillAreaAroundShip(const std::vector<CellIndex>& shipCell
 
         for (auto& c : tempCells)
         {
-            if (c.x() >= 0 && c.x() < params.m_sizeX &&
-                c.y() >= 0 && c.y() < params.m_sizeY &&
+            if (c.x() >= 0 && c.x() < params.sizeX &&
+                c.y() >= 0 && c.y() < params.sizeY &&
                 cells[c.x()][c.y()] == 0)
             {
                 cells[c.x()][c.y()] = 2;
@@ -93,20 +94,13 @@ void WarShipGenerator::fillAreaAroundShip(const std::vector<CellIndex>& shipCell
 
 const std::vector<WarShip> WarShipGenerator::generateShips(const GameConfig& params)
 {
-    std::vector<std::vector<int>> cells;
-
-    for (int i = 0; i < params.m_sizeX; ++i)
-    {
-        std::vector<int> temp;
-        for (int j = 0; j < params.m_sizeY; ++j)
-        {
-            temp.push_back(0);
-        }
-        cells.push_back(temp);
-    }
+    std::vector<int> temp(params.sizeY);
+    std::vector<std::vector<int>> cells(params.sizeX, temp);
 
     std::vector<WarShip> resWarships;
-    for (auto shipIt = params.m_amountOfShip.crbegin(); shipIt != params.m_amountOfShip.crend(); ++shipIt)
+    for (auto shipIt = params.numberOfMultiDeckShips.crbegin();
+        shipIt != params.numberOfMultiDeckShips.crend();
+        ++shipIt)
     {
         std::vector<CellIndex> shipCells;
 
@@ -114,9 +108,9 @@ const std::vector<WarShip> WarShipGenerator::generateShips(const GameConfig& par
         std::random_device rd;
         std::mt19937 mt(rd());
 
-        bool isValid = true;
-        std::uniform_int_distribution<int> distX(0, params.m_sizeX - 1);
-        std::uniform_int_distribution<int> distY(0, params.m_sizeY - 1);
+        
+        std::uniform_int_distribution<int> distX(0, params.sizeX - 1);
+        std::uniform_int_distribution<int> distY(0, params.sizeY - 1);
 
         const CellIndex firstCell(distX(mt), distY(mt));
 
@@ -125,26 +119,26 @@ const std::vector<WarShip> WarShipGenerator::generateShips(const GameConfig& par
             --shipIt;
             continue;
         }
-        std::vector<Direction> permissionDirections{ Direction::NORTH,
-                                                     Direction::EAST,
-                                                     Direction::SOUTH,
-                                                     Direction::WEST };
+        std::vector<Direction> permissionDirections{ Direction::North,
+                                                     Direction::East,
+                                                     Direction::South,
+                                                     Direction::West };
 
         if (firstCell.y() - amountOfShipDecks - 1 < 0)
         {
-            permissionDirections.erase(std::remove(permissionDirections.begin(), permissionDirections.end(), Direction::NORTH), permissionDirections.end());
+            permissionDirections.erase(std::remove(permissionDirections.begin(), permissionDirections.end(), Direction::North), permissionDirections.end());
         }
-        if (firstCell.x() + amountOfShipDecks - 1 >= params.m_sizeX)
+        if (firstCell.x() + amountOfShipDecks - 1 >= params.sizeX)
         {
-            permissionDirections.erase(std::remove(permissionDirections.begin(), permissionDirections.end(), Direction::EAST), permissionDirections.end());
+            permissionDirections.erase(std::remove(permissionDirections.begin(), permissionDirections.end(), Direction::East), permissionDirections.end());
         }
-        if (firstCell.y() + amountOfShipDecks - 1 >= params.m_sizeY)
+        if (firstCell.y() + amountOfShipDecks - 1 >= params.sizeY)
         {
-            permissionDirections.erase(std::remove(permissionDirections.begin(), permissionDirections.end(), Direction::SOUTH), permissionDirections.end());
+            permissionDirections.erase(std::remove(permissionDirections.begin(), permissionDirections.end(), Direction::South), permissionDirections.end());
         }
         if (firstCell.x() - amountOfShipDecks - 1 < 0)
         {
-            permissionDirections.erase(std::remove(permissionDirections.begin(), permissionDirections.end(), Direction::WEST), permissionDirections.end());
+            permissionDirections.erase(std::remove(permissionDirections.begin(), permissionDirections.end(), Direction::West), permissionDirections.end());
         }
 
         if (permissionDirections.empty())
@@ -152,6 +146,7 @@ const std::vector<WarShip> WarShipGenerator::generateShips(const GameConfig& par
             --shipIt;
             continue;
         }
+        bool isValid = true;
 
         do
         {
@@ -172,16 +167,16 @@ const std::vector<WarShip> WarShipGenerator::generateShips(const GameConfig& par
                 }
                 switch (direction)
                 {
-                case Direction::NORTH:
+                case Direction::North:
                     isValid = setShipCell(CellIndex(firstCell.x(), firstCell.y() - i), direction, permissionDirections, cells, shipCells);
                     break;
-                case Direction::EAST:
+                case Direction::East:
                     isValid = setShipCell(CellIndex(firstCell.x() + i, firstCell.y()), direction, permissionDirections, cells, shipCells);
                     break;
-                case Direction::SOUTH:
+                case Direction::South:
                     isValid = setShipCell(CellIndex(firstCell.x(), firstCell.y() + i), direction, permissionDirections, cells, shipCells);
                     break;
-                case Direction::WEST:
+                case Direction::West:
                     isValid = setShipCell(CellIndex(firstCell.x() - i, firstCell.y()), direction, permissionDirections, cells, shipCells);
                     break;
                 default:
@@ -200,7 +195,7 @@ const std::vector<WarShip> WarShipGenerator::generateShips(const GameConfig& par
             continue;
         }
         cells[firstCell.x()][firstCell.y()] = 1;
-        shipCells.emplace_back(firstCell);
+        shipCells.push_back(firstCell);
 
         for (auto& c : shipCells)
         {
@@ -208,7 +203,7 @@ const std::vector<WarShip> WarShipGenerator::generateShips(const GameConfig& par
         }
         fillAreaAroundShip(shipCells, cells, params);
 
-        resWarships.push_back(WarShip(shipCells));
+        resWarships.emplace_back(shipCells);
     }
 
     return resWarships;

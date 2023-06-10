@@ -23,7 +23,7 @@ public:
 
     [[nodiscard]] inline int y() const { return m_internalCoordinates.second; }
 
-    [[nodiscard]] const std::string toString(const bool InIsUpperCase = false) const;
+    [[nodiscard]] const std::string toString(const bool isUpperCase = false) const;
 
     friend bool operator==(const CellIndex& c1, const CellIndex& c2);
     friend bool operator!=(const CellIndex& c1, const CellIndex& c2);
