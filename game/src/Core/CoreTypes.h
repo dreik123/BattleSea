@@ -13,9 +13,9 @@ enum class CellState
 
 
 // README if we decide to customize grid size based on config, need to consider std::vector instead of static array
-constexpr int GridRowCount = 10;
-constexpr int GridColumnCount = 10;
-using GridData = std::array<std::array<CellState, GridColumnCount>, GridRowCount>;
+constexpr int GRID_ROW_COUNT = 10;
+constexpr int GRID_COLUMN_COUNT = 10;
+using GridData = std::array<std::array<CellState, GRID_COLUMN_COUNT>, GRID_ROW_COUNT>;
 
 
 enum class EPlayer : int8_t

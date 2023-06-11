@@ -193,7 +193,7 @@ void BattleSeaGame::SurroundDestroyedShip(GridData& outGridData, const WarShip& 
         {
             const int newX = x + dX;
             const int newY = y + dY;
-            if (newX < 0 || newY < 0 || newX >= GridRowCount || newY >= GridColumnCount)
+            if (newX < 0 || newY < 0 || newX >= GRID_ROW_COUNT || newY >= GRID_COLUMN_COUNT)
             {
                 continue;
             }

@@ -3,7 +3,7 @@
 #include <functional>
 
 // TODO move implementation to cpp file in case of functionality extension
-void SafeCellWalkthrough(const CellIndex& cell, std::function<void(int, int)> f)
+void safeCellWalkthrough(const CellIndex& cell, std::function<void(int, int)> f)
 {
     // Example of class template auto deduction (CTAD)
     constexpr std::array POSSIBLE_CELL_DIRECTIONS =
@@ -23,7 +23,7 @@ void SafeCellWalkthrough(const CellIndex& cell, std::function<void(int, int)> f)
     {
         const int newX = x + dX;
         const int newY = y + dY;
-        if (newX < 0 || newY < 0 || newX >= GridRowCount || newY >= GridColumnCount)
+        if (newX < 0 || newY < 0 || newX >= GRID_ROW_COUNT || newY >= GRID_COLUMN_COUNT)
         {
             continue;
         }
