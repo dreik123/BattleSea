@@ -22,7 +22,7 @@ struct ClassicConsoleBattleSeaFactory : public IBattleSeaFactory
     virtual std::shared_ptr<IBattleSeaGame> CreateGame() override
     {
         const GameConfig& gameConfig = DEFAULT_GAME_CONFIG;
-        auto generator = std::make_unique<PredefinedClassicWarShipGenerator>();
+        auto generator = std::make_unique<WarShipGenerator>();
         return std::make_shared<BattleSeaGame>(std::move(generator), gameConfig);
     }
     virtual std::shared_ptr<IBattleSeaView> CreatePresenter(std::shared_ptr<IBattleSeaGame>& InGame) override
@@ -40,7 +40,7 @@ struct HasbroConsoleBattleSeaFactory : public ClassicConsoleBattleSeaFactory
     virtual std::shared_ptr<IBattleSeaGame> CreateGame() override
     {
         const GameConfig& gameConfig = HASBRO_GAME_CONFIG;
-        auto generator = std::make_unique<PredefinedClassicWarShipGenerator>();
+        auto generator = std::make_unique<WarShipGenerator>();
         return std::make_shared<BattleSeaGame>(std::move(generator), gameConfig);
     }
 };

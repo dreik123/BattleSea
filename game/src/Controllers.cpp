@@ -45,6 +45,14 @@ void GameController::RunGame()
             continue;
         }
 
+        // Temp debug approach
+        if (user_input == "g")
+        {
+            Game->GenerateShipsForPlayer(EPlayer::Player_1);
+            system("cls");
+            continue;
+        }
+
         // TODO validate input
         /*bool hit = */Game->ShootThePlayerGridAt(CellIndex(user_input));
 
