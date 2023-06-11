@@ -24,6 +24,7 @@ namespace
     constexpr unsigned char CENTER_PIECE = 206;
 
     constexpr unsigned char EMPTY_FILLER = 176;
+    constexpr unsigned char SHIP_FILLER = 219;
 }
 
 
@@ -38,26 +39,6 @@ constexpr static std::array<char, 10> RowAxisNames =
     'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'
 };
 
-static const GridData GetTestData()
-{
-    // Temp data for test
-    GridData gridData;
-    for (auto& row : gridData)
-    {
-        for (auto& cell : row)
-        {
-            cell = CellState::Concealed;
-        }
-    }
-
-    gridData[6][6] = CellState::Missed;
-    gridData[0][0] = CellState::Missed;
-    gridData[1][1] = CellState::Damaged;
-
-    gridData[2][3] = CellState::Destroyed;
-
-    return gridData;
-}
 
 TerminalView::TerminalView(const std::shared_ptr<IBattleSeaGame>& InGame)
     : Game(InGame)
@@ -66,11 +47,15 @@ TerminalView::TerminalView(const std::shared_ptr<IBattleSeaGame>& InGame)
 
 void TerminalView::RenderGame()
 {
-    // TODO DS link to model data
-    const GridData modelData = GetTestData();
-    RenderTwoGrids(modelData, modelData, true);
+    // README for now Player_1 is user, Player_2 is bot
+    // TODO Multiplayer requires understanding which EPlayer value current player has
+    // Important: Own grid must visualize ships as well, opponent's - no.
+    const GridData modelData_1 = Game->GetPlayerGridInfo(EPlayer::Player_1);
+    const GridData modelData_2 = Game->GetPlayerGridInfo(EPlayer::Player_2);
+    RenderTwoGrids(modelData_1, modelData_2, true);
 }
 
+// TODO add ships
 void TerminalView::RenderSingleGrid(const GridData& InGridData)
 {
     assert(InGridData.size() != 0 && InGridData.front().size() != 0);
@@ -144,6 +129,7 @@ void TerminalView::RenderSingleGrid(const GridData& InGridData)
     std::cout << RIGHT_BOTTOM_EDGE << std::endl;
 }
 
+// TODO render own ships
 void TerminalView::RenderTwoGrids(const GridData& InGridDataLeft, const GridData& InGridDataRight, const bool bIsHorizontally/* = true*/)
 {
     if (!bIsHorizontally)
@@ -244,7 +230,7 @@ void TerminalView::RenderTwoGrids(const GridData& InGridDataLeft, const GridData
         {
             RenderVerticalDelimitersPerCell();
             const CellIndex Index = CellIndex(ColCount - 1, i);
-            RenderCell(Index, InGridDataLeft.back()[i]);
+            RenderCell(Index, grids[count].back()[i]);
         }
 
         RenderVerticalDelimitersPerCell();
@@ -309,6 +295,11 @@ void TerminalView::RenderCell(const CellIndex&, const CellState InState)
     case CellState::Missed:
     {
         RenderSymbolNTimes(EMPTY_FILLER, HorizontalSymbolsAmountPerCell);
+        break;
+    }
+    case CellState::Ship:
+    {
+        RenderSymbolNTimes(SHIP_FILLER, HorizontalSymbolsAmountPerCell);
         break;
     }
     default:
