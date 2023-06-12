@@ -74,7 +74,7 @@ void WarShipGenerator::fillAreaAroundShip(const std::vector<CellIndex>& shipCell
 {
     for (const auto& cell : shipCells)
     {
-        SafeCellWalkthrough(cell, [&cells](int safeX, int safeY)
+        safeCellWalkthrough(cell, [&cells](int safeX, int safeY)
             {
                 if (cells[safeX][safeY] == 0)
                 {

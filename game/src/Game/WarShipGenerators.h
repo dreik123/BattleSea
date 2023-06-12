@@ -19,8 +19,8 @@ enum class Direction
     Count,
 };
 
-static constexpr int DirectionCount = static_cast<int>(Direction::Count);
-static_assert(DirectionCount == 4);
+static constexpr int DIRECTION_COUNT = static_cast<int>(Direction::Count);
+static_assert(DIRECTION_COUNT == 4);
 
 using DirectionMask = BitMask<Direction>;
 

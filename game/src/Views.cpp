@@ -28,196 +28,196 @@ namespace
 }
 
 
-constexpr static uint8_t HorizontalSymbolsAmountPerCell = 3;
-constexpr static uint8_t VerticalSymbolsAmountPerCell = 1;
-constexpr static uint8_t SpacesBetweenGrids = 10;
+constexpr static uint8_t HORIZONTAL_SYMBOLS_AMOUNT_PER_CELL = 3;
+constexpr static uint8_t VERTICAL_SYMBOLS_AMOUNT_PER_CELL = 1;
+constexpr static uint8_t SPACES_BETWEEN_GRIDS = 10;
 
 // TODO probably make sense to take the data from model when model is implemented.
 // This array might be generated in compile time automatically with N chars starting from 'A' symbol
-constexpr static std::array<char, 10> RowAxisNames =
+constexpr static std::array<char, 10> ROW_AXIS_NAMES =
 {
     'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'
 };
 
 
-TerminalView::TerminalView(const std::shared_ptr<IBattleSeaGame>& InGame)
-    : Game(InGame)
+TerminalView::TerminalView(const std::shared_ptr<IBattleSeaGame>& game)
+    : m_game(game)
 {
 }
 
-void TerminalView::RenderGame()
+void TerminalView::renderGame()
 {
-    // README for now Player_1 is user, Player_2 is bot
-    // TODO Multiplayer requires understanding which EPlayer value current player has
+    // README for now Player1 is user, Player2 is bot
+    // TODO Multiplayer requires understanding which Player value current player has
     // Important: Own grid must visualize ships as well, opponent's - no.
-    const GridData modelData_1 = Game->GetPlayerGridInfo(EPlayer::Player_1);
-    const GridData modelData_2 = Game->GetPlayerGridInfo(EPlayer::Player_2);
-    RenderTwoGrids(modelData_1, modelData_2, true);
+    const GridData modelData1 = m_game->getPlayerGridInfo(Player::Player1);
+    const GridData modelData2 = m_game->getPlayerGridInfo(Player::Player2);
+    renderTwoGrids(modelData1, modelData2, true);
 }
 
 // TODO add ships
-void TerminalView::RenderSingleGrid(const GridData& InGridData)
+void TerminalView::renderSingleGrid(const GridData& gridData)
 {
-    assert(InGridData.size() != 0 && InGridData.front().size() != 0);
-    assert(InGridData.size() <= RowAxisNames.size());
+    assert(gridData.size() != 0 && gridData.front().size() != 0);
+    assert(gridData.size() <= ROW_AXIS_NAMES.size());
 
-    const size_t RowCount = InGridData.size();
-    const size_t ColCount = InGridData[0].size();
+    const size_t rowCount = gridData.size();
+    const size_t colCount = gridData[0].size();
 
-    RenderLetterAxisWithAlignment(' ');
-    for (int i(1); i <= ColCount; i++)
+    renderLetterAxisWithAlignment(' ');
+    for (int i(1); i <= colCount; i++)
     {
         // TODO improve this to be dependent on some formatting approach
         std::cout << "  " << i << " ";
     }
     std::cout << std::endl;
 
-    RenderLetterAxisWithAlignment(' ');
+    renderLetterAxisWithAlignment(' ');
     std::cout << LEFT_TOP_EDGE;
-    for (int i(0); i < RowCount - 1; i++)
+    for (int i(0); i < rowCount - 1; i++)
     {
-        RenderHorizontalDelimitersPerCell();
+        renderHorizontalDelimitersPerCell();
         std::cout << TOP_CENTER_PIECE;
     }
 
-    RenderHorizontalDelimitersPerCell();
+    renderHorizontalDelimitersPerCell();
     std::cout << RIGHT_TOP_EDGE << std::endl;
 
-    for (int i(0); i < ColCount - 1; i++)
+    for (int i(0); i < colCount - 1; i++)
     {
-        RenderLetterAxisWithAlignment(RowAxisNames[i]);
-        for (int j(0); j < RowCount; j++)
+        renderLetterAxisWithAlignment(ROW_AXIS_NAMES[i]);
+        for (int j(0); j < rowCount; j++)
         {
-            RenderVerticalDelimitersPerCell();
+            renderVerticalDelimitersPerCell();
             const CellIndex Index = CellIndex(i, j);
-            RenderCell(Index, InGridData[i][j]);
+            renderCell(Index, gridData[i][j]);
         }
-        RenderVerticalDelimitersPerCell();
+        renderVerticalDelimitersPerCell();
         std::cout << std::endl;
 
-        RenderLetterAxisWithAlignment(' ');
+        renderLetterAxisWithAlignment(' ');
         std::cout << LEFT_CENTER_PIECE;
-        for (int j(0); j < RowCount - 1; j++)
+        for (int j(0); j < rowCount - 1; j++)
         {
-            RenderHorizontalDelimitersPerCell();
+            renderHorizontalDelimitersPerCell();
             std::cout << CENTER_PIECE;
         }
-        RenderHorizontalDelimitersPerCell();
+        renderHorizontalDelimitersPerCell();
         std::cout << RIGHT_CENTER_PIECE << std::endl;
     }
 
-    RenderLetterAxisWithAlignment(RowAxisNames.back());
-    for (int i(0); i < RowCount; i++)
+    renderLetterAxisWithAlignment(ROW_AXIS_NAMES.back());
+    for (int i(0); i < rowCount; i++)
     {
-        RenderVerticalDelimitersPerCell();
-        const CellIndex Index = CellIndex(RowCount - 1, i);
-        RenderCell(Index, InGridData.back()[i]);
+        renderVerticalDelimitersPerCell();
+        const CellIndex Index = CellIndex(rowCount - 1, i);
+        renderCell(Index, gridData.back()[i]);
     }
 
-    RenderVerticalDelimitersPerCell();
+    renderVerticalDelimitersPerCell();
     std::cout << std::endl;
 
-    RenderLetterAxisWithAlignment(' ');
+    renderLetterAxisWithAlignment(' ');
     std::cout << LEFT_BOTTOM_EDGE;
-    for (int i(0); i < RowCount - 1; i++)
+    for (int i(0); i < rowCount - 1; i++)
     {
-        RenderHorizontalDelimitersPerCell();
+        renderHorizontalDelimitersPerCell();
         std::cout << BOTTOM_CENTER_PIECE;
     }
 
-    RenderHorizontalDelimitersPerCell();
+    renderHorizontalDelimitersPerCell();
     std::cout << RIGHT_BOTTOM_EDGE << std::endl;
 }
 
 // TODO render own ships
-void TerminalView::RenderTwoGrids(const GridData& InGridDataLeft, const GridData& InGridDataRight, const bool bIsHorizontally/* = true*/)
+void TerminalView::renderTwoGrids(const GridData& gridDataLeft, const GridData& gridDataRight, const bool isHorizontally/* = true*/)
 {
-    if (!bIsHorizontally)
+    if (!isHorizontally)
     {
-        RenderSingleGrid(InGridDataLeft);
+        renderSingleGrid(gridDataLeft);
         std::cout << std::endl;
-        RenderSingleGrid(InGridDataRight);
+        renderSingleGrid(gridDataRight);
         std::cout << std::endl;
 
         return;
     }
 
     // Check non-emptiness
-    assert(InGridDataLeft.size() != 0 && InGridDataLeft.front().size() != 0);
-    assert(InGridDataRight.size() != 0 && InGridDataRight.front().size() != 0);
+    assert(gridDataLeft.size() != 0 && gridDataLeft.front().size() != 0);
+    assert(gridDataRight.size() != 0 && gridDataRight.front().size() != 0);
     // Check size equality
-    assert(InGridDataLeft.size() == InGridDataRight.size());
-    assert(InGridDataLeft.front().size() == InGridDataRight.front().size());
+    assert(gridDataLeft.size() == gridDataRight.size());
+    assert(gridDataLeft.front().size() == gridDataRight.front().size());
     // Check that each row has own name
-    assert(InGridDataLeft.size() <= RowAxisNames.size());
+    assert(gridDataLeft.size() <= ROW_AXIS_NAMES.size());
 
-    const size_t RowCount = InGridDataLeft.size();
-    const size_t ColCount = InGridDataLeft[0].size();
+    const size_t rowCount = gridDataLeft.size();
+    const size_t colCount = gridDataLeft[0].size();
 
-    const std::array grids = { InGridDataLeft, InGridDataRight };
+    const std::array grids = { gridDataLeft, gridDataRight };
 
     // Numbers top axis
     for (int count(0); count < grids.size(); count++)
     {
-        RenderLetterAxisWithAlignment(' ');
-        for (int i(1); i <= ColCount; i++)
+        renderLetterAxisWithAlignment(' ');
+        for (int i(1); i <= colCount; i++)
         {
             // TODO improve this to be dependent on some formatting approach
             std::cout << "  " << i << " ";
         }
-        RenderGridOffset();
+        renderGridOffset();
     }
     std::cout << std::endl;
 
     // Grid top title
     for (int count(0); count < grids.size(); count++)
     {
-        RenderLetterAxisWithAlignment(' ');
+        renderLetterAxisWithAlignment(' ');
         std::cout << LEFT_TOP_EDGE;
-        for (int i(0); i < ColCount - 1; i++)
+        for (int i(0); i < colCount - 1; i++)
         {
-            RenderHorizontalDelimitersPerCell();
+            renderHorizontalDelimitersPerCell();
             std::cout << TOP_CENTER_PIECE;
         }
 
-        RenderHorizontalDelimitersPerCell();
+        renderHorizontalDelimitersPerCell();
         std::cout << RIGHT_TOP_EDGE;
-        RenderGridOffset();
+        renderGridOffset();
     }
     std::cout << std::endl;
 
     // N - 1 lines of vertical delimiters and horizontal grid lines
-    for (int i(0); i < RowCount - 1; i++)
+    for (int i(0); i < rowCount - 1; i++)
     {
         for (int count(0); count < grids.size(); count++)
         {
             const GridData& grid = grids[count];
-            RenderLetterAxisWithAlignment(RowAxisNames[i]);
-            for (int j(0); j < ColCount; j++)
+            renderLetterAxisWithAlignment(ROW_AXIS_NAMES[i]);
+            for (int j(0); j < colCount; j++)
             {
-                RenderVerticalDelimitersPerCell();
+                renderVerticalDelimitersPerCell();
                 const CellIndex Index = CellIndex(i, j);
-                RenderCell(Index, grid[i][j]);
+                renderCell(Index, grid[i][j]);
             }
-            RenderVerticalDelimitersPerCell();
+            renderVerticalDelimitersPerCell();
 
-            RenderGridOffset();
+            renderGridOffset();
         }
         std::cout << std::endl;
 
         for (int count(0); count < grids.size(); count++)
         {
-            RenderLetterAxisWithAlignment(' ');
+            renderLetterAxisWithAlignment(' ');
             std::cout << LEFT_CENTER_PIECE;
-            for (int j(0); j < ColCount - 1; j++)
+            for (int j(0); j < colCount - 1; j++)
             {
-                RenderHorizontalDelimitersPerCell();
+                renderHorizontalDelimitersPerCell();
                 std::cout << CENTER_PIECE;
             }
-            RenderHorizontalDelimitersPerCell();
+            renderHorizontalDelimitersPerCell();
             std::cout << RIGHT_CENTER_PIECE;
 
-            RenderGridOffset();
+            renderGridOffset();
         }
         std::cout << std::endl;
     }
@@ -225,55 +225,55 @@ void TerminalView::RenderTwoGrids(const GridData& InGridDataLeft, const GridData
     // Last layer of vertical delimiters
     for (int count(0); count < grids.size(); count++)
     {
-        RenderLetterAxisWithAlignment(RowAxisNames.back());
-        for (int i(0); i < ColCount; i++)
+        renderLetterAxisWithAlignment(ROW_AXIS_NAMES.back());
+        for (int i(0); i < colCount; i++)
         {
-            RenderVerticalDelimitersPerCell();
-            const CellIndex Index = CellIndex(ColCount - 1, i);
-            RenderCell(Index, grids[count].back()[i]);
+            renderVerticalDelimitersPerCell();
+            const CellIndex Index = CellIndex(colCount - 1, i);
+            renderCell(Index, grids[count].back()[i]);
         }
 
-        RenderVerticalDelimitersPerCell();
-        RenderGridOffset();
+        renderVerticalDelimitersPerCell();
+        renderGridOffset();
     }
     std::cout << std::endl;
 
     // Grid bottom title
     for (int count(0); count < grids.size(); count++)
     {
-        RenderLetterAxisWithAlignment(' ');
+        renderLetterAxisWithAlignment(' ');
         std::cout << LEFT_BOTTOM_EDGE;
-        for (int i(0); i < ColCount - 1; i++)
+        for (int i(0); i < colCount - 1; i++)
         {
-            RenderHorizontalDelimitersPerCell();
+            renderHorizontalDelimitersPerCell();
             std::cout << BOTTOM_CENTER_PIECE;
         }
 
-        RenderHorizontalDelimitersPerCell();
+        renderHorizontalDelimitersPerCell();
         std::cout << RIGHT_BOTTOM_EDGE;
 
-        RenderGridOffset();
+        renderGridOffset();
     }
     std::cout << std::endl;
 }
 
-void TerminalView::RenderCell(const CellIndex&, const CellState InState)
+void TerminalView::renderCell(const CellIndex&, const CellState state)
 {
-    switch (InState)
+    switch (state)
     {
     case CellState::Concealed:
     {
-        RenderSymbolNTimes(' ', HorizontalSymbolsAmountPerCell);
+        renderSymbolNTimes(' ', HORIZONTAL_SYMBOLS_AMOUNT_PER_CELL);
         break;
     }
     case CellState::Damaged:
     {
         // HACK for now, should be fixed with formatting approach
-        if (HorizontalSymbolsAmountPerCell == 1)
+        if (HORIZONTAL_SYMBOLS_AMOUNT_PER_CELL == 1)
         {
             std::cout << "x";
         }
-        else if (HorizontalSymbolsAmountPerCell == 3)
+        else if (HORIZONTAL_SYMBOLS_AMOUNT_PER_CELL == 3)
         {
             std::cout << " x ";
         }
@@ -282,11 +282,11 @@ void TerminalView::RenderCell(const CellIndex&, const CellState InState)
     case CellState::Destroyed:
     {
         // HACK for now, should be fixed with formatting approach
-        if (HorizontalSymbolsAmountPerCell == 1)
+        if (HORIZONTAL_SYMBOLS_AMOUNT_PER_CELL == 1)
         {
             std::cout << "X";
         }
-        else if (HorizontalSymbolsAmountPerCell == 3)
+        else if (HORIZONTAL_SYMBOLS_AMOUNT_PER_CELL == 3)
         {
             std::cout << " X ";
         }
@@ -294,12 +294,12 @@ void TerminalView::RenderCell(const CellIndex&, const CellState InState)
     }
     case CellState::Missed:
     {
-        RenderSymbolNTimes(EMPTY_FILLER, HorizontalSymbolsAmountPerCell);
+        renderSymbolNTimes(EMPTY_FILLER, HORIZONTAL_SYMBOLS_AMOUNT_PER_CELL);
         break;
     }
     case CellState::Ship:
     {
-        RenderSymbolNTimes(SHIP_FILLER, HorizontalSymbolsAmountPerCell);
+        renderSymbolNTimes(SHIP_FILLER, HORIZONTAL_SYMBOLS_AMOUNT_PER_CELL);
         break;
     }
     default:
@@ -307,30 +307,30 @@ void TerminalView::RenderCell(const CellIndex&, const CellState InState)
     }
 }
 
-void TerminalView::RenderHorizontalDelimitersPerCell()
+void TerminalView::renderHorizontalDelimitersPerCell()
 {
-    RenderSymbolNTimes(HORIZONTAL_PIECE, HorizontalSymbolsAmountPerCell);
+    renderSymbolNTimes(HORIZONTAL_PIECE, HORIZONTAL_SYMBOLS_AMOUNT_PER_CELL);
 }
 
-void TerminalView::RenderVerticalDelimitersPerCell()
+void TerminalView::renderVerticalDelimitersPerCell()
 {
-    RenderSymbolNTimes(VERTICAL_PIECE, VerticalSymbolsAmountPerCell);
+    renderSymbolNTimes(VERTICAL_PIECE, VERTICAL_SYMBOLS_AMOUNT_PER_CELL);
 }
 
-void TerminalView::RenderGridOffset()
+void TerminalView::renderGridOffset()
 {
-    RenderSymbolNTimes(' ', SpacesBetweenGrids);
+    renderSymbolNTimes(' ', SPACES_BETWEEN_GRIDS);
 }
 
-void TerminalView::RenderLetterAxisWithAlignment(const char InSymbol)
+void TerminalView::renderLetterAxisWithAlignment(const char symbol)
 {
-    std::cout << " " << InSymbol << " ";
+    std::cout << " " << symbol << " ";
 }
 
-void TerminalView::RenderSymbolNTimes(const char InSymbol, const unsigned int InTimes)
+void TerminalView::renderSymbolNTimes(const char symbol, const unsigned int times)
 {
-    for (size_t i = 0; i < InTimes; i++)
+    for (size_t i = 0; i < times; i++)
     {
-        std::cout << InSymbol;
+        std::cout << symbol;
     }
 }

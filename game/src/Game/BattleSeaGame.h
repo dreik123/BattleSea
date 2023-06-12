@@ -5,41 +5,41 @@
 class BattleSeaGame : public IBattleSeaGame
 {
 public:
-	constexpr static uint8_t kPlayerAmount = 2;
+	constexpr static uint8_t PLAYER_AMOUNT = 2;
 
-	BattleSeaGame(std::unique_ptr<IWarShipGenerator>&& InGenerator, const GameConfig& InConfig);
+	BattleSeaGame(std::unique_ptr<IWarShipGenerator>&& generator, const GameConfig& config);
 
 	// Inherited via IBattleSeaGame
-	virtual void GenerateShipsForPlayer(const EPlayer player) override;
-	virtual bool InitShipPositionsForPlayer(const EPlayer player, const std::vector<WarShip>& ships) override;
-	virtual bool ShootThePlayerGridAt(const CellIndex& cell) override;
-	virtual void StartGame(const EPlayer initialPlayer) override;
-	virtual bool IsGameOver() const override;
-	virtual EPlayer GetCurrentPlayer() const override;
-	virtual EPlayer GetInitialPlayer() const override;
-	virtual EPlayer GetLocalPlayer() const override;
-	virtual void SetLocalPlayer(const EPlayer player) override;
-	virtual const GridData GetPlayerGridInfo(const EPlayer player) const override;
-	virtual CellState GetPlayerGridCellState(const EPlayer player, const CellIndex& cell) const override;
+	virtual void generateShipsForPlayer(const Player player) override;
+	virtual bool initShipPositionsForPlayer(const Player player, const std::vector<WarShip>& ships) override;
+	virtual bool shootThePlayerGridAt(const CellIndex& cell) override;
+	virtual void startGame(const Player initialPlayer) override;
+	virtual bool isGameOver() const override;
+	virtual Player getCurrentPlayer() const override;
+	virtual Player getInitialPlayer() const override;
+	virtual Player getLocalPlayer() const override;
+	virtual void setLocalPlayer(const Player player) override;
+	virtual const GridData getPlayerGridInfo(const Player player) const override;
+	virtual CellState getPlayerGridCellState(const Player player, const CellIndex& cell) const override;
 
-	static int GetIndexFromPlayer(const EPlayer& player);
-
-private:
-	void SetGridCellState(GridData& outGridData, const CellIndex& cell, const CellState& state);
-	void SurroundDestroyedShip(GridData& outGridData, const WarShip& ship);
+	static int getIndexFromPlayer(const Player& player);
 
 private:
-	std::unique_ptr<IWarShipGenerator> GridGenerator;
-	GameConfig Config;
+	void setGridCellState(GridData& outGridData, const CellIndex& cell, const CellState& state);
+	void surroundDestroyedShip(GridData& outGridData, const WarShip& ship);
 
-	std::array<GridData, kPlayerAmount> PlayerGrids;
-	std::array<std::vector<WarShip>, kPlayerAmount> PlayerShips;
+private:
+	std::unique_ptr<IWarShipGenerator> m_gridGenerator;
+	GameConfig m_config;
 
-	static_assert(static_cast<int>(EPlayer::Count) < 4);
+	std::array<GridData, PLAYER_AMOUNT> m_playerGrids;
+	std::array<std::vector<WarShip>, PLAYER_AMOUNT> m_playerShips;
+
+	static_assert(static_cast<int>(Player::Count) < 4);
 	// 2 bits covers 0..3 possible values, so it's okay to keep EPlayer values in 2 bits
-	EPlayer CurrentPlayer : 2;
-	EPlayer InitialPlayer : 2;
-	EPlayer LocalPlayer : 2;
+	Player m_currentPlayer : 2;
+	Player m_initialPlayer : 2;
+	Player m_localPlayer : 2;
 	char : 0; // alignment to fit current byte
 };
 

@@ -13,24 +13,24 @@ enum class CellState
 
 
 // README if we decide to customize grid size based on config, need to consider std::vector instead of static array
-constexpr int GridRowCount = 10;
-constexpr int GridColumnCount = 10;
-using GridData = std::array<std::array<CellState, GridColumnCount>, GridRowCount>;
+constexpr int GRID_ROW_COUNT = 10;
+constexpr int GRID_COLUMN_COUNT = 10;
+using GridData = std::array<std::array<CellState, GRID_COLUMN_COUNT>, GRID_ROW_COUNT>;
 
 
-enum class EPlayer : int8_t
+enum class Player : int8_t
 {
     Invalid = 0,
-    Player_1,
-    Player_2,
+    Player1,
+    Player2,
 
-    Count = Player_2 + 1, // to cover starting count from zero
+    Count = Player2 + 1, // to cover starting count from zero
 };
 
-static_assert(static_cast<int>(EPlayer::Count) == 3);
+static_assert(static_cast<int>(Player::Count) == 3);
 
-__forceinline EPlayer GetOppositePlayer(const EPlayer player)
+__forceinline Player getOppositePlayer(const Player player)
 {
-    if (player == EPlayer::Invalid) return EPlayer::Invalid;
-    return (player == EPlayer::Player_1) ? EPlayer::Player_2 : EPlayer::Player_1;
+    if (player == Player::Invalid) return Player::Invalid;
+    return (player == Player::Player1) ? Player::Player2 : Player::Player1;
 }

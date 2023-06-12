@@ -31,7 +31,7 @@ namespace char_utilities
         return val - 'a';
     }
 
-    // InValue is in [0-9]. 0 means 'a'
+    // value is in [0-9]. 0 means 'a'
     static constexpr char indexToLetterChar(const int value, bool isUpperCase)
     {
         assert(value >= 0);
@@ -62,20 +62,20 @@ CellIndex::CellIndex(const std::string& coord)
     );
 
     m_internalCoordinates.first = char_utilities::letterCharToInt(coord[0], true);
-    assert(m_internalCoordinates.first >= 0 && m_internalCoordinates.first < GridRowCount);
+    assert(m_internalCoordinates.first >= 0 && m_internalCoordinates.first < GRID_ROW_COUNT);
     if (coord.size() == 2)
     {
         m_internalCoordinates.second = char_utilities::digitCharToInt(coord[1]) - 1; // -1 to handle array index and view difference
     }
     else if (coord[1] == '1' && coord[2] == '0')
     {
-        m_internalCoordinates.second = GridRowCount - 1; // -1 to handle array index and view difference
+        m_internalCoordinates.second = GRID_ROW_COUNT - 1; // -1 to handle array index and view difference
     }
     else
     {
         assert(false && "Incorrect passing argument to initiate CellIndex object.");
     }
-    assert(m_internalCoordinates.second >= 0 && m_internalCoordinates.second < GridColumnCount);
+    assert(m_internalCoordinates.second >= 0 && m_internalCoordinates.second < GRID_COLUMN_COUNT);
 }
 
 const std::string CellIndex::toString(const bool isUpperCase) const
@@ -89,7 +89,7 @@ const std::string CellIndex::toString(const bool isUpperCase) const
 
 
 // TODO consider separate place and approach if need for these tests
-constexpr void CellIndexTests()
+constexpr void cellIndexTests()
 {
     using namespace char_utilities;
 
