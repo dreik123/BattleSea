@@ -8,9 +8,9 @@ BattleSeaGame::BattleSeaGame(std::unique_ptr<IWarShipGenerator>&& generator, con
     , m_config(config)
     , m_playerGrids{}
     , m_playerShips{}
-    , m_currentPlayer(EPlayer::Invalid)
-    , m_initialPlayer(EPlayer::Invalid)
-    , m_localPlayer(EPlayer::Invalid)
+    , m_currentPlayer(Player::Invalid)
+    , m_initialPlayer(Player::Invalid)
+    , m_localPlayer(Player::Invalid)
 {
     for (GridData& gridData : m_playerGrids)
     {
@@ -24,13 +24,13 @@ BattleSeaGame::BattleSeaGame(std::unique_ptr<IWarShipGenerator>&& generator, con
     }
 }
 
-void BattleSeaGame::generateShipsForPlayer(const EPlayer player)
+void BattleSeaGame::generateShipsForPlayer(const Player player)
 {
     const std::vector<WarShip> warShips = m_gridGenerator->generateShips(m_config);
     initShipPositionsForPlayer(player, warShips);
 }
 
-bool BattleSeaGame::initShipPositionsForPlayer(const EPlayer player, const std::vector<WarShip>& ships)
+bool BattleSeaGame::initShipPositionsForPlayer(const Player player, const std::vector<WarShip>& ships)
 {
     // TODO validate ships position at least under some macro definition (debug for ex.)
     const bool isValidated = true;
@@ -46,7 +46,7 @@ bool BattleSeaGame::initShipPositionsForPlayer(const EPlayer player, const std::
 
 bool BattleSeaGame::shootThePlayerGridAt(const CellIndex& cell)
 {
-    assert(getCurrentPlayer() != EPlayer::Invalid);
+    assert(getCurrentPlayer() != Player::Invalid);
 
     const int oppositePlayerIndex = getIndexFromPlayer(getOppositePlayer(getCurrentPlayer()));
     GridData& gridData = m_playerGrids[oppositePlayerIndex];
@@ -94,13 +94,13 @@ bool BattleSeaGame::shootThePlayerGridAt(const CellIndex& cell)
     return !playerSwitch;
 }
 
-void BattleSeaGame::startGame(const EPlayer initialPlayer)
+void BattleSeaGame::startGame(const Player initialPlayer)
 {
     m_initialPlayer = initialPlayer;
     m_currentPlayer = initialPlayer;
 
     // Validations before actual game
-    assert(getLocalPlayer() != EPlayer::Invalid);
+    assert(getLocalPlayer() != Player::Invalid);
 }
 
 bool BattleSeaGame::isGameOver() const
@@ -109,27 +109,27 @@ bool BattleSeaGame::isGameOver() const
     return false;
 }
 
-EPlayer BattleSeaGame::getCurrentPlayer() const
+Player BattleSeaGame::getCurrentPlayer() const
 {
     return m_currentPlayer;
 }
 
-EPlayer BattleSeaGame::getInitialPlayer() const
+Player BattleSeaGame::getInitialPlayer() const
 {
     return m_initialPlayer;
 }
 
-EPlayer BattleSeaGame::getLocalPlayer() const
+Player BattleSeaGame::getLocalPlayer() const
 {
     return m_localPlayer;
 }
 
-void BattleSeaGame::setLocalPlayer(EPlayer player)
+void BattleSeaGame::setLocalPlayer(Player player)
 {
     m_localPlayer = player;
 }
 
-const GridData BattleSeaGame::getPlayerGridInfo(const EPlayer player) const
+const GridData BattleSeaGame::getPlayerGridInfo(const Player player) const
 {
     // Create a copy of grid data to make the ship data visible for local player only
     const int playerIndex = getIndexFromPlayer(player);
@@ -153,15 +153,15 @@ const GridData BattleSeaGame::getPlayerGridInfo(const EPlayer player) const
     return gridDataCopy;
 }
 
-CellState BattleSeaGame::getPlayerGridCellState(const EPlayer player, const CellIndex& cell) const
+CellState BattleSeaGame::getPlayerGridCellState(const Player player, const CellIndex& cell) const
 {
     return getPlayerGridInfo(player)[cell.x()][cell.y()];
 }
 
-int BattleSeaGame::getIndexFromPlayer(const EPlayer& player)
+int BattleSeaGame::getIndexFromPlayer(const Player& player)
 {
-    static_assert(static_cast<int>(EPlayer::Player1) == 1);
-    static_assert(static_cast<int>(EPlayer::Player2) == 2);
+    static_assert(static_cast<int>(Player::Player1) == 1);
+    static_assert(static_cast<int>(Player::Player2) == 2);
     return static_cast<int>(player) - 1; // Excluding Invalid value from start
 }
 

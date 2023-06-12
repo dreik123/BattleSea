@@ -18,7 +18,7 @@ constexpr int GRID_COLUMN_COUNT = 10;
 using GridData = std::array<std::array<CellState, GRID_COLUMN_COUNT>, GRID_ROW_COUNT>;
 
 
-enum class EPlayer : int8_t
+enum class Player : int8_t
 {
     Invalid = 0,
     Player1,
@@ -27,10 +27,10 @@ enum class EPlayer : int8_t
     Count = Player2 + 1, // to cover starting count from zero
 };
 
-static_assert(static_cast<int>(EPlayer::Count) == 3);
+static_assert(static_cast<int>(Player::Count) == 3);
 
-__forceinline EPlayer getOppositePlayer(const EPlayer player)
+__forceinline Player getOppositePlayer(const Player player)
 {
-    if (player == EPlayer::Invalid) return EPlayer::Invalid;
-    return (player == EPlayer::Player1) ? EPlayer::Player2 : EPlayer::Player1;
+    if (player == Player::Invalid) return Player::Invalid;
+    return (player == Player::Player1) ? Player::Player2 : Player::Player1;
 }

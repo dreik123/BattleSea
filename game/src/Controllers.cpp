@@ -19,11 +19,11 @@ GameController::GameController(std::shared_ptr<IBattleSeaGame>& game, std::share
 void GameController::runGame()
 {
     // [Temporary] TODO DS Player can regenerate ships many times before game start
-    m_game->generateShipsForPlayer(EPlayer::Player1);
-    m_game->generateShipsForPlayer(EPlayer::Player2);
+    m_game->generateShipsForPlayer(Player::Player1);
+    m_game->generateShipsForPlayer(Player::Player2);
 
-    const EPlayer initialPlayer  = EPlayer::Player1;
-    m_game->setLocalPlayer(EPlayer::Player1); // will be refactored with IPlayer
+    const Player initialPlayer  = Player::Player1;
+    m_game->setLocalPlayer(Player::Player1); // will be refactored with IPlayer
     // TODO DS Probably local player data must be part of startGame() + generated ships as well
     m_game->startGame(initialPlayer); // Does startGame cover main menu or is this actual game (shooting) start?
 
@@ -35,7 +35,7 @@ void GameController::runGame()
         // Shows grids before first turn
         m_view->renderGame();
 
-        std::cout << "Player " << ((m_game->getCurrentPlayer() == EPlayer::Player1) ? "1" : "2") << " turns:" << std::endl;
+        std::cout << "Player " << ((m_game->getCurrentPlayer() == Player::Player1) ? "1" : "2") << " turns:" << std::endl;
         std::string user_input;
         std::cin >> user_input;
 
@@ -48,7 +48,7 @@ void GameController::runGame()
         // Temp debug approach
         if (user_input == "g")
         {
-            m_game->generateShipsForPlayer(EPlayer::Player1);
+            m_game->generateShipsForPlayer(Player::Player1);
             system("cls");
             continue;
         }
