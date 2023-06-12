@@ -3,7 +3,6 @@
 #include "Core/GridUtilities.h"
 #include <algorithm>
 
-
 const std::vector<WarShip> PredefinedClassicWarShipGenerator::generateShips(const GameConfig&)
 {
     /*
@@ -63,6 +62,7 @@ bool WarShipGenerator::setShipCell(
     if (cells[coord.x()][coord.y()] != 0)
     {
         permissionDirections.clearFlag(direction);
+        shipCells.clear();
         return false;
     }
 
