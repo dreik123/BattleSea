@@ -8,17 +8,17 @@ struct IBattleSeaView;
 // but for this moment old-school approach should cover our needs
 struct IController
 {
-    virtual void RunGame() = 0;
+    virtual void runGame() = 0;
 };
 
 class GameController : public IController 
 {
 public:
-    GameController(std::shared_ptr<IBattleSeaGame>& InGame, std::shared_ptr<IBattleSeaView>& InView);
+    GameController(std::shared_ptr<IBattleSeaGame>& game, std::shared_ptr<IBattleSeaView>& view);
 
-    virtual void RunGame() override;
+    virtual void runGame() override;
 
 protected:
-    std::shared_ptr<IBattleSeaGame> Game;
-    std::shared_ptr<IBattleSeaView> View;
+    std::shared_ptr<IBattleSeaGame> m_game;
+    std::shared_ptr<IBattleSeaView> m_view;
 };

@@ -6,12 +6,12 @@
 int main(int argc, char* argv[])
 {
     // Classic MVC (will be redone in the next PRs)
-    auto factory = FactoryInterface::GetFactory();
-    auto game = factory->CreateGame();
-    auto presenter = factory->CreatePresenter(game);
-    auto controller = factory->CreateController(game, presenter);
+    auto factory = FactoryInterface::getFactory();
+    auto game = factory->createGame();
+    auto presenter = factory->createPresenter(game);
+    auto controller = factory->createController(game, presenter);
 
-    controller->RunGame();
+    controller->runGame();
 
     return 0;
 }
