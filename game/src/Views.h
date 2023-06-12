@@ -7,30 +7,30 @@ struct IBattleSeaGame;
 class CellIndex;
 
 struct IBattleSeaView {
-    virtual void RenderGame() = 0;
+    virtual void renderGame() = 0;
 };
 
 class TerminalView : public IBattleSeaView 
 {
 public:
-    TerminalView(const std::shared_ptr<IBattleSeaGame>& InGame);
+    TerminalView(const std::shared_ptr<IBattleSeaGame>& game);
 
-    virtual void RenderGame() override;
+    virtual void renderGame() override;
 
 private:
     // DS TODO implement the method for both grids
-    void RenderSingleGrid(const GridData& InGridData);
-    void RenderTwoGrids(const GridData& InGridDataLeft, const GridData& InGridDataRight, const bool bIsHorizontally = true);
-    void RenderCell(const CellIndex& InIndex, const CellState InState);
+    void renderSingleGrid(const GridData& gridData);
+    void renderTwoGrids(const GridData& gridDataLeft, const GridData& gridDataRight, const bool isHorizontally = true);
+    void renderCell(const CellIndex& index, const CellState state);
 
-    void RenderHorizontalDelimitersPerCell();
-    void RenderVerticalDelimitersPerCell();
-    void RenderGridOffset();
+    void renderHorizontalDelimitersPerCell();
+    void renderVerticalDelimitersPerCell();
+    void renderGridOffset();
 
-    void RenderLetterAxisWithAlignment(const char InSymbol);
+    void renderLetterAxisWithAlignment(const char symbol);
 
-    void RenderSymbolNTimes(const char InSymbol, const unsigned int InTimes);
+    void renderSymbolNTimes(const char symbol, const unsigned int times);
 
 protected:
-    const std::shared_ptr<IBattleSeaGame> Game;
+    const std::shared_ptr<IBattleSeaGame> m_game;
 };

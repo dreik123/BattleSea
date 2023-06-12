@@ -48,7 +48,7 @@ bool BattleSeaGame::shootThePlayerGridAt(const CellIndex& cell)
 {
     assert(getCurrentPlayer() != EPlayer::Invalid);
 
-    const int oppositePlayerIndex = getIndexFromPlayer(GetOppositePlayer(getCurrentPlayer()));
+    const int oppositePlayerIndex = getIndexFromPlayer(getOppositePlayer(getCurrentPlayer()));
     GridData& gridData = m_playerGrids[oppositePlayerIndex];
     std::vector<WarShip>& ships = m_playerShips[oppositePlayerIndex];
 
@@ -89,7 +89,7 @@ bool BattleSeaGame::shootThePlayerGridAt(const CellIndex& cell)
 
     if (playerSwitch)
     {
-        m_currentPlayer = GetOppositePlayer(m_currentPlayer);
+        m_currentPlayer = getOppositePlayer(m_currentPlayer);
     }
     return !playerSwitch;
 }
@@ -160,8 +160,8 @@ CellState BattleSeaGame::getPlayerGridCellState(const EPlayer player, const Cell
 
 int BattleSeaGame::getIndexFromPlayer(const EPlayer& player)
 {
-    static_assert(static_cast<int>(EPlayer::Player_1) == 1);
-    static_assert(static_cast<int>(EPlayer::Player_2) == 2);
+    static_assert(static_cast<int>(EPlayer::Player1) == 1);
+    static_assert(static_cast<int>(EPlayer::Player2) == 2);
     return static_cast<int>(player) - 1; // Excluding Invalid value from start
 }
 
@@ -173,7 +173,7 @@ void BattleSeaGame::setGridCellState(GridData& outGridData, const CellIndex& cel
 void BattleSeaGame::surroundDestroyedShip(GridData& outGridData, const WarShip& ship)
 {
     // Example of class template auto deduction (CTAD)
-    constexpr std::array kPossibleDirections =
+    constexpr std::array possibleDirections =
     {
         std::make_pair(-1, 0),      // up
         std::make_pair(-1, -1),     // up-left
@@ -189,7 +189,7 @@ void BattleSeaGame::surroundDestroyedShip(GridData& outGridData, const WarShip& 
     for (const CellIndex& cell : ship.getOccupiedCells())
     {
         const auto& [x, y] = cell.asIndexesPair();
-        for (const auto& [dX, dY] : kPossibleDirections)
+        for (const auto& [dX, dY] : possibleDirections)
         {
             const int newX = x + dX;
             const int newY = y + dY;

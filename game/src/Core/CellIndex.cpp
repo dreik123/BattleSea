@@ -31,7 +31,7 @@ namespace char_utilities
         return val - 'a';
     }
 
-    // InValue is in [0-9]. 0 means 'a'
+    // value is in [0-9]. 0 means 'a'
     static constexpr char indexToLetterChar(const int value, bool isUpperCase)
     {
         assert(value >= 0);

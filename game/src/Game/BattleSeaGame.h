@@ -5,7 +5,7 @@
 class BattleSeaGame : public IBattleSeaGame
 {
 public:
-	constexpr static uint8_t S_PLAYER_AMOUNT = 2;
+	constexpr static uint8_t PLAYER_AMOUNT = 2;
 
 	BattleSeaGame(std::unique_ptr<IWarShipGenerator>&& generator, const GameConfig& config);
 
@@ -32,8 +32,8 @@ private:
 	std::unique_ptr<IWarShipGenerator> m_gridGenerator;
 	GameConfig m_config;
 
-	std::array<GridData, S_PLAYER_AMOUNT> m_playerGrids;
-	std::array<std::vector<WarShip>, S_PLAYER_AMOUNT> m_playerShips;
+	std::array<GridData, PLAYER_AMOUNT> m_playerGrids;
+	std::array<std::vector<WarShip>, PLAYER_AMOUNT> m_playerShips;
 
 	static_assert(static_cast<int>(EPlayer::Count) < 4);
 	// 2 bits covers 0..3 possible values, so it's okay to keep EPlayer values in 2 bits

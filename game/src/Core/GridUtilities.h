@@ -6,7 +6,7 @@
 void safeCellWalkthrough(const CellIndex& cell, std::function<void(int, int)> f)
 {
     // Example of class template auto deduction (CTAD)
-    constexpr std::array POSSIBLE_CELL_DIRECTIONS =
+    constexpr std::array possibleCellDirections =
     {
         std::make_pair(-1, 0),  // up
         std::make_pair(-1, -1), // up-left
@@ -19,7 +19,7 @@ void safeCellWalkthrough(const CellIndex& cell, std::function<void(int, int)> f)
     };
 
     const auto& [x, y] = cell.asIndexesPair();
-    for (const auto& [dX, dY] : POSSIBLE_CELL_DIRECTIONS)
+    for (const auto& [dX, dY] : possibleCellDirections)
     {
         const int newX = x + dX;
         const int newY = y + dY;

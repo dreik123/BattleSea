@@ -21,16 +21,16 @@ using GridData = std::array<std::array<CellState, GRID_COLUMN_COUNT>, GRID_ROW_C
 enum class EPlayer : int8_t
 {
     Invalid = 0,
-    Player_1,
-    Player_2,
+    Player1,
+    Player2,
 
-    Count = Player_2 + 1, // to cover starting count from zero
+    Count = Player2 + 1, // to cover starting count from zero
 };
 
 static_assert(static_cast<int>(EPlayer::Count) == 3);
 
-__forceinline EPlayer GetOppositePlayer(const EPlayer player)
+__forceinline EPlayer getOppositePlayer(const EPlayer player)
 {
     if (player == EPlayer::Invalid) return EPlayer::Invalid;
-    return (player == EPlayer::Player_1) ? EPlayer::Player_2 : EPlayer::Player_1;
+    return (player == EPlayer::Player1) ? EPlayer::Player2 : EPlayer::Player1;
 }
