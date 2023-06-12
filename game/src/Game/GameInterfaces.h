@@ -25,14 +25,14 @@
 struct IBattleSeaGameObserver
 {
     // Notify methods
-    virtual void OnShipDestroyed(const WarShip& InShip) = 0;
-    virtual void OnShipDamaged(const WarShip& InShip, const CellIndex& cell) = 0;
-    virtual void OnShotMissed(const CellIndex& cell) = 0;
-    virtual void OnShotDone(const CellIndex& cell) = 0;
-    virtual void OnPlayerSwitched(EPlayer nextPlayer) = 0;
+    virtual void onShipDestroyed(const WarShip& InShip) = 0;
+    virtual void onShipDamaged(const WarShip& InShip, const CellIndex& cell) = 0;
+    virtual void onShotMissed(const CellIndex& cell) = 0;
+    virtual void onShotDone(const CellIndex& cell) = 0;
+    virtual void onPlayerSwitched(EPlayer nextPlayer) = 0;
 
-    virtual void OnGameStarted() = 0;
-    virtual void OnGameFinished(EPlayer winner) = 0;
+    virtual void onGameStarted() = 0;
+    virtual void onGameFinished(EPlayer winner) = 0;
 };
 
 
@@ -47,21 +47,21 @@ struct IBattleSeaGameObserver
 // Interface for major functionality of Battle sea game
 struct IBattleSeaGame
 {
-    virtual void GenerateShipsForPlayer(const EPlayer player) = 0;
-    virtual bool InitShipPositionsForPlayer(const EPlayer player, const std::vector<WarShip>& ships) = 0;
+    virtual void generateShipsForPlayer(const EPlayer player) = 0;
+    virtual bool initShipPositionsForPlayer(const EPlayer player, const std::vector<WarShip>& ships) = 0;
     // ShootThePlayerGridAt method contains logic of the shot by current player(starting from initial one). 
     // Returned boolean value indicates the shot success.
-    virtual bool ShootThePlayerGridAt(const CellIndex& cell) = 0;
+    virtual bool shootThePlayerGridAt(const CellIndex& cell) = 0;
 
     // TODO Need to consider additing initial/local player to StartGame as part of GameParams
-    virtual void StartGame(const EPlayer initialPlayer) = 0;
-    virtual bool IsGameOver() const = 0;
+    virtual void startGame(const EPlayer initialPlayer) = 0;
+    virtual bool isGameOver() const = 0;
 
-    virtual EPlayer GetCurrentPlayer() const = 0;
-    virtual EPlayer GetInitialPlayer() const = 0;
-    virtual EPlayer GetLocalPlayer() const = 0;
-    virtual void SetLocalPlayer(const EPlayer player) = 0;
+    virtual EPlayer getCurrentPlayer() const = 0;
+    virtual EPlayer getInitialPlayer() const = 0;
+    virtual EPlayer getLocalPlayer() const = 0;
+    virtual void setLocalPlayer(const EPlayer player) = 0;
 
-    virtual const GridData GetPlayerGridInfo(const EPlayer player) const = 0;
-    virtual CellState GetPlayerGridCellState(const EPlayer player, const CellIndex& cell) const = 0;
+    virtual const GridData getPlayerGridInfo(const EPlayer player) const = 0;
+    virtual CellState getPlayerGridCellState(const EPlayer player, const CellIndex& cell) const = 0;
 };

@@ -50,8 +50,8 @@ void TerminalView::RenderGame()
     // README for now Player_1 is user, Player_2 is bot
     // TODO Multiplayer requires understanding which EPlayer value current player has
     // Important: Own grid must visualize ships as well, opponent's - no.
-    const GridData modelData_1 = Game->GetPlayerGridInfo(EPlayer::Player_1);
-    const GridData modelData_2 = Game->GetPlayerGridInfo(EPlayer::Player_2);
+    const GridData modelData_1 = Game->getPlayerGridInfo(EPlayer::Player_1);
+    const GridData modelData_2 = Game->getPlayerGridInfo(EPlayer::Player_2);
     RenderTwoGrids(modelData_1, modelData_2, true);
 }
 
