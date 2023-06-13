@@ -1,6 +1,7 @@
 #pragma once
 #include <array>
 
+#include "Game/GameConfig.h"
 
 enum class CellState
 {
@@ -13,9 +14,7 @@ enum class CellState
 
 
 // README if we decide to customize grid size based on config, need to consider std::vector instead of static array
-constexpr int GRID_ROW_COUNT = 10;
-constexpr int GRID_COLUMN_COUNT = 10;
-using GridData = std::array<std::array<CellState, GRID_COLUMN_COUNT>, GRID_ROW_COUNT>;
+using GridData = std::array<std::array<CellState, CLASSIC_GRID_COLUMN_COUNT>, CLASSIC_GRID_ROW_COUNT>;
 
 
 enum class Player : int8_t

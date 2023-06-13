@@ -133,23 +133,27 @@ const GridData BattleSeaGame::getPlayerGridInfo(const Player player) const
 {
     // Create a copy of grid data to make the ship data visible for local player only
     const int playerIndex = getIndexFromPlayer(player);
+
+    if (getLocalPlayer() != player)
+    {
+        return m_playerGrids[playerIndex];
+    }
+
     GridData gridDataCopy = m_playerGrids[playerIndex];
     const std::vector<WarShip>& warShips = m_playerShips[playerIndex];
 
-    if (getLocalPlayer() == player)
+    for (const WarShip& ship : warShips)
     {
-        for (const WarShip& ship : warShips)
+        for (const CellIndex& cell : ship.getOccupiedCells())
         {
-            for (const CellIndex& cell : ship.getOccupiedCells())
+            const auto& [x, y] = cell.asIndexesPair();
+            if (gridDataCopy[x][y] == CellState::Concealed)
             {
-                const auto& [x, y] = cell.asIndexesPair();
-                if (gridDataCopy[x][y] == CellState::Concealed)
-                {
-                    gridDataCopy[x][y] = CellState::Ship;
-                }
+                gridDataCopy[x][y] = CellState::Ship;
             }
         }
     }
+
     return gridDataCopy;
 }
 
@@ -193,7 +197,7 @@ void BattleSeaGame::surroundDestroyedShip(GridData& outGridData, const WarShip& 
         {
             const int newX = x + dX;
             const int newY = y + dY;
-            if (newX < 0 || newY < 0 || newX >= GRID_ROW_COUNT || newY >= GRID_COLUMN_COUNT)
+            if (newX < 0 || newY < 0 || newX >= CLASSIC_GRID_ROW_COUNT || newY >= CLASSIC_GRID_COLUMN_COUNT)
             {
                 continue;
             }

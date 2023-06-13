@@ -18,7 +18,6 @@ public:
     virtual void renderGame() override;
 
 private:
-    // DS TODO implement the method for both grids
     void renderSingleGrid(const GridData& gridData);
     void renderTwoGrids(const GridData& gridDataLeft, const GridData& gridDataRight, const bool isHorizontally = true);
     void renderCell(const CellIndex& index, const CellState state);

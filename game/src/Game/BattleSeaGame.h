@@ -35,11 +35,8 @@ private:
 	std::array<GridData, PLAYER_AMOUNT> m_playerGrids;
 	std::array<std::vector<WarShip>, PLAYER_AMOUNT> m_playerShips;
 
-	static_assert(static_cast<int>(Player::Count) < 4);
-	// 2 bits covers 0..3 possible values, so it's okay to keep EPlayer values in 2 bits
-	Player m_currentPlayer : 2;
-	Player m_initialPlayer : 2;
-	Player m_localPlayer : 2;
-	char : 0; // alignment to fit current byte
+	Player m_currentPlayer;
+	Player m_initialPlayer;
+	Player m_localPlayer;
 };
 

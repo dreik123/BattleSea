@@ -23,7 +23,7 @@ void safeCellWalkthrough(const CellIndex& cell, std::function<void(int, int)> f)
     {
         const int newX = x + dX;
         const int newY = y + dY;
-        if (newX < 0 || newY < 0 || newX >= GRID_ROW_COUNT || newY >= GRID_COLUMN_COUNT)
+        if (newX < 0 || newY < 0 || newX >= CLASSIC_GRID_ROW_COUNT || newY >= CLASSIC_GRID_COLUMN_COUNT)
         {
             continue;
         }

@@ -1,8 +1,13 @@
 #pragma once
 #include <memory>
+#include <map>
+
+#include "Core/CoreTypes.h"
 
 struct IBattleSeaGame;
 struct IBattleSeaView;
+
+class IPlayer;
 
 // DS: It's expected to communicate between MVC entries via 'event-based' subsystem, 
 // but for this moment old-school approach should cover our needs
@@ -21,4 +26,7 @@ public:
 protected:
     std::shared_ptr<IBattleSeaGame> m_game;
     std::shared_ptr<IBattleSeaView> m_view;
+
+private:
+    std::map<Player, IPlayer*> m_players;
 };
