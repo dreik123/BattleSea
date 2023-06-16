@@ -12,7 +12,6 @@ struct InputRequest
 };
 
 
-
 class IPlayer
 {
 public:
@@ -22,6 +21,6 @@ public:
 
     virtual Player getPlayerType() const = 0;
 
-    virtual std::optional<InputRequest> getInput() = 0;
+    virtual InputRequest getInput() = 0;
 };
 

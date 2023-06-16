@@ -35,7 +35,12 @@ struct IBattleSeaGameObserver
     virtual void onGameFinished(Player winner) = 0;
 };
 
-
+enum class ShotError
+{
+    Ok = 0,
+    OutOfGrid,
+    RepeatedShot,
+};
 
 // Main functionality in the game in model context
 // - initialization of two grids for players with specified ship positions
@@ -49,9 +54,8 @@ struct IBattleSeaGame
 {
     virtual void generateShipsForPlayer(const Player player) = 0;
     virtual bool initShipPositionsForPlayer(const Player player, const std::vector<WarShip>& ships) = 0;
-    // ShootThePlayerGridAt method contains logic of the shot by current player(starting from initial one). 
-    // Returned boolean value indicates the shot success.
-    virtual bool shootThePlayerGridAt(const CellIndex& cell) = 0;
+    // ShootThePlayerGridAt method contains logic of the shot by current player(starting from initial one).
+    virtual ShotError shootThePlayerGridAt(const CellIndex& cell) = 0;
 
     // TODO Need to consider additing initial/local player to StartGame as part of GameParams
     virtual void startGame(const Player initialPlayer) = 0;

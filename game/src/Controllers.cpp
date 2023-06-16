@@ -5,7 +5,6 @@
 #include "Game/Player/SillyRandomBot.h"
 
 #include <iostream>
-#include <string>
 
 // TODOs:
 // introduce Iplayer and encapsulate turn logic there
@@ -46,16 +45,8 @@ void GameController::runGame()
         m_view->renderGame();
 
         std::cout << currentPlayer->getName() << " turns:" << std::endl;
-        std::optional<InputRequest> userInputOpt = currentPlayer->getInput();
-        if (!userInputOpt.has_value())
-        {
-            // TODO process properly - reask for the input
-            std::cout << "WTF?? Exiting...\n";
-            hasGameBeenInterrupted = true;
-            continue;
-        }
-
-        const InputRequest userInput = userInputOpt.value();
+        repeat_turn: // quick solution for now
+        const InputRequest userInput = currentPlayer->getInput();
 
         if (userInput.isQuitRequested)
         {
@@ -65,8 +56,29 @@ void GameController::runGame()
 
         if (userInput.shotCell.has_value())
         {
-            // TODO validate input
-            m_game->shootThePlayerGridAt(userInput.shotCell.value());
+            ShotError result = m_game->shootThePlayerGridAt(userInput.shotCell.value());
+            switch (result)
+            {
+            case ShotError::Ok:
+                break;
+            case ShotError::OutOfGrid:
+                std::cout << "Out of grid. Try again\n";
+                goto repeat_turn;
+                break;
+            case ShotError::RepeatedShot:
+                std::cout << "You've already shooted at this cell! Try again\n";
+                goto repeat_turn;
+                break;
+            default:
+                assert(false && "Unexpected ShotError. Please process it!");
+                break;
+            }
+        }
+        else
+        {
+            std::cout << "WTF have you entered?!?\n";
+            goto repeat_turn;
+            break;
         }
 
 

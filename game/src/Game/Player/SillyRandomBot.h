@@ -35,11 +35,12 @@ public:
     {
         return m_currentPlayer;
     }
-    virtual std::optional<InputRequest> getInput() override
+    virtual InputRequest getInput() override
     {
         if (m_sequenceTurns.empty())
         {
-            return std::nullopt;
+            // keep it empty
+            return InputRequest{};
         }
 
         const Player opponent = getOppositePlayer(getPlayerType());
@@ -53,7 +54,7 @@ public:
         {
             if (m_sequenceTurns.empty())
             {
-                return std::nullopt;
+                return InputRequest{};
             }
 
             cell = m_sequenceTurns[0];

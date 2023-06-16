@@ -24,7 +24,7 @@ public:
     {
         return m_currentPlayer;
     }
-    virtual std::optional<InputRequest> getInput() override
+    virtual InputRequest getInput() override
     {
         std::string user_input;
         std::cin >> user_input;
@@ -34,14 +34,26 @@ public:
         if (user_input == "q" || user_input == "quit")
         {
             request.isQuitRequested = true;
+            return request;
         }
-        else
+
+        if (validateUserInput(user_input))
         {
-            // some validation
             request.shotCell = CellIndex(user_input);
         }
 
         return request;
+    }
+
+private:
+    bool validateUserInput(const std::string& input) const
+    {
+        // Expactations from input: aX or aXX
+        const bool hasLetterAndOneDigit = input.size() == 2 && isalpha(input[0]) && isdigit(input[1]);
+        const bool hasLetterAndTwoDigits = input.size() == 3 && isalpha(input[0]) && isdigit(input[1]) && isdigit(input[2]);
+
+        // Bound limitations are checked in game logic
+        return hasLetterAndOneDigit || hasLetterAndTwoDigits;
     }
 
 protected:
