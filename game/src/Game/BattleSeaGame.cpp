@@ -52,12 +52,17 @@ ShotError BattleSeaGame::shootThePlayerGridAt(const CellIndex& cell)
     GridData& gridData = m_playerGrids[oppositePlayerIndex];
     std::vector<WarShip>& ships = m_playerShips[oppositePlayerIndex];
 
+    if (cell.x() < 0 || cell.x() >= m_config.rowsCount || cell.y() < 0 || cell.y() >= m_config.columnsCount)
+    {
+        // Invalid input from player (out of current grid size)
+        return ShotError::OutOfGrid;
+    }
+
     if (gridData[cell.x()][cell.y()] != CellState::Concealed)
     {
         return ShotError::RepeatedShot;
     }
 
-    // TODO ShotError::OutOfGrid; raname and check according to config values
     bool playerSwitch = true;
 
     for (WarShip& ship : ships)

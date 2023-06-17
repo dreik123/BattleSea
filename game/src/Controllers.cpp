@@ -6,11 +6,7 @@
 
 #include <iostream>
 
-// TODOs:
-// introduce Iplayer and encapsulate turn logic there
-// create RealPlayer
-// create seconds player as AIPlayer
-
+// TODOs + refactor:
 // impl CellIndex::fromString(..) instead of ctor
 // all entities with logic must be classes, if class contains data only, make it a struct
 
@@ -45,41 +41,42 @@ void GameController::runGame()
         m_view->renderGame();
 
         std::cout << currentPlayer->getName() << " turns:" << std::endl;
-        repeat_turn: // quick solution for now
-        const InputRequest userInput = currentPlayer->getInput();
 
-        if (userInput.isQuitRequested)
+        bool isValidTurn = false;
+        do
         {
-            hasGameBeenInterrupted = true;
-            continue;
-        }
+            const InputRequest userInput = currentPlayer->getInput();
 
-        if (userInput.shotCell.has_value())
-        {
-            ShotError result = m_game->shootThePlayerGridAt(userInput.shotCell.value());
-            switch (result)
+            if (userInput.isQuitRequested)
             {
-            case ShotError::Ok:
-                break;
-            case ShotError::OutOfGrid:
-                std::cout << "Out of grid. Try again\n";
-                goto repeat_turn;
-                break;
-            case ShotError::RepeatedShot:
-                std::cout << "You've already shooted at this cell! Try again\n";
-                goto repeat_turn;
-                break;
-            default:
-                assert(false && "Unexpected ShotError. Please process it!");
-                break;
+                hasGameBeenInterrupted = true;
+                continue;
             }
-        }
-        else
-        {
-            std::cout << "WTF have you entered?!?\n";
-            goto repeat_turn;
-            break;
-        }
+
+            if (userInput.shotCell.has_value())
+            {
+                ShotError result = m_game->shootThePlayerGridAt(userInput.shotCell.value());
+                switch (result)
+                {
+                case ShotError::Ok:
+                    isValidTurn = true;
+                    break;
+                case ShotError::OutOfGrid:
+                    std::cout << "Out of grid. Try again\n";
+                    break;
+                case ShotError::RepeatedShot:
+                    std::cout << "You've already shooted at this cell! Try again\n";
+                    break;
+                default:
+                    assert(false && "Unexpected ShotError. Please process it!");
+                    break;
+                }
+            }
+            else
+            {
+                std::cout << "WTF have you entered?!?\n";
+            }
+        } while (!isValidTurn);
 
 
         // Clear screen to refresh the grids in place

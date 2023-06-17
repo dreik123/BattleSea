@@ -4,15 +4,13 @@
 CellIndex::CellIndex(int x, int y)
     : m_internalCoordinates{ static_cast<int8_t>(x), static_cast<int8_t>(y) }
 {
-    // TODO range validation (based on Model data)
 }
 
 CellIndex::CellIndex(const std::string& coord)
 {
-    // TODO extend code to have not only 10 as possible 2digit value in the future
     assert(
         (coord.size() == 2 && isalpha(coord[0]) && isdigit(coord[1])) ||
-        (coord.size() == 3 && isalpha(coord[0]) && coord[1] == '1' && coord[2] == '0')
+        (coord.size() == 3 && isalpha(coord[0]) && isdigit(coord[1]) && isdigit(coord[2]))
     );
 
     m_internalCoordinates.first = char_utilities::letterCharToInt(coord[0]);
@@ -21,15 +19,13 @@ CellIndex::CellIndex(const std::string& coord)
     {
         m_internalCoordinates.second = char_utilities::digitCharToInt(coord[1]) - 1; // -1 to handle array index and view difference
     }
-    else if (coord[1] == '1' && coord[2] == '0')
+    else if (coord.size() == 3)
     {
-        m_internalCoordinates.second = CLASSIC_GRID_ROW_COUNT - 1; // -1 to handle array index and view difference
+        // TODO probably some check will be good here in the future
+        m_internalCoordinates.second = std::stoi(coord.substr(1, 2)) - 1; // -1 to handle array index and view difference
     }
-    else
-    {
-        assert(false && "Incorrect passing argument to initiate CellIndex object.");
-    }
-    assert(m_internalCoordinates.second >= 0 && m_internalCoordinates.second < CLASSIC_GRID_COLUMN_COUNT);
+
+    // Let controller outside to validate input
 }
 
 const std::string CellIndex::toString(const bool isUpperCase) const
