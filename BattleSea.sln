@@ -5,7 +5,7 @@ VisualStudioVersion = 17.4.33403.182
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "game", "game\game.vcxproj", "{2F1BBA57-6B56-4CA2-B3F0-14FE9F0ACDC3}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tests", "tests\tests.vcxproj", "{8F55AAE7-B77F-4164-9327-ECBAE4DFCC57}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tests", "tests\tests.vcxproj", "{0EFEEA25-8443-4B05-B03A-91A0C54257DA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,14 +23,14 @@ Global
 		{2F1BBA57-6B56-4CA2-B3F0-14FE9F0ACDC3}.Release|x64.Build.0 = Release|x64
 		{2F1BBA57-6B56-4CA2-B3F0-14FE9F0ACDC3}.Release|x86.ActiveCfg = Release|x64
 		{2F1BBA57-6B56-4CA2-B3F0-14FE9F0ACDC3}.Release|x86.Build.0 = Release|x64
-		{8F55AAE7-B77F-4164-9327-ECBAE4DFCC57}.Debug|x64.ActiveCfg = Debug|x64
-		{8F55AAE7-B77F-4164-9327-ECBAE4DFCC57}.Debug|x64.Build.0 = Debug|x64
-		{8F55AAE7-B77F-4164-9327-ECBAE4DFCC57}.Debug|x86.ActiveCfg = Debug|Win32
-		{8F55AAE7-B77F-4164-9327-ECBAE4DFCC57}.Debug|x86.Build.0 = Debug|Win32
-		{8F55AAE7-B77F-4164-9327-ECBAE4DFCC57}.Release|x64.ActiveCfg = Release|x64
-		{8F55AAE7-B77F-4164-9327-ECBAE4DFCC57}.Release|x64.Build.0 = Release|x64
-		{8F55AAE7-B77F-4164-9327-ECBAE4DFCC57}.Release|x86.ActiveCfg = Release|Win32
-		{8F55AAE7-B77F-4164-9327-ECBAE4DFCC57}.Release|x86.Build.0 = Release|Win32
+		{0EFEEA25-8443-4B05-B03A-91A0C54257DA}.Debug|x64.ActiveCfg = Debug|x64
+		{0EFEEA25-8443-4B05-B03A-91A0C54257DA}.Debug|x64.Build.0 = Debug|x64
+		{0EFEEA25-8443-4B05-B03A-91A0C54257DA}.Debug|x86.ActiveCfg = Debug|Win32
+		{0EFEEA25-8443-4B05-B03A-91A0C54257DA}.Debug|x86.Build.0 = Debug|Win32
+		{0EFEEA25-8443-4B05-B03A-91A0C54257DA}.Release|x64.ActiveCfg = Release|x64
+		{0EFEEA25-8443-4B05-B03A-91A0C54257DA}.Release|x64.Build.0 = Release|x64
+		{0EFEEA25-8443-4B05-B03A-91A0C54257DA}.Release|x86.ActiveCfg = Release|Win32
+		{0EFEEA25-8443-4B05-B03A-91A0C54257DA}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
