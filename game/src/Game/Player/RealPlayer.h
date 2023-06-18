@@ -2,6 +2,7 @@
 #include "IPlayer.h"
 #include "Core/CoreTypes.h"
 #include "Core/CellIndex.h"
+#include "Core/CharUtilities.h"
 
 #include <iostream>
 
@@ -49,8 +50,15 @@ private:
     bool validateUserInput(const std::string& input) const
     {
         // Expactations from input: aX or aXX
-        const bool hasLetterAndOneDigit = input.size() == 2 && isalpha(input[0]) && isdigit(input[1]);
-        const bool hasLetterAndTwoDigits = input.size() == 3 && isalpha(input[0]) && isdigit(input[1]) && isdigit(input[2]);
+        const bool hasLetterAndOneDigit = 
+            input.size() == 2 &&
+            char_utilities::isAlpha(input[0]) &&
+            char_utilities::isDigit(input[1]);
+        const bool hasLetterAndTwoDigits = 
+            input.size() == 3 &&
+            char_utilities::isAlpha(input[0]) &&
+            char_utilities::isDigit(input[1]) &&
+            char_utilities::isDigit(input[2]);
 
         // Bound limitations are checked in game logic
         return hasLetterAndOneDigit || hasLetterAndTwoDigits;

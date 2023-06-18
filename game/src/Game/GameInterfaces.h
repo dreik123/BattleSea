@@ -68,4 +68,6 @@ struct IBattleSeaGame
 
     virtual const GridData getPlayerGridInfo(const Player player) const = 0;
     virtual CellState getPlayerGridCellState(const Player player, const CellIndex& cell) const = 0;
+
+    virtual const GameConfig& getAppliedConfig() const = 0;
 };

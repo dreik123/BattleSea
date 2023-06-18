@@ -22,6 +22,8 @@ public:
 	virtual const GridData getPlayerGridInfo(const Player player) const override;
 	virtual CellState getPlayerGridCellState(const Player player, const CellIndex& cell) const override;
 
+	virtual const GameConfig& getAppliedConfig() const override;
+
 	static int getIndexFromPlayer(const Player& player);
 
 private:

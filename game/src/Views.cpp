@@ -39,7 +39,7 @@ TerminalView::TerminalView(const std::shared_ptr<IBattleSeaGame>& game)
 void TerminalView::renderGame()
 {
     // README for now Player1 is user, Player2 is bot
-    // TODO Multiplayer requires understanding which Player value current player has
+    // README Multiplayer requires understanding which Player value current player has
     // Important: Own grid must visualize ships as well, opponent's - no.
     const GridData modelData1 = m_game->getPlayerGridInfo(Player::Player1);
     const GridData modelData2 = m_game->getPlayerGridInfo(Player::Player2);

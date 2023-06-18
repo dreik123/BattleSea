@@ -170,6 +170,11 @@ CellState BattleSeaGame::getPlayerGridCellState(const Player player, const CellI
     return getPlayerGridInfo(player)[cell.x()][cell.y()];
 }
 
+const GameConfig& BattleSeaGame::getAppliedConfig() const
+{
+    return m_config;
+}
+
 int BattleSeaGame::getIndexFromPlayer(const Player& player)
 {
     static_assert(static_cast<int>(Player::Player1) == 1);

@@ -2,9 +2,10 @@
 #include "IPlayer.h"
 #include "Core/CoreTypes.h"
 #include "Game/GameConfig.h"
-#include "Core/CharUtilities.h"
 
 #include <deque>
+#include <algorithm>
+#include <random>
 
 class SillyBotPlayer : public IPlayer
 {
@@ -13,15 +14,19 @@ public:
         : m_currentPlayer(player)
         , m_gameInstance(game)
     {
-        // TODO get value from applied config
-        for (const char c : ROW_AXIS_NAMES)
+        const GameConfig& config = m_gameInstance->getAppliedConfig();
+        for (int i = 0; i < config.rowsCount; i++)
         {
-            for (int i = 0; i < CLASSIC_GRID_COLUMN_COUNT; i++)
+            for (int j = 0; j < config.columnsCount; j++)
             {
-                const CellIndex cell = CellIndex(char_utilities::letterCharToInt(c), i);
-                m_sequenceTurns.push_back(cell);
+                m_sequenceTurns.emplace_back(i, j);
             }
         }
+
+        std::random_device rd;
+        std::mt19937 g(rd());
+
+        std::shuffle(m_sequenceTurns.begin(), m_sequenceTurns.end(), g);
     }
     virtual std::string getName() const override
     {
@@ -37,33 +42,24 @@ public:
     }
     virtual InputRequest getInput() override
     {
-        if (m_sequenceTurns.empty())
-        {
-            // keep it empty
-            return InputRequest{};
-        }
-
         const Player opponent = getOppositePlayer(getPlayerType());
 
-        // REDO in do-while
-        CellIndex cell = m_sequenceTurns[0];
-        m_sequenceTurns.pop_front();
-        // IS IT CHEATING? do we need to introduce separate local grid and fill it by info from shooting?
-        CellState state = m_gameInstance->getPlayerGridCellState(opponent, cell);
-        while (state != CellState::Concealed && state != CellState::Ship)
+        CellState state = CellState::Concealed;
+        InputRequest turn;
+        do
         {
             if (m_sequenceTurns.empty())
             {
                 return InputRequest{};
             }
 
-            cell = m_sequenceTurns[0];
+            turn.shotCell = m_sequenceTurns[0];
             m_sequenceTurns.pop_front();
-            state = m_gameInstance->getPlayerGridCellState(opponent, cell);
-        }
 
-        InputRequest turn;
-        turn.shotCell = cell;
+            // That's CHEATING! Ideally to use separate local grid and fill it by info from shooting
+            state = m_gameInstance->getPlayerGridCellState(opponent, *turn.shotCell);
+        } while (state != CellState::Concealed && state != CellState::Ship);
+
         return turn;
     }
 

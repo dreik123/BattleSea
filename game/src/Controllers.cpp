@@ -19,6 +19,7 @@ GameController::GameController(std::shared_ptr<IBattleSeaGame>& game, std::share
 void GameController::runGame()
 {
     m_players[Player::Player1] = new RealPlayer(Player::Player1);
+    // TODO AP please replace it with advanced AI bot when it's implemented
     m_players[Player::Player2] = new SillyBotPlayer(Player::Player2, m_game);
 
     // [Temporary] TODO DS Player can regenerate ships many times before game start
@@ -50,7 +51,7 @@ void GameController::runGame()
             if (userInput.isQuitRequested)
             {
                 hasGameBeenInterrupted = true;
-                continue;
+                break;
             }
 
             if (userInput.shotCell.has_value())
