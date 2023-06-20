@@ -14,7 +14,6 @@ CellIndex::CellIndex(const std::string& coord)
     );
 
     m_internalCoordinates.first = char_utilities::letterCharToInt(coord[0]);
-    assert(m_internalCoordinates.first >= 0 && m_internalCoordinates.first < CLASSIC_GRID_ROW_COUNT);
     if (coord.size() == 2)
     {
         m_internalCoordinates.second = char_utilities::digitCharToInt(coord[1]) - 1; // -1 to handle array index and view difference

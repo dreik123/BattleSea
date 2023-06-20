@@ -24,8 +24,6 @@ public:
 
 	virtual const GameConfig& getAppliedConfig() const override;
 
-	static int getIndexFromPlayer(const Player& player);
-
 private:
 	void setGridCellState(GridData& outGridData, const CellIndex& cell, const CellState& state);
 	void surroundDestroyedShip(GridData& outGridData, const WarShip& ship);

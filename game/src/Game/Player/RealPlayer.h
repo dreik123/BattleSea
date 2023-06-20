@@ -27,20 +27,20 @@ public:
     }
     virtual InputRequest getInput() override
     {
-        std::string user_input;
-        std::cin >> user_input;
+        std::string userInput;
+        std::cin >> userInput;
 
         InputRequest request;
 
-        if (user_input == "q" || user_input == "quit")
+        if (userInput == "q" || userInput == "quit")
         {
             request.isQuitRequested = true;
             return request;
         }
 
-        if (validateUserInput(user_input))
+        if (validateUserInput(userInput))
         {
-            request.shotCell = CellIndex(user_input);
+            request.shotCell = CellIndex(userInput);
         }
 
         return request;

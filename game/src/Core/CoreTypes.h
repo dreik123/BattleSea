@@ -33,3 +33,10 @@ __forceinline Player getOppositePlayer(const Player player)
     if (player == Player::Invalid) return Player::Invalid;
     return (player == Player::Player1) ? Player::Player2 : Player::Player1;
 }
+
+__forceinline int getIndexFromPlayer(const Player& player)
+{
+    static_assert(static_cast<int>(Player::Player1) == 1);
+    static_assert(static_cast<int>(Player::Player2) == 2);
+    return static_cast<int>(player) - 1; // Excluding Invalid value from start
+}

@@ -4,6 +4,7 @@
 #include <optional>
 
 #include "Core/CoreTypes.h"
+#include "Core/CellIndex.h"
 
 struct InputRequest
 {
