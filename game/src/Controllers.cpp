@@ -1,14 +1,15 @@
 #include "Controllers.h"
-#include "Game/GameInterfaces.h"
 #include "Views.h"
 
-#include <iostream>
-#include <string>
+#include "Game/GameInterfaces.h"
+#include "Game/Player/RealPlayer.h"
+#include "Game/Player/SillyRandomBot.h"
 
-// TODOs:
-// introduce Iplayer and encapsulate turn logic there
-// create RealPlayer
-// create seconds player as AIPlayer
+#include <iostream>
+
+// TODOs + refactor:
+// impl CellIndex::fromString(..) instead of ctor
+// all entities with logic must be classes, if class contains data only, make it a struct
 
 GameController::GameController(std::shared_ptr<IBattleSeaGame>& game, std::shared_ptr<IBattleSeaView>& view)
     : m_game(game)
@@ -18,12 +19,16 @@ GameController::GameController(std::shared_ptr<IBattleSeaGame>& game, std::share
 
 void GameController::runGame()
 {
+    m_players[0].reset(new RealPlayer(Player::Player1));
+    // TODO AP please replace it with advanced AI bot when it's implemented
+    m_players[1].reset(new SillyBotPlayer(Player::Player2, m_game));
+
     // [Temporary] TODO DS Player can regenerate ships many times before game start
     m_game->generateShipsForPlayer(Player::Player1);
     m_game->generateShipsForPlayer(Player::Player2);
 
-    const Player initialPlayer  = Player::Player1;
-    m_game->setLocalPlayer(Player::Player1); // will be refactored with IPlayer
+    const Player initialPlayer = Player::Player1;
+    m_game->setLocalPlayer(Player::Player1);
     // TODO DS Probably local player data must be part of startGame() + generated ships as well
     m_game->startGame(initialPlayer); // Does startGame cover main menu or is this actual game (shooting) start?
 
@@ -32,31 +37,57 @@ void GameController::runGame()
     bool hasGameBeenInterrupted = false;
     while (!hasGameBeenInterrupted && !m_game->isGameOver())
     {
+        IPlayer& currentPlayer = getCurrentPlayer(m_game->getCurrentPlayer());
+
+
         // Shows grids before first turn
         m_view->renderGame();
 
-        std::cout << "Player " << ((m_game->getCurrentPlayer() == Player::Player1) ? "1" : "2") << " turns:" << std::endl;
-        std::string user_input;
-        std::cin >> user_input;
+        std::cout << currentPlayer.getName() << " turns:" << std::endl;
 
-        if (user_input == "q" || user_input == "quit")
+        bool isValidTurn = false;
+        do
         {
-            hasGameBeenInterrupted = true;
-            continue;
-        }
+            const InputRequest userInput = currentPlayer.getInput();
 
-        // Temp debug approach
-        if (user_input == "g")
-        {
-            m_game->generateShipsForPlayer(Player::Player1);
-            system("cls");
-            continue;
-        }
+            if (userInput.isQuitRequested)
+            {
+                hasGameBeenInterrupted = true;
+                break;
+            }
 
-        // TODO validate input
-        /*bool hit = */m_game->shootThePlayerGridAt(CellIndex(user_input));
+            if (userInput.shotCell.has_value())
+            {
+                const ShotError result = m_game->shootThePlayerGridAt(userInput.shotCell.value());
+                switch (result)
+                {
+                case ShotError::Ok:
+                    isValidTurn = true;
+                    break;
+                case ShotError::OutOfGrid:
+                    std::cout << "Out of grid. Try again\n";
+                    break;
+                case ShotError::RepeatedShot:
+                    std::cout << "You've already shooted at this cell! Try again\n";
+                    break;
+                default:
+                    assert(false && "Unexpected ShotError. Please process it!");
+                    break;
+                }
+            }
+            else
+            {
+                std::cout << "WTF have you entered?!?\n";
+            }
+        } while (!isValidTurn);
 
         // Clear screen to refresh the grids in place
         system("cls");
     }
+}
+
+IPlayer& GameController::getCurrentPlayer(const Player player) const
+{
+    const int index = getIndexFromPlayer(player);
+    return *m_players[index];
 }

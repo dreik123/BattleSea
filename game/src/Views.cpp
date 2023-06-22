@@ -1,10 +1,9 @@
 #include "Views.h"
 #include "Game/GameInterfaces.h"         // for IBattleSeaGame
+#include "Game/GameConfig.h"
 
 #include <iostream>  // is temporary used for console presentation
 
-
-// TODO DS adjust with code-style as soon as we choose it
 // Constants
 namespace
 {
@@ -27,17 +26,9 @@ namespace
     constexpr unsigned char SHIP_FILLER = 219;
 }
 
-
 constexpr static uint8_t HORIZONTAL_SYMBOLS_AMOUNT_PER_CELL = 3;
 constexpr static uint8_t VERTICAL_SYMBOLS_AMOUNT_PER_CELL = 1;
 constexpr static uint8_t SPACES_BETWEEN_GRIDS = 10;
-
-// TODO probably make sense to take the data from model when model is implemented.
-// This array might be generated in compile time automatically with N chars starting from 'A' symbol
-constexpr static std::array<char, 10> ROW_AXIS_NAMES =
-{
-    'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'
-};
 
 
 TerminalView::TerminalView(const std::shared_ptr<IBattleSeaGame>& game)
@@ -48,7 +39,7 @@ TerminalView::TerminalView(const std::shared_ptr<IBattleSeaGame>& game)
 void TerminalView::renderGame()
 {
     // README for now Player1 is user, Player2 is bot
-    // TODO Multiplayer requires understanding which Player value current player has
+    // README Multiplayer requires understanding which Player value current player has
     // Important: Own grid must visualize ships as well, opponent's - no.
     const GridData modelData1 = m_game->getPlayerGridInfo(Player::Player1);
     const GridData modelData2 = m_game->getPlayerGridInfo(Player::Player2);
@@ -129,7 +120,6 @@ void TerminalView::renderSingleGrid(const GridData& gridData)
     std::cout << RIGHT_BOTTOM_EDGE << std::endl;
 }
 
-// TODO render own ships
 void TerminalView::renderTwoGrids(const GridData& gridDataLeft, const GridData& gridDataRight, const bool isHorizontally/* = true*/)
 {
     if (!isHorizontally)

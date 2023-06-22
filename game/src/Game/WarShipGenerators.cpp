@@ -87,8 +87,8 @@ void WarShipGenerator::fillAreaAroundShip(const std::vector<CellIndex>& shipCell
 
 const std::vector<WarShip> WarShipGenerator::generateShips(const GameConfig& params)
 {
-    std::vector<int> temp(params.sizeY, 0);
-    std::vector<std::vector<int>> cells(params.sizeX, temp);
+    std::vector<int> temp(params.columnsCount, 0);
+    std::vector<std::vector<int>> cells(params.rowsCount, temp);
 
     std::vector<WarShip> resWarships;
     for (auto shipIt = params.numberOfMultiDeckShips.crbegin();
@@ -99,8 +99,9 @@ const std::vector<WarShip> WarShipGenerator::generateShips(const GameConfig& par
 
         const int amountOfShipDecks = static_cast<int>(*shipIt);
 
-        std::uniform_int_distribution<int> distX(0, params.sizeX - 1);
-        std::uniform_int_distribution<int> distY(0, params.sizeY - 1);
+        // TODO need to include amountOfShipDecks in generation set
+        std::uniform_int_distribution<int> distX(0, params.rowsCount - 1);
+        std::uniform_int_distribution<int> distY(0, params.columnsCount - 1);
 
         const CellIndex firstCell(distX(mt), distY(mt));
 
@@ -118,11 +119,11 @@ const std::vector<WarShip> WarShipGenerator::generateShips(const GameConfig& par
         {
             permissionDirections.clearFlag(Direction::North);
         }
-        if (firstCell.x() + amountOfShipDecks - 1 >= params.sizeX)
+        if (firstCell.x() + amountOfShipDecks - 1 >= params.rowsCount)
         {
             permissionDirections.clearFlag(Direction::East);
         }
-        if (firstCell.y() + amountOfShipDecks - 1 >= params.sizeY)
+        if (firstCell.y() + amountOfShipDecks - 1 >= params.columnsCount)
         {
             permissionDirections.clearFlag(Direction::South);
         }

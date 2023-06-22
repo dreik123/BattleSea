@@ -99,12 +99,16 @@
   <ItemGroup>
     <ClInclude Include="src\Controllers.h" />
     <ClInclude Include="src\Core\BitMask.h" />
+    <ClInclude Include="src\Core\CharUtilities.h" />
     <ClInclude Include="src\Core\GridUtilities.h" />
     <ClInclude Include="src\Game\BattleSeaGame.h" />
     <ClInclude Include="src\Core\CellIndex.h" />
     <ClInclude Include="src\Core\CoreTypes.h" />
     <ClInclude Include="src\Game\GameInterfaces.h" />
     <ClInclude Include="src\Game\GameConfig.h" />
+    <ClInclude Include="src\Game\Player\IPlayer.h" />
+    <ClInclude Include="src\Game\Player\RealPlayer.h" />
+    <ClInclude Include="src\Game\Player\SillyRandomBot.h" />
     <ClInclude Include="src\MVCFactory.h" />
     <ClInclude Include="src\Views.h" />
     <ClInclude Include="src\Game\WarShip.h" />

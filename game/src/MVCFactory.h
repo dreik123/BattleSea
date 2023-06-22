@@ -49,7 +49,7 @@ struct HasbroConsoleBattleSeaFactory : public ClassicConsoleBattleSeaFactory
 class FactoryInterface
 {
 public:
-    // TODO extend functionality with polimophic opportunity if need
+    // README Extend functionality with polimophic opportunity if need
     static std::unique_ptr<IBattleSeaFactory> getFactory()
     {
         return std::make_unique<ClassicConsoleBattleSeaFactory>();

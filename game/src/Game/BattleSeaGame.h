@@ -12,7 +12,7 @@ public:
 	// Inherited via IBattleSeaGame
 	virtual void generateShipsForPlayer(const Player player) override;
 	virtual bool initShipPositionsForPlayer(const Player player, const std::vector<WarShip>& ships) override;
-	virtual bool shootThePlayerGridAt(const CellIndex& cell) override;
+	virtual ShotError shootThePlayerGridAt(const CellIndex& cell) override;
 	virtual void startGame(const Player initialPlayer) override;
 	virtual bool isGameOver() const override;
 	virtual Player getCurrentPlayer() const override;
@@ -22,7 +22,7 @@ public:
 	virtual const GridData getPlayerGridInfo(const Player player) const override;
 	virtual CellState getPlayerGridCellState(const Player player, const CellIndex& cell) const override;
 
-	static int getIndexFromPlayer(const Player& player);
+	virtual const GameConfig& getAppliedConfig() const override;
 
 private:
 	void setGridCellState(GridData& outGridData, const CellIndex& cell, const CellState& state);
@@ -35,11 +35,8 @@ private:
 	std::array<GridData, PLAYER_AMOUNT> m_playerGrids;
 	std::array<std::vector<WarShip>, PLAYER_AMOUNT> m_playerShips;
 
-	static_assert(static_cast<int>(Player::Count) < 4);
-	// 2 bits covers 0..3 possible values, so it's okay to keep EPlayer values in 2 bits
-	Player m_currentPlayer : 2;
-	Player m_initialPlayer : 2;
-	Player m_localPlayer : 2;
-	char : 0; // alignment to fit current byte
+	Player m_currentPlayer;
+	Player m_initialPlayer;
+	Player m_localPlayer;
 };
 

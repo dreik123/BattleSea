@@ -44,7 +44,7 @@ bool BattleSeaGame::initShipPositionsForPlayer(const Player player, const std::v
     return true;
 }
 
-bool BattleSeaGame::shootThePlayerGridAt(const CellIndex& cell)
+ShotError BattleSeaGame::shootThePlayerGridAt(const CellIndex& cell)
 {
     assert(getCurrentPlayer() != Player::Invalid);
 
@@ -52,13 +52,19 @@ bool BattleSeaGame::shootThePlayerGridAt(const CellIndex& cell)
     GridData& gridData = m_playerGrids[oppositePlayerIndex];
     std::vector<WarShip>& ships = m_playerShips[oppositePlayerIndex];
 
-    // TODO need to properly validate the double shot at cell outside
-    assert(gridData[cell.x()][cell.y()] == CellState::Concealed && "Double shot");
+    if (cell.x() < 0 || cell.x() >= m_config.rowsCount || cell.y() < 0 || cell.y() >= m_config.columnsCount)
+    {
+        // Invalid input from player (out of current grid size)
+        return ShotError::OutOfGrid;
+    }
+
+    if (gridData[cell.x()][cell.y()] != CellState::Concealed)
+    {
+        return ShotError::RepeatedShot;
+    }
 
     bool playerSwitch = true;
 
-    // FIXME it corrupts damaged and destroyed states
-    setGridCellState(gridData, cell, CellState::Missed);
     for (WarShip& ship : ships)
     {
         if (ship.isDestroyed() || !ship.doesOccupyTheCell(cell))
@@ -89,9 +95,11 @@ bool BattleSeaGame::shootThePlayerGridAt(const CellIndex& cell)
 
     if (playerSwitch)
     {
+        setGridCellState(gridData, cell, CellState::Missed);
         m_currentPlayer = getOppositePlayer(m_currentPlayer);
     }
-    return !playerSwitch;
+
+    return ShotError::Ok;
 }
 
 void BattleSeaGame::startGame(const Player initialPlayer)
@@ -133,23 +141,27 @@ const GridData BattleSeaGame::getPlayerGridInfo(const Player player) const
 {
     // Create a copy of grid data to make the ship data visible for local player only
     const int playerIndex = getIndexFromPlayer(player);
+
+    if (getLocalPlayer() != player)
+    {
+        return m_playerGrids[playerIndex];
+    }
+
     GridData gridDataCopy = m_playerGrids[playerIndex];
     const std::vector<WarShip>& warShips = m_playerShips[playerIndex];
 
-    if (getLocalPlayer() == player)
+    for (const WarShip& ship : warShips)
     {
-        for (const WarShip& ship : warShips)
+        for (const CellIndex& cell : ship.getOccupiedCells())
         {
-            for (const CellIndex& cell : ship.getOccupiedCells())
+            const auto& [x, y] = cell.asIndexesPair();
+            if (gridDataCopy[x][y] == CellState::Concealed)
             {
-                const auto& [x, y] = cell.asIndexesPair();
-                if (gridDataCopy[x][y] == CellState::Concealed)
-                {
-                    gridDataCopy[x][y] = CellState::Ship;
-                }
+                gridDataCopy[x][y] = CellState::Ship;
             }
         }
     }
+
     return gridDataCopy;
 }
 
@@ -158,11 +170,9 @@ CellState BattleSeaGame::getPlayerGridCellState(const Player player, const CellI
     return getPlayerGridInfo(player)[cell.x()][cell.y()];
 }
 
-int BattleSeaGame::getIndexFromPlayer(const Player& player)
+const GameConfig& BattleSeaGame::getAppliedConfig() const
 {
-    static_assert(static_cast<int>(Player::Player1) == 1);
-    static_assert(static_cast<int>(Player::Player2) == 2);
-    return static_cast<int>(player) - 1; // Excluding Invalid value from start
+    return m_config;
 }
 
 void BattleSeaGame::setGridCellState(GridData& outGridData, const CellIndex& cell, const CellState& state)
@@ -193,7 +203,7 @@ void BattleSeaGame::surroundDestroyedShip(GridData& outGridData, const WarShip& 
         {
             const int newX = x + dX;
             const int newY = y + dY;
-            if (newX < 0 || newY < 0 || newX >= GRID_ROW_COUNT || newY >= GRID_COLUMN_COUNT)
+            if (newX < 0 || newY < 0 || newX >= CLASSIC_GRID_ROW_COUNT || newY >= CLASSIC_GRID_COLUMN_COUNT)
             {
                 continue;
             }
