@@ -14,7 +14,7 @@ public:
     CellIndex(int x, int y);
 
     // Input like "a2" or "c10"
-    CellIndex(const std::string& coord);
+    static CellIndex fromString(const std::string& coord);
 
     // Returns array indexes
     [[nodiscard]] inline std::pair<int, int> asIndexesPair() const { return { x(), y() }; }

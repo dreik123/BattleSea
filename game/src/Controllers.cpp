@@ -7,8 +7,6 @@
 
 #include <iostream>
 
-// TODOs + refactor:
-// impl CellIndex::fromString(..) instead of ctor
 
 GameController::GameController(std::shared_ptr<IBattleSeaGame>& game, std::shared_ptr<IBattleSeaView>& view)
     : m_game(game)
