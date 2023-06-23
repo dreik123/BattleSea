@@ -24,8 +24,9 @@ static_assert(DIRECTION_COUNT == 4);
 
 using DirectionMask = BitMask<Direction>;
 
-struct IWarShipGenerator
+class IWarShipGenerator
 {
+public:
     virtual const std::vector<WarShip> generateShips(const GameConfig& params) = 0;
 };
 

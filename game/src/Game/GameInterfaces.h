@@ -22,8 +22,9 @@
 // Model must validate order of turns.
 
 
-struct IBattleSeaGameObserver
+class IBattleSeaGameObserver
 {
+public:
     // Notify methods
     virtual void onShipDestroyed(const WarShip& InShip) = 0;
     virtual void onShipDamaged(const WarShip& InShip, const CellIndex& cell) = 0;
@@ -50,8 +51,9 @@ enum class ShotError
 // - game over check
 
 // Interface for major functionality of Battle sea game
-struct IBattleSeaGame
+class IBattleSeaGame
 {
+public:
     virtual void generateShipsForPlayer(const Player player) = 0;
     virtual bool initShipPositionsForPlayer(const Player player, const std::vector<WarShip>& ships) = 0;
     // ShootThePlayerGridAt method contains logic of the shot by current player(starting from initial one).

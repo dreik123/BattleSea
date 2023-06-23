@@ -5,14 +5,15 @@
 #include "Core/CoreTypes.h"
 #include "Game/Player/IPlayer.h"
 
-struct IBattleSeaGame;
-struct IBattleSeaView;
+class IBattleSeaGame;
+class IBattleSeaView;
 
 
 // DS: It's expected to communicate between MVC entries via 'event-based' subsystem, 
 // but for this moment old-school approach should cover our needs
-struct IController
+class IController
 {
+public:
     virtual void runGame() = 0;
 };
 

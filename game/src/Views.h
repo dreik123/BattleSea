@@ -3,10 +3,11 @@
 
 #include <memory>
 
-struct IBattleSeaGame;
+class IBattleSeaGame;
 class CellIndex;
 
-struct IBattleSeaView {
+class IBattleSeaView {
+public:
     virtual void renderGame() = 0;
 };
 

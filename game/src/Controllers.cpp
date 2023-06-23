@@ -9,7 +9,6 @@
 
 // TODOs + refactor:
 // impl CellIndex::fromString(..) instead of ctor
-// all entities with logic must be classes, if class contains data only, make it a struct
 
 GameController::GameController(std::shared_ptr<IBattleSeaGame>& game, std::shared_ptr<IBattleSeaView>& view)
     : m_game(game)
