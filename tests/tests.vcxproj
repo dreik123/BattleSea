@@ -71,6 +71,7 @@
       <PrecompiledHeaderOutputFile />
       <AdditionalIncludeDirectories>$(ProjectDir)\..\game\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
