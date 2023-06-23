@@ -24,8 +24,7 @@ public:
     virtual std::shared_ptr<IBattleSeaGame> createGame() override
     {
         const GameConfig& gameConfig = DEFAULT_GAME_CONFIG;
-        auto generator = std::make_unique<WarShipGenerator>();
-        return std::make_shared<BattleSeaGame>(std::move(generator), gameConfig);
+        return std::make_shared<BattleSeaGame>(gameConfig);
     }
     virtual std::shared_ptr<IBattleSeaView> createPresenter(std::shared_ptr<IBattleSeaGame>& game) override
     {
@@ -43,8 +42,7 @@ public:
     virtual std::shared_ptr<IBattleSeaGame> createGame() override
     {
         const GameConfig& gameConfig = HASBRO_GAME_CONFIG;
-        auto generator = std::make_unique<WarShipGenerator>();
-        return std::make_shared<BattleSeaGame>(std::move(generator), gameConfig);
+        return std::make_shared<BattleSeaGame>(gameConfig);
     }
 };
 
