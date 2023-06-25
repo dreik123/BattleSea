@@ -95,14 +95,22 @@ ShotError BattleSeaGame::shootThePlayerGridAt(const CellIndex& cell)
     return ShotError::Ok;
 }
 
-void BattleSeaGame::startGame(const GameStartSettings& settings)
+bool BattleSeaGame::startGame(const GameStartSettings& settings)
 {
     m_initialPlayer = settings.initialPlayer;
     m_currentPlayer = settings.initialPlayer;
     m_localPlayer = settings.localPlayer;
 
-    initShipPositionsForPlayer(Player::Player1, settings.firstShips);
-    initShipPositionsForPlayer(Player::Player2, settings.secondShips);
+    if (!initShipPositionsForPlayer(Player::Player1, settings.shipsForPlayer1))
+    {
+        return false;
+    }
+    if (!initShipPositionsForPlayer(Player::Player2, settings.shipsForPlayer2))
+    {
+        return false;
+    }
+
+    return true;
 }
 
 bool BattleSeaGame::isGameOver() const

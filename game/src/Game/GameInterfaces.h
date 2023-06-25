@@ -49,8 +49,8 @@ struct GameStartSettings
     Player initialPlayer;
     Player localPlayer;
 
-    std::vector<WarShip> firstShips;
-    std::vector<WarShip> secondShips;
+    std::vector<WarShip> shipsForPlayer1;
+    std::vector<WarShip> shipsForPlayer2;
 };
 
 // Main functionality in the game in model context
@@ -68,7 +68,7 @@ public:
     // ShootThePlayerGridAt method contains logic of the shot by current player(starting from initial one).
     virtual ShotError shootThePlayerGridAt(const CellIndex& cell) = 0;
 
-    virtual void startGame(const GameStartSettings& settings) = 0;
+    virtual bool startGame(const GameStartSettings& settings) = 0;
     virtual bool isGameOver() const = 0;
 
     virtual Player getCurrentPlayer() const = 0;

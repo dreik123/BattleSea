@@ -11,7 +11,7 @@
 GameController::GameController(std::shared_ptr<IBattleSeaGame>& game, std::shared_ptr<IBattleSeaView>& view)
     : m_game(game)
     , m_view(view)
-    , m_gridGenerator(new WarShipGenerator())
+    , m_shipsGenerator(new WarShipGenerator())
 {
 }
 
@@ -25,9 +25,14 @@ void GameController::runGame()
     GameStartSettings settings;
     settings.initialPlayer = Player::Player1;
     settings.localPlayer = Player::Player1;
-    settings.firstShips = m_gridGenerator->generateShips(m_game->getAppliedConfig());
-    settings.secondShips = m_gridGenerator->generateShips(m_game->getAppliedConfig());
-    m_game->startGame(settings);
+    settings.shipsForPlayer1 = m_shipsGenerator->generateShips(m_game->getAppliedConfig());
+    settings.shipsForPlayer2 = m_shipsGenerator->generateShips(m_game->getAppliedConfig());
+
+    if (!m_game->startGame(settings))
+    {
+        std::cout << "Invalid settings for game start!\n";
+        return;
+    }
 
     //if (std::cin.bad()) // TODO check
 

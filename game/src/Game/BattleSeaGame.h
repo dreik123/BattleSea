@@ -12,7 +12,7 @@ public:
 	// Inherited via IBattleSeaGame
 	virtual bool initShipPositionsForPlayer(const Player player, const std::vector<WarShip>& ships) override;
 	virtual ShotError shootThePlayerGridAt(const CellIndex& cell) override;
-	virtual void startGame(const GameStartSettings& settings) override;
+	virtual bool startGame(const GameStartSettings& settings) override;
 	virtual bool isGameOver() const override;
 	virtual Player getCurrentPlayer() const override;
 	virtual Player getInitialPlayer() const override;

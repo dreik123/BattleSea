@@ -34,5 +34,5 @@ protected:
 
 private:
     std::array<std::unique_ptr<IPlayer>, 2> m_players;
-    std::unique_ptr<IWarShipGenerator> m_gridGenerator;
+    std::unique_ptr<IWarShipGenerator> m_shipsGenerator;
 };
