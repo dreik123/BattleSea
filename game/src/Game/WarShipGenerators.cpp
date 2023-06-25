@@ -124,9 +124,7 @@ const std::vector<WarShip> WarShipGenerator::generateShips(const GameConfig& par
             continue;
         }
 
-        // TODO add ctor with ALL flags set
-        DirectionMask permissionDirections;
-        permissionDirections.setAllFlags();
+        DirectionMask permissionDirections(true/*isAllFlagSet*/);
 
         if (firstCell.y() - amountOfShipDecks - 1 < 0)
         {
