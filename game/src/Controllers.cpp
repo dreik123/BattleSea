@@ -36,13 +36,13 @@ void GameController::runGame()
 
     //if (std::cin.bad()) // TODO check
 
+    // Shows grids before first turn
+    m_view->renderGame();
+
     bool hasGameBeenInterrupted = false;
     while (!hasGameBeenInterrupted && !m_game->isGameOver())
     {
         IPlayer& currentPlayer = getCurrentPlayer(m_game->getCurrentPlayer());
-
-        // Shows grids before first turn
-        m_view->renderGame();
 
         std::cout << currentPlayer.getName() << " turns:" << std::endl;
 
@@ -84,6 +84,15 @@ void GameController::runGame()
 
         // Clear screen to refresh the grids in place
         system("cls");
+
+        m_view->renderGame();
+    }
+
+    if (m_game->isGameOver())
+    {
+        // The current player hasn't been changed after last shot.
+        IPlayer& winner = getCurrentPlayer(m_game->getCurrentPlayer());
+        std::cout << winner.getName() << " won!\nPlease relaunch game if you want to play again";
     }
 }
 

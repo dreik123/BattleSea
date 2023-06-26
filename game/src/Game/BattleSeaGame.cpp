@@ -10,6 +10,7 @@ BattleSeaGame::BattleSeaGame(const GameConfig& config)
     , m_currentPlayer(Player::Invalid)
     , m_initialPlayer(Player::Invalid)
     , m_localPlayer(Player::Invalid)
+    , m_hasGameFinished(false)
 {
     for (GridData& gridData : m_playerGrids)
     {
@@ -81,6 +82,11 @@ ShotError BattleSeaGame::shootThePlayerGridAt(const CellIndex& cell)
 
             // Wrap all surrounded cells of the ship in missed
             surroundDestroyedShip(gridData, ship);
+
+            m_hasGameFinished = std::all_of(ships.cbegin(), ships.cend(), [](const WarShip& s)
+                {
+                    return s.isDestroyed();
+                });
         }
         playerSwitch = false; // continue shooting
         break;
@@ -115,8 +121,7 @@ bool BattleSeaGame::startGame(const GameStartSettings& settings)
 
 bool BattleSeaGame::isGameOver() const
 {
-    // TODO impl
-    return false;
+    return m_hasGameFinished;
 }
 
 Player BattleSeaGame::getCurrentPlayer() const
