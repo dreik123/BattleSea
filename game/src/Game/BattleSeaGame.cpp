@@ -3,9 +3,8 @@
 #include "Game/WarShip.h"
 
 
-BattleSeaGame::BattleSeaGame(std::unique_ptr<IWarShipGenerator>&& generator, const GameConfig& config)
-    : m_gridGenerator(std::move(generator))
-    , m_config(config)
+BattleSeaGame::BattleSeaGame(const GameConfig& config)
+    : m_config(config)
     , m_playerGrids{}
     , m_playerShips{}
     , m_currentPlayer(Player::Invalid)
@@ -24,15 +23,9 @@ BattleSeaGame::BattleSeaGame(std::unique_ptr<IWarShipGenerator>&& generator, con
     }
 }
 
-void BattleSeaGame::generateShipsForPlayer(const Player player)
-{
-    const std::vector<WarShip> warShips = m_gridGenerator->generateShips(m_config);
-    initShipPositionsForPlayer(player, warShips);
-}
-
 bool BattleSeaGame::initShipPositionsForPlayer(const Player player, const std::vector<WarShip>& ships)
 {
-    // TODO validate ships position at least under some macro definition (debug for ex.)
+    // TODO [MUST HAVE] validate ships position at least under some macro definition (debug for ex.)
     const bool isValidated = true;
     if (!isValidated)
     {
@@ -102,13 +95,22 @@ ShotError BattleSeaGame::shootThePlayerGridAt(const CellIndex& cell)
     return ShotError::Ok;
 }
 
-void BattleSeaGame::startGame(const Player initialPlayer)
+bool BattleSeaGame::startGame(const GameStartSettings& settings)
 {
-    m_initialPlayer = initialPlayer;
-    m_currentPlayer = initialPlayer;
+    m_initialPlayer = settings.initialPlayer;
+    m_currentPlayer = settings.initialPlayer;
+    m_localPlayer = settings.localPlayer;
 
-    // Validations before actual game
-    assert(getLocalPlayer() != Player::Invalid);
+    if (!initShipPositionsForPlayer(Player::Player1, settings.shipsForPlayer1))
+    {
+        return false;
+    }
+    if (!initShipPositionsForPlayer(Player::Player2, settings.shipsForPlayer2))
+    {
+        return false;
+    }
+
+    return true;
 }
 
 bool BattleSeaGame::isGameOver() const
@@ -130,11 +132,6 @@ Player BattleSeaGame::getInitialPlayer() const
 Player BattleSeaGame::getLocalPlayer() const
 {
     return m_localPlayer;
-}
-
-void BattleSeaGame::setLocalPlayer(Player player)
-{
-    m_localPlayer = player;
 }
 
 const GridData BattleSeaGame::getPlayerGridInfo(const Player player) const

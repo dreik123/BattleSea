@@ -7,13 +7,11 @@
 
 #include <iostream>
 
-// TODOs + refactor:
-// impl CellIndex::fromString(..) instead of ctor
-// all entities with logic must be classes, if class contains data only, make it a struct
 
 GameController::GameController(std::shared_ptr<IBattleSeaGame>& game, std::shared_ptr<IBattleSeaView>& view)
     : m_game(game)
     , m_view(view)
+    , m_shipsGenerator(new WarShipGenerator())
 {
 }
 
@@ -24,13 +22,17 @@ void GameController::runGame()
     m_players[1].reset(new SillyBotPlayer(Player::Player2, m_game));
 
     // [Temporary] TODO DS Player can regenerate ships many times before game start
-    m_game->generateShipsForPlayer(Player::Player1);
-    m_game->generateShipsForPlayer(Player::Player2);
+    GameStartSettings settings;
+    settings.initialPlayer = Player::Player1;
+    settings.localPlayer = Player::Player1;
+    settings.shipsForPlayer1 = m_shipsGenerator->generateShips(m_game->getAppliedConfig());
+    settings.shipsForPlayer2 = m_shipsGenerator->generateShips(m_game->getAppliedConfig());
 
-    const Player initialPlayer = Player::Player1;
-    m_game->setLocalPlayer(Player::Player1);
-    // TODO DS Probably local player data must be part of startGame() + generated ships as well
-    m_game->startGame(initialPlayer); // Does startGame cover main menu or is this actual game (shooting) start?
+    if (!m_game->startGame(settings))
+    {
+        std::cout << "Invalid settings for game start!\n";
+        return;
+    }
 
     //if (std::cin.bad()) // TODO check
 
@@ -38,7 +40,6 @@ void GameController::runGame()
     while (!hasGameBeenInterrupted && !m_game->isGameOver())
     {
         IPlayer& currentPlayer = getCurrentPlayer(m_game->getCurrentPlayer());
-
 
         // Shows grids before first turn
         m_view->renderGame();

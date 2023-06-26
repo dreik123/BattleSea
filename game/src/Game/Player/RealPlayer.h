@@ -40,7 +40,7 @@ public:
 
         if (validateUserInput(userInput))
         {
-            request.shotCell = CellIndex(userInput);
+            request.shotCell = CellIndex::fromString(userInput);
         }
 
         return request;
