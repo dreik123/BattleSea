@@ -35,5 +35,7 @@ private:
 	Player m_currentPlayer;
 	Player m_initialPlayer;
 	Player m_localPlayer;
+
+	bool m_hasGameFinished;
 };
 
