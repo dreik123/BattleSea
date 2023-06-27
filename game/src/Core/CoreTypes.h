@@ -1,9 +1,7 @@
 #pragma once
-#include <array>
+#include <stdint.h>
 
-#include "Game/GameConfig.h"
-
-enum class CellState
+enum class CellState : uint8_t
 {
     Concealed = 0,      // No shot has been done to the cell
     Ship,               // Ship presentation on grid (for local player only)
@@ -12,8 +10,15 @@ enum class CellState
     Destroyed,          // Shot right on target, but ship is destroyed
 };
 
+enum class ShotError : uint8_t
+{
+    Ok = 0,
+    OutOfGrid,
+    RepeatedShot,
+};
 
-enum class Player : int8_t
+
+enum class Player : uint8_t
 {
     Invalid = 0,
     Player1,

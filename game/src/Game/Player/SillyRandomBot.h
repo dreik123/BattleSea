@@ -6,6 +6,8 @@
 #include <deque>
 #include <algorithm>
 #include <random>
+#include <thread>
+#include <chrono>
 
 class SillyBotPlayer : public IPlayer
 {
@@ -60,6 +62,8 @@ public:
             state = m_gameInstance->getPlayerGridCellState(opponent, *turn.shotCell);
         } while (state != CellState::Concealed && state != CellState::Ship);
 
+        using namespace std::chrono_literals;
+        std::this_thread::sleep_for(500ms);
         return turn;
     }
 

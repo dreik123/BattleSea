@@ -3,6 +3,7 @@
 #include "Game/GameConfig.h"
 
 #include <iostream>  // is temporary used for console presentation
+#include <conio.h>
 
 // Constants
 namespace
@@ -36,6 +37,12 @@ TerminalView::TerminalView(const std::shared_ptr<IBattleSeaGame>& game)
 {
 }
 
+void TerminalView::renderGreetingToPlayer()
+{
+    std::cout << "Welcome to Battle Sea game. Enjoy it.\nPress any key to choose your setup\n";
+    int _ = _getch();
+}
+
 void TerminalView::renderGame()
 {
     // README for now Player1 is user, Player2 is bot
@@ -46,8 +53,43 @@ void TerminalView::renderGame()
     renderTwoGrids(modelData1, modelData2, true);
 }
 
+void TerminalView::renderMessage(const std::string msg)
+{
+    std::cout << msg;
+}
+
+void TerminalView::renderRequestToTurn(const std::string playerName)
+{
+    std::cout << playerName << " turns:\n";
+}
+
+void TerminalView::renderShotError(const ShotError error)
+{
+    switch (error)
+    {
+    case ShotError::Ok:
+        break;
+    case ShotError::OutOfGrid:
+        std::cout << "Out of grid. Try again\n";
+        break;
+    case ShotError::RepeatedShot:
+        std::cout << "You've already shooted at this cell! Try again\n";
+        break;
+    default:
+        assert(false && "Unexpected ShotError. Please process it!");
+        break;
+    }
+}
+
+void TerminalView::renderGameOver(const std::string winnerName, const bool isLocalPlayer)
+{
+    std::cout << winnerName << (isLocalPlayer ? "(You)" : "") << " won!\n";
+}
+
 void TerminalView::renderGeneratedShips(const GameGrid& grid)
 {
+    system("cls");
+    std::cout << "Generated the ships for you:\n";
     renderSingleGrid(grid);
 }
 

@@ -37,13 +37,6 @@ public:
     virtual void onGameFinished(Player winner) = 0;
 };
 
-enum class ShotError
-{
-    Ok = 0,
-    OutOfGrid,
-    RepeatedShot,
-};
-
 
 struct GameStartSettings
 {

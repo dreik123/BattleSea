@@ -1,4 +1,5 @@
 #pragma once
+#include <array>
 
 #include "Core/CoreTypes.h"
 #include "Core/CellIndex.h"

@@ -1,7 +1,8 @@
 #pragma once
 #include <memory>
+#include <string>
 
-#include "Core/CoreTypes.h"     // for CellState
+#include "Core/CoreTypes.h"     // for CellState, ShotError
 #include "Game/GameGrid.h"      // GameGrid is typedef
 
 class IBattleSeaGame;
@@ -9,8 +10,13 @@ class CellIndex;
 
 class IBattleSeaView {
 public:
-    virtual void renderGame() = 0;
+    virtual void renderGreetingToPlayer() = 0;
     virtual void renderGeneratedShips(const GameGrid& grid) = 0;
+    virtual void renderGame() = 0;
+    virtual void renderMessage(const std::string msg) = 0;
+    virtual void renderRequestToTurn(const std::string playerName) = 0;
+    virtual void renderShotError(const ShotError error) = 0;
+    virtual void renderGameOver(const std::string winnerName, const bool isLocalPlayer) = 0;
 };
 
 class TerminalView : public IBattleSeaView 
@@ -18,8 +24,13 @@ class TerminalView : public IBattleSeaView
 public:
     TerminalView(const std::shared_ptr<IBattleSeaGame>& game);
 
-    virtual void renderGame() override;
+    virtual void renderGreetingToPlayer() override;
     virtual void renderGeneratedShips(const GameGrid& grid) override;
+    virtual void renderGame() override;
+    virtual void renderMessage(const std::string msg) override;
+    virtual void renderRequestToTurn(const std::string playerName) override;
+    virtual void renderShotError(const ShotError error) override;
+    virtual void renderGameOver(const std::string winnerName, const bool isLocalPlayer) override;
 
 private:
     void renderSingleGrid(const GameGrid& grid);

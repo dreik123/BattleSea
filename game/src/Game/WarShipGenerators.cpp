@@ -1,7 +1,9 @@
 #include "WarShipGenerators.h"
 #include "GameConfig.h"
 #include "Game/GridUtilities.h"
+
 #include <algorithm>
+#include <array>
 
 const std::vector<WarShip> PredefinedClassicWarShipGenerator::generateShips(const GameConfig&)
 {

@@ -9,7 +9,6 @@
 #include <iostream>
 #include <conio.h>
 
-// TODO review std::cout calls in the file and consider to move them to view
 
 GameController::GameController(std::shared_ptr<IBattleSeaGame>& game, std::shared_ptr<IBattleSeaView>& view)
     : m_game(game)
@@ -20,8 +19,7 @@ GameController::GameController(std::shared_ptr<IBattleSeaGame>& game, std::share
 
 void GameController::runGame()
 {
-    std::cout << "Welcome to Battle Sea game. Enjoy it.\nPress any key to choose your setup\n";
-    int _ = _getch();
+    m_view->renderGreetingToPlayer();
 
     // README For now ships generation is performed here in controller,
     // but potentially it might be carried out to IPlayer interface.
@@ -31,12 +29,10 @@ void GameController::runGame()
     char playerChoice = 0;
     do
     {
-        system("cls");
-        std::cout << "Generated the ships for you:\n";
         playerShips = m_shipsGenerator->generateShips(m_game->getAppliedConfig());
         const GameGrid gridToPresent = GridUtilities::convertShipsToGrid(playerShips);
         m_view->renderGeneratedShips(gridToPresent);
-        std::cout << "Do you like this setup?\nEnter - approve! Any button - regenerate\n";
+        m_view->renderMessage("Do you like this setup?\nEnter - approve! Any button - regenerate\n");
 
         playerChoice = _getch();
     } while (playerChoice != '\r' && playerChoice != '\n');
@@ -45,6 +41,7 @@ void GameController::runGame()
 
     // Game init
     m_players[0].reset(new RealPlayer(Player::Player1));
+    // m_players[0].reset(new SillyBotPlayer(Player::Player1, m_game)); // can be useful
     // TODO AP please replace it with advanced AI bot when it's implemented
     m_players[1].reset(new SillyBotPlayer(Player::Player2, m_game));
 
@@ -60,8 +57,6 @@ void GameController::runGame()
         return;
     }
 
-    //if (std::cin.bad()) // TODO check
-
     // Shows grids before first turn
     m_view->renderGame();
 
@@ -69,8 +64,7 @@ void GameController::runGame()
     while (!hasGameBeenInterrupted && !m_game->isGameOver())
     {
         IPlayer& currentPlayer = getCurrentPlayer(m_game->getCurrentPlayer());
-
-        std::cout << currentPlayer.getName() << " turns:" << std::endl;
+        m_view->renderRequestToTurn(currentPlayer.getName());
 
         bool isValidTurn = false;
         do
@@ -86,25 +80,13 @@ void GameController::runGame()
             if (userInput.shotCell.has_value())
             {
                 const ShotError result = m_game->shootThePlayerGridAt(userInput.shotCell.value());
-                switch (result)
-                {
-                case ShotError::Ok:
-                    isValidTurn = true;
-                    break;
-                case ShotError::OutOfGrid:
-                    std::cout << "Out of grid. Try again\n";
-                    break;
-                case ShotError::RepeatedShot:
-                    std::cout << "You've already shooted at this cell! Try again\n";
-                    break;
-                default:
-                    assert(false && "Unexpected ShotError. Please process it!");
-                    break;
-                }
+
+                m_view->renderShotError(result);
+                isValidTurn = result == ShotError::Ok;
             }
             else
             {
-                std::cout << "WTF have you entered?!?\n";
+                m_view->renderMessage("WTF have you entered?!?\n");
             }
         } while (!isValidTurn);
 
@@ -118,7 +100,8 @@ void GameController::runGame()
     {
         // The current player hasn't been changed after last shot.
         IPlayer& winner = getCurrentPlayer(m_game->getCurrentPlayer());
-        std::cout << winner.getName() << " won!\nPlease relaunch game if you want to play again";
+        m_view->renderGameOver(winner.getName(), winner.isLocalPlayer());
+        m_view->renderMessage("Please relaunch game if you want to play again\n");
     }
 }
 
