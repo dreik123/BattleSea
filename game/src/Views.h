@@ -1,7 +1,8 @@
 #pragma once
-#include "Core/CoreTypes.h"          // for GridData
-
 #include <memory>
+
+#include "Core/CoreTypes.h"     // for CellState
+#include "Game/GameGrid.h"      // GameGrid is typedef
 
 class IBattleSeaGame;
 class CellIndex;
@@ -9,6 +10,7 @@ class CellIndex;
 class IBattleSeaView {
 public:
     virtual void renderGame() = 0;
+    virtual void renderGeneratedShips(const GameGrid& grid) = 0;
 };
 
 class TerminalView : public IBattleSeaView 
@@ -17,10 +19,11 @@ public:
     TerminalView(const std::shared_ptr<IBattleSeaGame>& game);
 
     virtual void renderGame() override;
+    virtual void renderGeneratedShips(const GameGrid& grid) override;
 
 private:
-    void renderSingleGrid(const GridData& gridData);
-    void renderTwoGrids(const GridData& gridDataLeft, const GridData& gridDataRight, const bool isHorizontally = true);
+    void renderSingleGrid(const GameGrid& grid);
+    void renderTwoGrids(const GameGrid& gridLeft, const GameGrid& gridRight, const bool isHorizontally = true);
     void renderCell(const CellIndex& index, const CellState state);
 
     void renderHorizontalDelimitersPerCell();

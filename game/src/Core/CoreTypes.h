@@ -13,10 +13,6 @@ enum class CellState
 };
 
 
-// README if we decide to customize grid size based on config, need to consider std::vector instead of static array
-using GridData = std::array<std::array<CellState, CLASSIC_GRID_COLUMN_COUNT>, CLASSIC_GRID_ROW_COUNT>;
-
-
 enum class Player : int8_t
 {
     Invalid = 0,

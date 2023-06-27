@@ -1,6 +1,6 @@
 #include "WarShipGenerators.h"
 #include "GameConfig.h"
-#include "Core/GridUtilities.h"
+#include "Game/GridUtilities.h"
 #include <algorithm>
 
 const std::vector<WarShip> PredefinedClassicWarShipGenerator::generateShips(const GameConfig&)
@@ -87,7 +87,7 @@ void WarShipGenerator::fillAreaAroundShip(const std::vector<CellIndex>& shipCell
 {
     for (const auto& cell : shipCells)
     {
-        safeCellWalkthrough(cell, [&cells](int safeX, int safeY)
+        GridUtilities::safeCellWalkthrough(cell, [&cells](int safeX, int safeY)
             {
                 if (cells[safeX][safeY] == 0)
                 {
