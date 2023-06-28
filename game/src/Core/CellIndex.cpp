@@ -6,25 +6,26 @@ CellIndex::CellIndex(int x, int y)
 {
 }
 
-CellIndex::CellIndex(const std::string& coord)
+CellIndex CellIndex::fromString(const std::string& coord)
 {
     assert(
         (coord.size() == 2 && isalpha(coord[0]) && isdigit(coord[1])) ||
         (coord.size() == 3 && isalpha(coord[0]) && isdigit(coord[1]) && isdigit(coord[2]))
     );
 
-    m_internalCoordinates.first = char_utilities::letterCharToInt(coord[0]);
+    int x = char_utilities::letterCharToInt(coord[0]);
+    int y = 0;
     if (coord.size() == 2)
     {
-        m_internalCoordinates.second = char_utilities::digitCharToInt(coord[1]) - 1; // -1 to handle array index and view difference
+        y = char_utilities::digitCharToInt(coord[1]) - 1; // -1 to handle array index and view difference
     }
     else if (coord.size() == 3)
     {
-        // TODO probably some check will be good here in the future
-        m_internalCoordinates.second = std::stoi(coord.substr(1, 2)) - 1; // -1 to handle array index and view difference
+        y = std::stoi(coord.substr(1, 2)) - 1; // -1 to handle array index and view difference
     }
 
     // Let controller outside to validate input
+    return CellIndex{ x, y };
 }
 
 const std::string CellIndex::toString(const bool isUpperCase) const

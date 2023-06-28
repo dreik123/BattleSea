@@ -11,6 +11,13 @@ template<typename EnumType>
 class BitMask
 {
 public:
+    BitMask(const bool isAllFlagSet)
+    {
+        if (isAllFlagSet)
+        {
+            setAllFlags();
+        }
+    }
     void setFlag(EnumType flag)
     {
         const int bit = static_cast<int>(flag);

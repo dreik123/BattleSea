@@ -4,15 +4,17 @@
 
 #include "Core/CoreTypes.h"
 #include "Game/Player/IPlayer.h"
+#include "Game/WarShipGenerators.h"
 
-struct IBattleSeaGame;
-struct IBattleSeaView;
+class IBattleSeaGame;
+class IBattleSeaView;
 
 
 // DS: It's expected to communicate between MVC entries via 'event-based' subsystem, 
 // but for this moment old-school approach should cover our needs
-struct IController
+class IController
 {
+public:
     virtual void runGame() = 0;
 };
 
@@ -32,4 +34,5 @@ protected:
 
 private:
     std::array<std::unique_ptr<IPlayer>, 2> m_players;
+    std::unique_ptr<IWarShipGenerator> m_shipsGenerator;
 };

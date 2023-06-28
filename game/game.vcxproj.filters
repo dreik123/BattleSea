@@ -34,6 +34,7 @@
       <Filter>src\Game</Filter>
     </ClCompile>
     <ClCompile Include="src\Game\Player\AIPlayer.cpp" />
+    <ClCompile Include="src\Game\GridUtilities.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Controllers.h">
@@ -66,7 +67,7 @@
     <ClInclude Include="src\Game\WarShipGenerators.h">
       <Filter>src\Game</Filter>
     </ClInclude>
-    <ClInclude Include="src\Core\GridUtilities.h">
+    <ClInclude Include="src\Game\GridUtilities.h">
       <Filter>src\Core</Filter>
     </ClInclude>
     <ClInclude Include="src\Core\BitMask.h" />
@@ -75,5 +76,6 @@
     <ClInclude Include="src\Game\Player\SillyRandomBot.h" />
     <ClInclude Include="src\Core\CharUtilities.h" />
     <ClInclude Include="src\Game\Player\AIPlayer.h" />
+    <ClInclude Include="src\Game\GameGrid.h" />
   </ItemGroup>
 </Project>

@@ -1,9 +1,7 @@
 #pragma once
-#include <array>
+#include <stdint.h>
 
-#include "Game/GameConfig.h"
-
-enum class CellState
+enum class CellState : uint8_t
 {
     Concealed = 0,      // No shot has been done to the cell
     Ship,               // Ship presentation on grid (for local player only)
@@ -12,12 +10,15 @@ enum class CellState
     Destroyed,          // Shot right on target, but ship is destroyed
 };
 
+enum class ShotError : uint8_t
+{
+    Ok = 0,
+    OutOfGrid,
+    RepeatedShot,
+};
 
-// README if we decide to customize grid size based on config, need to consider std::vector instead of static array
-using GridData = std::array<std::array<CellState, CLASSIC_GRID_COLUMN_COUNT>, CLASSIC_GRID_ROW_COUNT>;
 
-
-enum class Player : int8_t
+enum class Player : uint8_t
 {
     Invalid = 0,
     Player1,

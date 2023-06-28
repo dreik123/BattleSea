@@ -91,6 +91,7 @@
   <ItemGroup>
     <ClCompile Include="src\Core\CellIndex.cpp" />
     <ClCompile Include="src\Controllers.cpp" />
+    <ClCompile Include="src\Game\GridUtilities.cpp" />
     <ClCompile Include="src\Game\BattleSeaGame.cpp" />
     <ClCompile Include="src\Game\Player\AIPlayer.cpp" />
     <ClCompile Include="src\main.cpp" />
@@ -102,7 +103,8 @@
     <ClInclude Include="src\Controllers.h" />
     <ClInclude Include="src\Core\BitMask.h" />
     <ClInclude Include="src\Core\CharUtilities.h" />
-    <ClInclude Include="src\Core\GridUtilities.h" />
+    <ClInclude Include="src\Game\GameGrid.h" />
+    <ClInclude Include="src\Game\GridUtilities.h" />
     <ClInclude Include="src\Game\BattleSeaGame.h" />
     <ClInclude Include="src\Core\CellIndex.h" />
     <ClInclude Include="src\Core\CoreTypes.h" />

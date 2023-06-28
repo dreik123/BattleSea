@@ -7,23 +7,24 @@
 
 #include <memory>
 
-struct IBattleSeaGame;
+class IBattleSeaGame;
 
-struct IBattleSeaFactory
+class IBattleSeaFactory
 {
+public:
     virtual std::shared_ptr<IBattleSeaGame> createGame() = 0;
     virtual std::shared_ptr<IBattleSeaView> createPresenter(std::shared_ptr<IBattleSeaGame>& game) = 0;
     virtual std::shared_ptr<IController> createController(std::shared_ptr<IBattleSeaGame>& game, std::shared_ptr<IBattleSeaView>& view) = 0;
 };
 
 
-struct ClassicConsoleBattleSeaFactory : public IBattleSeaFactory
+class ClassicConsoleBattleSeaFactory : public IBattleSeaFactory
 {
+public:
     virtual std::shared_ptr<IBattleSeaGame> createGame() override
     {
         const GameConfig& gameConfig = DEFAULT_GAME_CONFIG;
-        auto generator = std::make_unique<WarShipGenerator>();
-        return std::make_shared<BattleSeaGame>(std::move(generator), gameConfig);
+        return std::make_shared<BattleSeaGame>(gameConfig);
     }
     virtual std::shared_ptr<IBattleSeaView> createPresenter(std::shared_ptr<IBattleSeaGame>& game) override
     {
@@ -35,13 +36,13 @@ struct ClassicConsoleBattleSeaFactory : public IBattleSeaFactory
     }
 };
 
-struct HasbroConsoleBattleSeaFactory : public ClassicConsoleBattleSeaFactory
+class HasbroConsoleBattleSeaFactory : public ClassicConsoleBattleSeaFactory
 {
+public:
     virtual std::shared_ptr<IBattleSeaGame> createGame() override
     {
         const GameConfig& gameConfig = HASBRO_GAME_CONFIG;
-        auto generator = std::make_unique<WarShipGenerator>();
-        return std::make_shared<BattleSeaGame>(std::move(generator), gameConfig);
+        return std::make_shared<BattleSeaGame>(gameConfig);
     }
 };
 

@@ -3,6 +3,7 @@
 #include "Game/GameConfig.h"
 
 #include <iostream>  // is temporary used for console presentation
+#include <conio.h>
 
 // Constants
 namespace
@@ -36,24 +37,70 @@ TerminalView::TerminalView(const std::shared_ptr<IBattleSeaGame>& game)
 {
 }
 
+void TerminalView::renderGreetingToPlayer()
+{
+    std::cout << "Welcome to Battle Sea game. Enjoy it.\nPress any key to choose your setup\n";
+    int _ = _getch();
+}
+
 void TerminalView::renderGame()
 {
     // README for now Player1 is user, Player2 is bot
     // README Multiplayer requires understanding which Player value current player has
     // Important: Own grid must visualize ships as well, opponent's - no.
-    const GridData modelData1 = m_game->getPlayerGridInfo(Player::Player1);
-    const GridData modelData2 = m_game->getPlayerGridInfo(Player::Player2);
+    const GameGrid modelData1 = m_game->getPlayerGridInfo(Player::Player1);
+    const GameGrid modelData2 = m_game->getPlayerGridInfo(Player::Player2);
     renderTwoGrids(modelData1, modelData2, true);
 }
 
-// TODO add ships
-void TerminalView::renderSingleGrid(const GridData& gridData)
+void TerminalView::renderMessage(const std::string msg)
 {
-    assert(gridData.size() != 0 && gridData.front().size() != 0);
-    assert(gridData.size() <= ROW_AXIS_NAMES.size());
+    std::cout << msg;
+}
 
-    const size_t rowCount = gridData.size();
-    const size_t colCount = gridData[0].size();
+void TerminalView::renderRequestToTurn(const std::string playerName)
+{
+    std::cout << playerName << " turns:\n";
+}
+
+void TerminalView::renderShotError(const ShotError error)
+{
+    switch (error)
+    {
+    case ShotError::Ok:
+        break;
+    case ShotError::OutOfGrid:
+        std::cout << "Out of grid. Try again\n";
+        break;
+    case ShotError::RepeatedShot:
+        std::cout << "You've already shooted at this cell! Try again\n";
+        break;
+    default:
+        assert(false && "Unexpected ShotError. Please process it!");
+        break;
+    }
+}
+
+void TerminalView::renderGameOver(const std::string winnerName, const bool isLocalPlayer)
+{
+    std::cout << winnerName << (isLocalPlayer ? "(You)" : "") << " won!\n";
+}
+
+void TerminalView::renderGeneratedShips(const GameGrid& grid)
+{
+    system("cls");
+    std::cout << "Generated the ships for you:\n";
+    renderSingleGrid(grid);
+}
+
+// TODO add ships
+void TerminalView::renderSingleGrid(const GameGrid& grid)
+{
+    assert(grid.data.size() != 0 && grid.data.front().size() != 0);
+    assert(grid.data.size() <= ROW_AXIS_NAMES.size());
+
+    const size_t rowCount = grid.data.size();
+    const size_t colCount = grid[0].size();
 
     renderLetterAxisWithAlignment(' ');
     for (int i(1); i <= colCount; i++)
@@ -80,8 +127,8 @@ void TerminalView::renderSingleGrid(const GridData& gridData)
         for (int j(0); j < rowCount; j++)
         {
             renderVerticalDelimitersPerCell();
-            const CellIndex Index = CellIndex(i, j);
-            renderCell(Index, gridData[i][j]);
+            const CellIndex index = CellIndex(i, j);
+            renderCell(index, grid.at(index));
         }
         renderVerticalDelimitersPerCell();
         std::cout << std::endl;
@@ -101,8 +148,8 @@ void TerminalView::renderSingleGrid(const GridData& gridData)
     for (int i(0); i < rowCount; i++)
     {
         renderVerticalDelimitersPerCell();
-        const CellIndex Index = CellIndex(rowCount - 1, i);
-        renderCell(Index, gridData.back()[i]);
+        const CellIndex index = CellIndex(rowCount - 1, i);
+        renderCell(index, grid.at(index));
     }
 
     renderVerticalDelimitersPerCell();
@@ -120,31 +167,31 @@ void TerminalView::renderSingleGrid(const GridData& gridData)
     std::cout << RIGHT_BOTTOM_EDGE << std::endl;
 }
 
-void TerminalView::renderTwoGrids(const GridData& gridDataLeft, const GridData& gridDataRight, const bool isHorizontally/* = true*/)
+void TerminalView::renderTwoGrids(const GameGrid& gridLeft, const GameGrid& gridRight, const bool isHorizontally/* = true*/)
 {
     if (!isHorizontally)
     {
-        renderSingleGrid(gridDataLeft);
+        renderSingleGrid(gridLeft);
         std::cout << std::endl;
-        renderSingleGrid(gridDataRight);
+        renderSingleGrid(gridRight);
         std::cout << std::endl;
 
         return;
     }
 
     // Check non-emptiness
-    assert(gridDataLeft.size() != 0 && gridDataLeft.front().size() != 0);
-    assert(gridDataRight.size() != 0 && gridDataRight.front().size() != 0);
+    assert(gridLeft.data.size() != 0 && gridLeft.data.front().size() != 0);
+    assert(gridRight.data.size() != 0 && gridRight.data.front().size() != 0);
     // Check size equality
-    assert(gridDataLeft.size() == gridDataRight.size());
-    assert(gridDataLeft.front().size() == gridDataRight.front().size());
+    assert(gridLeft.data.size() == gridRight.data.size());
+    assert(gridLeft.data.front().size() == gridRight.data.front().size());
     // Check that each row has own name
-    assert(gridDataLeft.size() <= ROW_AXIS_NAMES.size());
+    assert(gridLeft.data.size() <= ROW_AXIS_NAMES.size());
 
-    const size_t rowCount = gridDataLeft.size();
-    const size_t colCount = gridDataLeft[0].size();
+    const size_t rowCount = gridLeft.data.size();
+    const size_t colCount = gridLeft[0].size();
 
-    const std::array grids = { gridDataLeft, gridDataRight };
+    const std::array grids = { gridLeft, gridRight };
 
     // Numbers top axis
     for (int count(0); count < grids.size(); count++)
@@ -181,13 +228,13 @@ void TerminalView::renderTwoGrids(const GridData& gridDataLeft, const GridData& 
     {
         for (int count(0); count < grids.size(); count++)
         {
-            const GridData& grid = grids[count];
+            const GameGrid& grid = grids[count];
             renderLetterAxisWithAlignment(ROW_AXIS_NAMES[i]);
             for (int j(0); j < colCount; j++)
             {
                 renderVerticalDelimitersPerCell();
-                const CellIndex Index = CellIndex(i, j);
-                renderCell(Index, grid[i][j]);
+                const CellIndex index = CellIndex(i, j);
+                renderCell(index, grid.at(index));
             }
             renderVerticalDelimitersPerCell();
 
@@ -219,8 +266,8 @@ void TerminalView::renderTwoGrids(const GridData& gridDataLeft, const GridData& 
         for (int i(0); i < colCount; i++)
         {
             renderVerticalDelimitersPerCell();
-            const CellIndex Index = CellIndex(colCount - 1, i);
-            renderCell(Index, grids[count].back()[i]);
+            const CellIndex index = CellIndex(colCount - 1, i);
+            renderCell(index, grids[count].at(index));
         }
 
         renderVerticalDelimitersPerCell();

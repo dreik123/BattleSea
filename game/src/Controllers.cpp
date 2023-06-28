@@ -2,48 +2,69 @@
 #include "Views.h"
 
 #include "Game/GameInterfaces.h"
+#include "Game/GridUtilities.h"
 #include "Game/Player/RealPlayer.h"
 #include "Game/Player/SillyRandomBot.h"
 
 #include <iostream>
+#include <conio.h>
 
-// TODOs + refactor:
-// impl CellIndex::fromString(..) instead of ctor
-// all entities with logic must be classes, if class contains data only, make it a struct
 
 GameController::GameController(std::shared_ptr<IBattleSeaGame>& game, std::shared_ptr<IBattleSeaView>& view)
     : m_game(game)
     , m_view(view)
+    , m_shipsGenerator(new WarShipGenerator())
 {
 }
 
 void GameController::runGame()
 {
+    m_view->renderGreetingToPlayer();
+
+    // README For now ships generation is performed here in controller,
+    // but potentially it might be carried out to IPlayer interface.
+
+    // Regenerate ships for player while space is pressed (until enter)
+    std::vector<WarShip> playerShips;
+    char playerChoice = 0;
+    do
+    {
+        playerShips = m_shipsGenerator->generateShips(m_game->getAppliedConfig());
+        const GameGrid gridToPresent = GridUtilities::convertShipsToGrid(playerShips);
+        m_view->renderGeneratedShips(gridToPresent);
+        m_view->renderMessage("Do you like this setup?\nEnter - approve! Any button - regenerate\n");
+
+        playerChoice = _getch();
+    } while (playerChoice != '\r' && playerChoice != '\n');
+
+    system("cls");
+
+    // Game init
     m_players[0].reset(new RealPlayer(Player::Player1));
+    // m_players[0].reset(new SillyBotPlayer(Player::Player1, m_game)); // can be useful
     // TODO AP please replace it with advanced AI bot when it's implemented
     m_players[1].reset(new SillyBotPlayer(Player::Player2, m_game));
 
-    // [Temporary] TODO DS Player can regenerate ships many times before game start
-    m_game->generateShipsForPlayer(Player::Player1);
-    m_game->generateShipsForPlayer(Player::Player2);
+    GameStartSettings settings;
+    settings.initialPlayer = Player::Player1;
+    settings.localPlayer = Player::Player1;
+    settings.shipsForPlayer1 = playerShips;
+    settings.shipsForPlayer2 = m_shipsGenerator->generateShips(m_game->getAppliedConfig());
 
-    const Player initialPlayer = Player::Player1;
-    m_game->setLocalPlayer(Player::Player1);
-    // TODO DS Probably local player data must be part of startGame() + generated ships as well
-    m_game->startGame(initialPlayer); // Does startGame cover main menu or is this actual game (shooting) start?
+    if (!m_game->startGame(settings))
+    {
+        std::cerr << "Invalid settings for game start!\n";
+        return;
+    }
 
-    //if (std::cin.bad()) // TODO check
+    // Shows grids before first turn
+    m_view->renderGame();
 
     bool hasGameBeenInterrupted = false;
     while (!hasGameBeenInterrupted && !m_game->isGameOver())
     {
         IPlayer& currentPlayer = getCurrentPlayer(m_game->getCurrentPlayer());
-
-
-        // Shows grids before first turn
-        m_view->renderGame();
-
-        std::cout << currentPlayer.getName() << " turns:" << std::endl;
+        m_view->renderRequestToTurn(currentPlayer.getName());
 
         bool isValidTurn = false;
         do
@@ -59,30 +80,28 @@ void GameController::runGame()
             if (userInput.shotCell.has_value())
             {
                 const ShotError result = m_game->shootThePlayerGridAt(userInput.shotCell.value());
-                switch (result)
-                {
-                case ShotError::Ok:
-                    isValidTurn = true;
-                    break;
-                case ShotError::OutOfGrid:
-                    std::cout << "Out of grid. Try again\n";
-                    break;
-                case ShotError::RepeatedShot:
-                    std::cout << "You've already shooted at this cell! Try again\n";
-                    break;
-                default:
-                    assert(false && "Unexpected ShotError. Please process it!");
-                    break;
-                }
+
+                m_view->renderShotError(result);
+                isValidTurn = result == ShotError::Ok;
             }
             else
             {
-                std::cout << "WTF have you entered?!?\n";
+                m_view->renderMessage("WTF have you entered?!?\n");
             }
         } while (!isValidTurn);
 
         // Clear screen to refresh the grids in place
         system("cls");
+
+        m_view->renderGame();
+    }
+
+    if (m_game->isGameOver())
+    {
+        // The current player hasn't been changed after last shot.
+        IPlayer& winner = getCurrentPlayer(m_game->getCurrentPlayer());
+        m_view->renderGameOver(winner.getName(), winner.isLocalPlayer());
+        m_view->renderMessage("Please relaunch game if you want to play again\n");
     }
 }
 

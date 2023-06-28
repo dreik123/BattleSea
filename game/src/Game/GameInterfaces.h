@@ -1,5 +1,6 @@
 #pragma once
 #include "Core/CoreTypes.h"
+#include "Game/GameGrid.h"
 #include "Game/GameConfig.h"
 #include "Game/WarShipGenerators.h"
 #include "Game/WarShip.h"
@@ -22,8 +23,9 @@
 // Model must validate order of turns.
 
 
-struct IBattleSeaGameObserver
+class IBattleSeaGameObserver
 {
+public:
     // Notify methods
     virtual void onShipDestroyed(const WarShip& InShip) = 0;
     virtual void onShipDamaged(const WarShip& InShip, const CellIndex& cell) = 0;
@@ -35,11 +37,14 @@ struct IBattleSeaGameObserver
     virtual void onGameFinished(Player winner) = 0;
 };
 
-enum class ShotError
+
+struct GameStartSettings
 {
-    Ok = 0,
-    OutOfGrid,
-    RepeatedShot,
+    Player initialPlayer;
+    Player localPlayer;
+
+    std::vector<WarShip> shipsForPlayer1;
+    std::vector<WarShip> shipsForPlayer2;
 };
 
 // Main functionality in the game in model context
@@ -50,23 +55,21 @@ enum class ShotError
 // - game over check
 
 // Interface for major functionality of Battle sea game
-struct IBattleSeaGame
+class IBattleSeaGame
 {
-    virtual void generateShipsForPlayer(const Player player) = 0;
+public:
     virtual bool initShipPositionsForPlayer(const Player player, const std::vector<WarShip>& ships) = 0;
     // ShootThePlayerGridAt method contains logic of the shot by current player(starting from initial one).
     virtual ShotError shootThePlayerGridAt(const CellIndex& cell) = 0;
 
-    // TODO Need to consider additing initial/local player to StartGame as part of GameParams
-    virtual void startGame(const Player initialPlayer) = 0;
+    virtual bool startGame(const GameStartSettings& settings) = 0;
     virtual bool isGameOver() const = 0;
 
     virtual Player getCurrentPlayer() const = 0;
     virtual Player getInitialPlayer() const = 0;
     virtual Player getLocalPlayer() const = 0;
-    virtual void setLocalPlayer(const Player player) = 0;
 
-    virtual const GridData getPlayerGridInfo(const Player player) const = 0;
+    virtual const GameGrid getPlayerGridInfo(const Player player) const = 0;
     virtual CellState getPlayerGridCellState(const Player player, const CellIndex& cell) const = 0;
 
     virtual const GameConfig& getAppliedConfig() const = 0;

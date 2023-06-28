@@ -30,6 +30,18 @@ public:
         std::string userInput;
         std::cin >> userInput;
 
+        while (true)
+        {
+            if (!std::cin.fail())
+            {
+                break;
+            }
+
+            std::cin.clear();
+            std::cout << "Something went wrong. Please try again!" << std::endl;
+            std::cin >> userInput;
+        }
+
         InputRequest request;
 
         if (userInput == "q" || userInput == "quit")
@@ -40,7 +52,7 @@ public:
 
         if (validateUserInput(userInput))
         {
-            request.shotCell = CellIndex(userInput);
+            request.shotCell = CellIndex::fromString(userInput);
         }
 
         return request;
