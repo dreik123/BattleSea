@@ -33,6 +33,7 @@
     <ClCompile Include="src\Game\WarShipGenerators.cpp">
       <Filter>src\Game</Filter>
     </ClCompile>
+    <ClCompile Include="src\Game\Player\AIPlayer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Controllers.h">
@@ -73,5 +74,6 @@
     <ClInclude Include="src\Game\Player\RealPlayer.h" />
     <ClInclude Include="src\Game\Player\SillyRandomBot.h" />
     <ClInclude Include="src\Core\CharUtilities.h" />
+    <ClInclude Include="src\Game\Player\AIPlayer.h" />
   </ItemGroup>
 </Project>

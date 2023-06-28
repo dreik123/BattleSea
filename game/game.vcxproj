@@ -92,6 +92,7 @@
     <ClCompile Include="src\Core\CellIndex.cpp" />
     <ClCompile Include="src\Controllers.cpp" />
     <ClCompile Include="src\Game\BattleSeaGame.cpp" />
+    <ClCompile Include="src\Game\Player\AIPlayer.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\Views.cpp" />
     <ClCompile Include="src\Game\WarShip.cpp" />
@@ -107,6 +108,7 @@
     <ClInclude Include="src\Core\CoreTypes.h" />
     <ClInclude Include="src\Game\GameInterfaces.h" />
     <ClInclude Include="src\Game\GameConfig.h" />
+    <ClInclude Include="src\Game\Player\AIPlayer.h" />
     <ClInclude Include="src\Game\Player\IPlayer.h" />
     <ClInclude Include="src\Game\Player\RealPlayer.h" />
     <ClInclude Include="src\Game\Player\SillyRandomBot.h" />
