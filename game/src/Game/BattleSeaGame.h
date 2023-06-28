@@ -17,19 +17,19 @@ public:
 	virtual Player getCurrentPlayer() const override;
 	virtual Player getInitialPlayer() const override;
 	virtual Player getLocalPlayer() const override;
-	virtual const GridData getPlayerGridInfo(const Player player) const override;
+	virtual const GameGrid getPlayerGridInfo(const Player player) const override;
 	virtual CellState getPlayerGridCellState(const Player player, const CellIndex& cell) const override;
 
 	virtual const GameConfig& getAppliedConfig() const override;
 
 private:
-	void setGridCellState(GridData& outGridData, const CellIndex& cell, const CellState& state);
-	void surroundDestroyedShip(GridData& outGridData, const WarShip& ship);
+	void setGridCellState(GameGrid& outGrid, const CellIndex& cell, const CellState& state);
+	void surroundDestroyedShip(GameGrid& outGrid, const WarShip& ship);
 
 private:
 	GameConfig m_config;
 
-	std::array<GridData, PLAYER_AMOUNT> m_playerGrids;
+	std::array<GameGrid, PLAYER_AMOUNT> m_playerGrids;
 	std::array<std::vector<WarShip>, PLAYER_AMOUNT> m_playerShips;
 
 	Player m_currentPlayer;

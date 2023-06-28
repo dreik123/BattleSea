@@ -1,5 +1,6 @@
 #pragma once
 #include "Core/CoreTypes.h"
+#include "Game/GameGrid.h"
 #include "Game/GameConfig.h"
 #include "Game/WarShipGenerators.h"
 #include "Game/WarShip.h"
@@ -36,13 +37,6 @@ public:
     virtual void onGameFinished(Player winner) = 0;
 };
 
-enum class ShotError
-{
-    Ok = 0,
-    OutOfGrid,
-    RepeatedShot,
-};
-
 
 struct GameStartSettings
 {
@@ -75,7 +69,7 @@ public:
     virtual Player getInitialPlayer() const = 0;
     virtual Player getLocalPlayer() const = 0;
 
-    virtual const GridData getPlayerGridInfo(const Player player) const = 0;
+    virtual const GameGrid getPlayerGridInfo(const Player player) const = 0;
     virtual CellState getPlayerGridCellState(const Player player, const CellIndex& cell) const = 0;
 
     virtual const GameConfig& getAppliedConfig() const = 0;

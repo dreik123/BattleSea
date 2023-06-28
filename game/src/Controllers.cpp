@@ -2,10 +2,12 @@
 #include "Views.h"
 
 #include "Game/GameInterfaces.h"
+#include "Game/GridUtilities.h"
 #include "Game/Player/RealPlayer.h"
 #include "Game/Player/SillyRandomBot.h"
 
 #include <iostream>
+#include <conio.h>
 
 
 GameController::GameController(std::shared_ptr<IBattleSeaGame>& game, std::shared_ptr<IBattleSeaView>& view)
@@ -17,24 +19,43 @@ GameController::GameController(std::shared_ptr<IBattleSeaGame>& game, std::share
 
 void GameController::runGame()
 {
+    m_view->renderGreetingToPlayer();
+
+    // README For now ships generation is performed here in controller,
+    // but potentially it might be carried out to IPlayer interface.
+
+    // Regenerate ships for player while space is pressed (until enter)
+    std::vector<WarShip> playerShips;
+    char playerChoice = 0;
+    do
+    {
+        playerShips = m_shipsGenerator->generateShips(m_game->getAppliedConfig());
+        const GameGrid gridToPresent = GridUtilities::convertShipsToGrid(playerShips);
+        m_view->renderGeneratedShips(gridToPresent);
+        m_view->renderMessage("Do you like this setup?\nEnter - approve! Any button - regenerate\n");
+
+        playerChoice = _getch();
+    } while (playerChoice != '\r' && playerChoice != '\n');
+
+    system("cls");
+
+    // Game init
     m_players[0].reset(new RealPlayer(Player::Player1));
+    // m_players[0].reset(new SillyBotPlayer(Player::Player1, m_game)); // can be useful
     // TODO AP please replace it with advanced AI bot when it's implemented
     m_players[1].reset(new SillyBotPlayer(Player::Player2, m_game));
 
-    // [Temporary] TODO DS Player can regenerate ships many times before game start
     GameStartSettings settings;
     settings.initialPlayer = Player::Player1;
     settings.localPlayer = Player::Player1;
-    settings.shipsForPlayer1 = m_shipsGenerator->generateShips(m_game->getAppliedConfig());
+    settings.shipsForPlayer1 = playerShips;
     settings.shipsForPlayer2 = m_shipsGenerator->generateShips(m_game->getAppliedConfig());
 
     if (!m_game->startGame(settings))
     {
-        std::cout << "Invalid settings for game start!\n";
+        std::cerr << "Invalid settings for game start!\n";
         return;
     }
-
-    //if (std::cin.bad()) // TODO check
 
     // Shows grids before first turn
     m_view->renderGame();
@@ -43,8 +64,7 @@ void GameController::runGame()
     while (!hasGameBeenInterrupted && !m_game->isGameOver())
     {
         IPlayer& currentPlayer = getCurrentPlayer(m_game->getCurrentPlayer());
-
-        std::cout << currentPlayer.getName() << " turns:" << std::endl;
+        m_view->renderRequestToTurn(currentPlayer.getName());
 
         bool isValidTurn = false;
         do
@@ -60,25 +80,13 @@ void GameController::runGame()
             if (userInput.shotCell.has_value())
             {
                 const ShotError result = m_game->shootThePlayerGridAt(userInput.shotCell.value());
-                switch (result)
-                {
-                case ShotError::Ok:
-                    isValidTurn = true;
-                    break;
-                case ShotError::OutOfGrid:
-                    std::cout << "Out of grid. Try again\n";
-                    break;
-                case ShotError::RepeatedShot:
-                    std::cout << "You've already shooted at this cell! Try again\n";
-                    break;
-                default:
-                    assert(false && "Unexpected ShotError. Please process it!");
-                    break;
-                }
+
+                m_view->renderShotError(result);
+                isValidTurn = result == ShotError::Ok;
             }
             else
             {
-                std::cout << "WTF have you entered?!?\n";
+                m_view->renderMessage("WTF have you entered?!?\n");
             }
         } while (!isValidTurn);
 
@@ -92,7 +100,8 @@ void GameController::runGame()
     {
         // The current player hasn't been changed after last shot.
         IPlayer& winner = getCurrentPlayer(m_game->getCurrentPlayer());
-        std::cout << winner.getName() << " won!\nPlease relaunch game if you want to play again";
+        m_view->renderGameOver(winner.getName(), winner.isLocalPlayer());
+        m_view->renderMessage("Please relaunch game if you want to play again\n");
     }
 }
 
