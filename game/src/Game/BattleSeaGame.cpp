@@ -2,6 +2,14 @@
 #include "Game/WarShipGenerators.h"
 #include "Game/WarShip.h"
 
+#include "Core/EventBus.h"
+#include "Game/Events/Events.h"
+
+// TODOs:
+// subscribe to all events
+// reduce coupling between, controller and game, controller and view
+// introduce game states
+// rename controller into terminal one
 
 BattleSeaGame::BattleSeaGame(const GameConfig& config)
     : m_config(config)
@@ -32,7 +40,8 @@ ShotError BattleSeaGame::shootThePlayerGridAt(const CellIndex& cell)
 {
     assert(getCurrentPlayer() != Player::Invalid);
 
-    const int oppositePlayerIndex = getIndexFromPlayer(getOppositePlayer(getCurrentPlayer()));
+    const Player oppositePlayer = getOppositePlayer(getCurrentPlayer());
+    const int oppositePlayerIndex = getIndexFromPlayer(oppositePlayer);
     GameGrid& oppositeGrid = m_playerGrids[oppositePlayerIndex];
     std::vector<WarShip>& ships = m_playerShips[oppositePlayerIndex];
 
@@ -47,7 +56,7 @@ ShotError BattleSeaGame::shootThePlayerGridAt(const CellIndex& cell)
         return ShotError::RepeatedShot;
     }
 
-    bool playerSwitch = true;
+    bool successfulShot = false;
 
     for (WarShip& ship : ships)
     {
@@ -61,6 +70,10 @@ ShotError BattleSeaGame::shootThePlayerGridAt(const CellIndex& cell)
         if (!ship.isDestroyed())
         {
             setGridCellState(oppositeGrid, cell, CellState::Damaged);
+
+            // TODO (alternative) subscribe on this event in model as well
+            events::ShipDamagedEvent shipDamagedEvent {.injuredPlayer = oppositePlayer, .ship = ship, .shot = cell};
+            g_eventBus.publish(shipDamagedEvent);
         }
         else
         {
@@ -73,19 +86,34 @@ ShotError BattleSeaGame::shootThePlayerGridAt(const CellIndex& cell)
             // Wrap all surrounded cells of the ship in missed
             surroundDestroyedShip(oppositeGrid, ship);
 
+            events::ShipDestroyedEvent shipDestroyedEvent {.injuredPlayer = oppositePlayer, .ship = ship};
+            g_eventBus.publish(shipDestroyedEvent);
+
             m_hasGameFinished = std::all_of(ships.cbegin(), ships.cend(), [](const WarShip& s)
                 {
                     return s.isDestroyed();
                 });
+
+            if (m_hasGameFinished)
+            {
+                events::GameFinishedEvent gameFinishedEvent{.winner = m_currentPlayer, .loser = oppositePlayer};
+                g_eventBus.publish(gameFinishedEvent);
+            }
         }
-        playerSwitch = false; // continue shooting
+        successfulShot = true;
         break;
     }
 
-    if (playerSwitch)
+    if (!successfulShot)
     {
         setGridCellState(oppositeGrid, cell, CellState::Missed);
+        events::ShotMissedEvent shotMissedEvent{.shootingPlayer = m_currentPlayer, .shot = cell};
+        g_eventBus.publish(shotMissedEvent);
+
+        const Player prevPlayer = m_currentPlayer;
         m_currentPlayer = getOppositePlayer(m_currentPlayer);
+        events::PlayerSwitchedEvent playerSwitchedEvent{.previousPlayer = prevPlayer, .nextPlayer = m_currentPlayer};
+        g_eventBus.publish(playerSwitchedEvent);
     }
 
     return ShotError::Ok;

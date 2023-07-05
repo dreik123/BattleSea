@@ -102,6 +102,10 @@
     <ClInclude Include="src\Controllers.h" />
     <ClInclude Include="src\Core\BitMask.h" />
     <ClInclude Include="src\Core\CharUtilities.h" />
+    <ClInclude Include="src\Core\CoreDefines.h" />
+    <ClInclude Include="src\Core\EventBus.h" />
+    <ClInclude Include="src\Core\Event.h" />
+    <ClInclude Include="src\Game\Events\Events.h" />
     <ClInclude Include="src\Game\GameGrid.h" />
     <ClInclude Include="src\Game\GridUtilities.h" />
     <ClInclude Include="src\Game\BattleSeaGame.h" />

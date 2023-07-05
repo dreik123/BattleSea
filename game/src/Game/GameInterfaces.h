@@ -22,22 +22,6 @@
 
 // Model must validate order of turns.
 
-
-class IBattleSeaGameObserver
-{
-public:
-    // Notify methods
-    virtual void onShipDestroyed(const WarShip& InShip) = 0;
-    virtual void onShipDamaged(const WarShip& InShip, const CellIndex& cell) = 0;
-    virtual void onShotMissed(const CellIndex& cell) = 0;
-    virtual void onShotDone(const CellIndex& cell) = 0;
-    virtual void onPlayerSwitched(Player nextPlayer) = 0;
-
-    virtual void onGameStarted() = 0;
-    virtual void onGameFinished(Player winner) = 0;
-};
-
-
 struct GameStartSettings
 {
     Player initialPlayer;
