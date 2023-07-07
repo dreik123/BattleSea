@@ -6,7 +6,7 @@
 #include "Game/Player/IPlayer.h"
 #include "Game/WarShipGenerators.h"
 
-class IBattleSeaGame;
+class BattleSeaGame;
 class IBattleSeaView;
 
 
@@ -21,7 +21,7 @@ public:
 class GameController : public IController 
 {
 public:
-    GameController(std::shared_ptr<IBattleSeaGame>& game, std::shared_ptr<IBattleSeaView>& view);
+    GameController(std::shared_ptr<BattleSeaGame>& game, std::shared_ptr<IBattleSeaView>& view);
 
     virtual void runGame() override;
 
@@ -29,7 +29,7 @@ private:
     IPlayer& getCurrentPlayer(const Player player) const;
 
 protected:
-    std::shared_ptr<IBattleSeaGame> m_game;
+    std::shared_ptr<BattleSeaGame> m_game;
     std::shared_ptr<IBattleSeaView> m_view;
 
 private:

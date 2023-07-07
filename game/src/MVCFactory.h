@@ -7,30 +7,31 @@
 
 #include <memory>
 
-class IBattleSeaGame;
+class BattleSeaGame;
 
 class IBattleSeaFactory
 {
 public:
-    virtual std::shared_ptr<IBattleSeaGame> createGame() = 0;
-    virtual std::shared_ptr<IBattleSeaView> createPresenter(std::shared_ptr<IBattleSeaGame>& game) = 0;
-    virtual std::shared_ptr<IController> createController(std::shared_ptr<IBattleSeaGame>& game, std::shared_ptr<IBattleSeaView>& view) = 0;
+    virtual std::shared_ptr<BattleSeaGame> createGame() = 0;
+    // TODO weak ptr
+    virtual std::shared_ptr<IBattleSeaView> createPresenter(std::shared_ptr<BattleSeaGame>& game) = 0;
+    virtual std::shared_ptr<IController> createController(std::shared_ptr<BattleSeaGame>& game, std::shared_ptr<IBattleSeaView>& view) = 0;
 };
 
 
 class ClassicConsoleBattleSeaFactory : public IBattleSeaFactory
 {
 public:
-    virtual std::shared_ptr<IBattleSeaGame> createGame() override
+    virtual std::shared_ptr<BattleSeaGame> createGame() override
     {
         const GameConfig& gameConfig = DEFAULT_GAME_CONFIG;
         return std::make_shared<BattleSeaGame>(gameConfig);
     }
-    virtual std::shared_ptr<IBattleSeaView> createPresenter(std::shared_ptr<IBattleSeaGame>& game) override
+    virtual std::shared_ptr<IBattleSeaView> createPresenter(std::shared_ptr<BattleSeaGame>& game) override
     {
         return std::make_shared<TerminalView>(game);
     }
-    virtual std::shared_ptr<IController> createController(std::shared_ptr<IBattleSeaGame>& game, std::shared_ptr<IBattleSeaView>& view) override
+    virtual std::shared_ptr<IController> createController(std::shared_ptr<BattleSeaGame>& game, std::shared_ptr<IBattleSeaView>& view) override
     {
         return std::make_shared<GameController>(game, view);
     }
@@ -39,7 +40,7 @@ public:
 class HasbroConsoleBattleSeaFactory : public ClassicConsoleBattleSeaFactory
 {
 public:
-    virtual std::shared_ptr<IBattleSeaGame> createGame() override
+    virtual std::shared_ptr<BattleSeaGame> createGame() override
     {
         const GameConfig& gameConfig = HASBRO_GAME_CONFIG;
         return std::make_shared<BattleSeaGame>(gameConfig);

@@ -1,7 +1,7 @@
 #include "Controllers.h"
 #include "Views.h"
 
-#include "Game/GameInterfaces.h"
+#include "Game/BattleSeaGame.h"
 #include "Game/GridUtilities.h"
 #include "Game/Player/RealPlayer.h"
 #include "Game/Player/SillyRandomBot.h"
@@ -10,7 +10,7 @@
 #include <conio.h>
 
 
-GameController::GameController(std::shared_ptr<IBattleSeaGame>& game, std::shared_ptr<IBattleSeaView>& view)
+GameController::GameController(std::shared_ptr<BattleSeaGame>& game, std::shared_ptr<IBattleSeaView>& view)
     : m_game(game)
     , m_view(view)
     , m_shipsGenerator(new WarShipGenerator())

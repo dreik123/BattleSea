@@ -5,7 +5,7 @@
 #include "Core/CoreTypes.h"     // for CellState, ShotError
 #include "Game/GameGrid.h"      // GameGrid is typedef
 
-class IBattleSeaGame;
+class BattleSeaGame;
 class CellIndex;
 
 class IBattleSeaView {
@@ -22,7 +22,7 @@ public:
 class TerminalView : public IBattleSeaView 
 {
 public:
-    TerminalView(const std::shared_ptr<IBattleSeaGame>& game);
+    TerminalView(const std::shared_ptr<BattleSeaGame>& game);
 
     virtual void renderGreetingToPlayer() override;
     virtual void renderGeneratedShips(const GameGrid& grid) override;
@@ -46,5 +46,5 @@ private:
     void renderSymbolNTimes(const char symbol, const unsigned int times);
 
 protected:
-    const std::shared_ptr<IBattleSeaGame> m_game;
+    const std::shared_ptr<BattleSeaGame> m_game;
 };

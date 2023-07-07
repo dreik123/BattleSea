@@ -111,7 +111,6 @@
     <ClInclude Include="src\Game\BattleSeaGame.h" />
     <ClInclude Include="src\Core\CellIndex.h" />
     <ClInclude Include="src\Core\CoreTypes.h" />
-    <ClInclude Include="src\Game\GameInterfaces.h" />
     <ClInclude Include="src\Game\GameConfig.h" />
     <ClInclude Include="src\Game\Player\IPlayer.h" />
     <ClInclude Include="src\Game\Player\RealPlayer.h" />

@@ -2,6 +2,7 @@
 #include "IPlayer.h"
 #include "Core/CoreTypes.h"
 #include "Game/GameConfig.h"
+#include "Game/BattleSeaGame.h"
 
 #include <deque>
 #include <algorithm>
@@ -12,7 +13,7 @@
 class SillyBotPlayer : public IPlayer
 {
 public:
-    SillyBotPlayer(const Player player, const std::shared_ptr<IBattleSeaGame>& game)
+    SillyBotPlayer(const Player player, const std::shared_ptr<BattleSeaGame>& game)
         : m_currentPlayer(player)
         , m_gameInstance(game)
     {
@@ -69,7 +70,7 @@ public:
 
 protected:
     Player m_currentPlayer;
-    const std::shared_ptr<IBattleSeaGame> m_gameInstance;
+    const std::shared_ptr<BattleSeaGame> m_gameInstance;
 
 private:
     std::deque<CellIndex> m_sequenceTurns;

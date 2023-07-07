@@ -1,8 +1,44 @@
 #pragma once
-#include "Game/GameInterfaces.h"
 #include "Core/CoreTypes.h"
+#include "GameConfig.h"
+#include "GameGrid.h"
+#include "WarShip.h"
 
-class BattleSeaGame : public IBattleSeaGame
+#include<array>
+#include <vector>
+
+
+// Model is shortly presented by 2 game grids (10x10) for 2 players
+
+// Every cell can represent one the states
+//  - Concealed cell, which wasn't shot yet
+//  - Missed shot, shot has been done, but no ship part is there
+//              - Guarantted empty zone around destroyed ship, but for no is okay to present like MissedShot state
+//  - Hit cell  (Damaged), shot has been done and some part of ship is damaged
+//  - Destroyed, one or more cells which describes destroyed ship
+
+// Do we have any difference in presentation of hit damaged and destroyed cells? - In concole - not sure, with GUI - yes, 100%
+
+// Model must validate order of turns.
+
+struct GameStartSettings
+{
+	Player initialPlayer;
+	Player localPlayer;
+
+	std::vector<WarShip> shipsForPlayer1;
+	std::vector<WarShip> shipsForPlayer2;
+};
+
+// Main functionality in the game in model context
+// - initialization of two grids for players with specified ship positions
+// - grid generation for player
+// - own info about current player and validation turn order
+// - shooting specified cell on the certain grid
+// - game over check
+
+
+class BattleSeaGame
 {
 public:
 	constexpr static uint8_t PLAYER_AMOUNT = 2;
@@ -10,17 +46,17 @@ public:
 	BattleSeaGame(const GameConfig& config);
 
 	// Inherited via IBattleSeaGame
-	virtual bool initShipPositionsForPlayer(const Player player, const std::vector<WarShip>& ships) override;
-	virtual ShotError shootThePlayerGridAt(const CellIndex& cell) override;
-	virtual bool startGame(const GameStartSettings& settings) override;
-	virtual bool isGameOver() const override;
-	virtual Player getCurrentPlayer() const override;
-	virtual Player getInitialPlayer() const override;
-	virtual Player getLocalPlayer() const override;
-	virtual const GameGrid getPlayerGridInfo(const Player player) const override;
-	virtual CellState getPlayerGridCellState(const Player player, const CellIndex& cell) const override;
+	bool initShipPositionsForPlayer(const Player player, const std::vector<WarShip>& ships);
+	ShotError shootThePlayerGridAt(const CellIndex& cell);
+	bool startGame(const GameStartSettings& settings);
+	bool isGameOver() const;
+	Player getCurrentPlayer() const;
+	Player getInitialPlayer() const;
+	Player getLocalPlayer() const;
+	const GameGrid getPlayerGridInfo(const Player player) const;
+	CellState getPlayerGridCellState(const Player player, const CellIndex& cell) const;
 
-	virtual const GameConfig& getAppliedConfig() const override;
+	const GameConfig& getAppliedConfig() const;
 
 private:
 	void setGridCellState(GameGrid& outGrid, const CellIndex& cell, const CellState& state);

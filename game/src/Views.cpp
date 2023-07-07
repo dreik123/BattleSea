@@ -1,6 +1,6 @@
 #include "Views.h"
-#include "Game/GameInterfaces.h"         // for IBattleSeaGame
 #include "Game/GameConfig.h"
+#include "Game/BattleSeaGame.h"
 
 #include <iostream>  // is temporary used for console presentation
 #include <conio.h>
@@ -32,7 +32,7 @@ constexpr static uint8_t VERTICAL_SYMBOLS_AMOUNT_PER_CELL = 1;
 constexpr static uint8_t SPACES_BETWEEN_GRIDS = 10;
 
 
-TerminalView::TerminalView(const std::shared_ptr<IBattleSeaGame>& game)
+TerminalView::TerminalView(const std::shared_ptr<BattleSeaGame>& game)
     : m_game(game)
 {
 }
