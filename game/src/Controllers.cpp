@@ -6,20 +6,39 @@
 #include "Game/Player/RealPlayer.h"
 #include "Game/Player/SillyRandomBot.h"
 
+#include "Core/EventBus.h"
+#include "Game/Events/Events.h"
+
 #include <iostream>
 #include <conio.h>
 
 
-GameController::GameController(std::shared_ptr<BattleSeaGame>& game, std::shared_ptr<IBattleSeaView>& view)
+GameController::GameController(
+    std::weak_ptr<BattleSeaGame>& game,
+    std::shared_ptr<IBattleSeaView>& view,
+    std::shared_ptr<EventBus>& bus)
     : m_game(game)
-    , m_view(view)
+    , m_renderer(view)
     , m_shipsGenerator(new WarShipGenerator())
+    , m_eventBus(bus)
 {
 }
 
 void GameController::runGame()
 {
-    m_view->renderGreetingToPlayer();
+    if (m_game.expired())
+    {
+        std::cerr << "Game instance is invalid\n";
+        return;
+    }
+
+    auto gameInstance = m_game.lock();
+
+    m_renderer->renderStartScreen();
+    int _ = _getch();
+
+    events::StartScreenPassedEvent startScreenPassedEvent;
+    m_eventBus->publish(startScreenPassedEvent);
 
     // README For now ships generation is performed here in controller,
     // but potentially it might be carried out to IPlayer interface.
@@ -29,10 +48,10 @@ void GameController::runGame()
     char playerChoice = 0;
     do
     {
-        playerShips = m_shipsGenerator->generateShips(m_game->getAppliedConfig());
+        playerShips = m_shipsGenerator->generateShips(gameInstance->getAppliedConfig());
         const GameGrid gridToPresent = GridUtilities::convertShipsToGrid(playerShips);
-        m_view->renderGeneratedShips(gridToPresent);
-        m_view->renderMessage("Do you like this setup?\nEnter - approve! Any button - regenerate\n");
+        m_renderer->renderGeneratedShips(gridToPresent);
+        m_renderer->renderMessage("Do you like this setup?\nEnter - approve! Any button - regenerate\n");
 
         playerChoice = _getch();
     } while (playerChoice != '\r' && playerChoice != '\n');
@@ -49,22 +68,22 @@ void GameController::runGame()
     settings.initialPlayer = Player::Player1;
     settings.localPlayer = Player::Player1;
     settings.shipsForPlayer1 = playerShips;
-    settings.shipsForPlayer2 = m_shipsGenerator->generateShips(m_game->getAppliedConfig());
+    settings.shipsForPlayer2 = m_shipsGenerator->generateShips(gameInstance->getAppliedConfig());
 
-    if (!m_game->startGame(settings))
+    if (!gameInstance->startBattle(settings))
     {
         std::cerr << "Invalid settings for game start!\n";
         return;
     }
 
     // Shows grids before first turn
-    m_view->renderGame();
+    m_renderer->renderGame();
 
     bool hasGameBeenInterrupted = false;
-    while (!hasGameBeenInterrupted && !m_game->isGameOver())
+    while (!hasGameBeenInterrupted && !gameInstance->isGameOver())
     {
-        IPlayer& currentPlayer = getCurrentPlayer(m_game->getCurrentPlayer());
-        m_view->renderRequestToTurn(currentPlayer.getName());
+        IPlayer& currentPlayer = getCurrentPlayer(gameInstance->getCurrentPlayer());
+        std::cout << currentPlayer.getName() << " turns:\n";
 
         bool isValidTurn = false;
         do
@@ -79,29 +98,29 @@ void GameController::runGame()
 
             if (userInput.shotCell.has_value())
             {
-                const ShotError result = m_game->shootThePlayerGridAt(userInput.shotCell.value());
+                const ShotError result = gameInstance->shootThePlayerGridAt(userInput.shotCell.value());
 
-                m_view->renderShotError(result);
+                m_renderer->renderShotError(result);
                 isValidTurn = result == ShotError::Ok;
             }
             else
             {
-                m_view->renderMessage("WTF have you entered?!?\n");
+                m_renderer->renderMessage("WTF have you entered?!?\n");
             }
         } while (!isValidTurn);
 
         // Clear screen to refresh the grids in place
         system("cls");
 
-        m_view->renderGame();
+        m_renderer->renderGame();
     }
 
-    if (m_game->isGameOver())
+    if (gameInstance->isGameOver())
     {
         // The current player hasn't been changed after last shot.
-        IPlayer& winner = getCurrentPlayer(m_game->getCurrentPlayer());
-        m_view->renderGameOver(winner.getName(), winner.isLocalPlayer());
-        m_view->renderMessage("Please relaunch game if you want to play again\n");
+        IPlayer& winner = getCurrentPlayer(gameInstance->getCurrentPlayer());
+        m_renderer->renderGameOver(winner.getName(), winner.isLocalPlayer());
+        m_renderer->renderMessage("Please relaunch game if you want to play again\n");
     }
 }
 

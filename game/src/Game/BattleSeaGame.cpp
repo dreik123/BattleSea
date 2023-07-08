@@ -11,7 +11,7 @@
 // introduce game states
 // rename controller into terminal one
 
-BattleSeaGame::BattleSeaGame(const GameConfig& config)
+BattleSeaGame::BattleSeaGame(const GameConfig& config, std::shared_ptr<EventBus>& bus)
     : m_config(config)
     , m_playerGrids{}
     , m_playerShips{}
@@ -19,6 +19,7 @@ BattleSeaGame::BattleSeaGame(const GameConfig& config)
     , m_initialPlayer(Player::Invalid)
     , m_localPlayer(Player::Invalid)
     , m_hasGameFinished(false)
+    , m_eventBus(bus)
 {
 }
 
@@ -73,7 +74,7 @@ ShotError BattleSeaGame::shootThePlayerGridAt(const CellIndex& cell)
 
             // TODO (alternative) subscribe on this event in model as well
             events::ShipDamagedEvent shipDamagedEvent {.injuredPlayer = oppositePlayer, .ship = ship, .shot = cell};
-            g_eventBus.publish(shipDamagedEvent);
+            m_eventBus->publish(shipDamagedEvent);
         }
         else
         {
@@ -87,7 +88,7 @@ ShotError BattleSeaGame::shootThePlayerGridAt(const CellIndex& cell)
             surroundDestroyedShip(oppositeGrid, ship);
 
             events::ShipDestroyedEvent shipDestroyedEvent {.injuredPlayer = oppositePlayer, .ship = ship};
-            g_eventBus.publish(shipDestroyedEvent);
+            m_eventBus->publish(shipDestroyedEvent);
 
             m_hasGameFinished = std::all_of(ships.cbegin(), ships.cend(), [](const WarShip& s)
                 {
@@ -97,7 +98,7 @@ ShotError BattleSeaGame::shootThePlayerGridAt(const CellIndex& cell)
             if (m_hasGameFinished)
             {
                 events::GameFinishedEvent gameFinishedEvent{.winner = m_currentPlayer, .loser = oppositePlayer};
-                g_eventBus.publish(gameFinishedEvent);
+                m_eventBus->publish(gameFinishedEvent);
             }
         }
         successfulShot = true;
@@ -108,18 +109,18 @@ ShotError BattleSeaGame::shootThePlayerGridAt(const CellIndex& cell)
     {
         setGridCellState(oppositeGrid, cell, CellState::Missed);
         events::ShotMissedEvent shotMissedEvent{.shootingPlayer = m_currentPlayer, .shot = cell};
-        g_eventBus.publish(shotMissedEvent);
+        m_eventBus->publish(shotMissedEvent);
 
         const Player prevPlayer = m_currentPlayer;
         m_currentPlayer = getOppositePlayer(m_currentPlayer);
         events::PlayerSwitchedEvent playerSwitchedEvent{.previousPlayer = prevPlayer, .nextPlayer = m_currentPlayer};
-        g_eventBus.publish(playerSwitchedEvent);
+        m_eventBus->publish(playerSwitchedEvent);
     }
 
     return ShotError::Ok;
 }
 
-bool BattleSeaGame::startGame(const GameStartSettings& settings)
+bool BattleSeaGame::startBattle(const GameStartSettings& settings)
 {
     m_initialPlayer = settings.initialPlayer;
     m_currentPlayer = settings.initialPlayer;

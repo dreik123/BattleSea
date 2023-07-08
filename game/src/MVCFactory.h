@@ -12,38 +12,41 @@ class BattleSeaGame;
 class IBattleSeaFactory
 {
 public:
-    virtual std::shared_ptr<BattleSeaGame> createGame() = 0;
-    // TODO weak ptr
-    virtual std::shared_ptr<IBattleSeaView> createPresenter(std::shared_ptr<BattleSeaGame>& game) = 0;
-    virtual std::shared_ptr<IController> createController(std::shared_ptr<BattleSeaGame>& game, std::shared_ptr<IBattleSeaView>& view) = 0;
+    virtual std::shared_ptr<BattleSeaGame> createGame(std::shared_ptr<EventBus>& bus) = 0;
+    virtual std::shared_ptr<IBattleSeaView> createPresenter(std::weak_ptr<BattleSeaGame> game, std::shared_ptr<EventBus>& bus) = 0;
+    virtual std::shared_ptr<IController> createController(
+        std::weak_ptr<BattleSeaGame> game,
+        std::shared_ptr<IBattleSeaView>& view, // need to think
+        std::shared_ptr<EventBus>& bus
+    ) = 0;
 };
 
 
 class ClassicConsoleBattleSeaFactory : public IBattleSeaFactory
 {
 public:
-    virtual std::shared_ptr<BattleSeaGame> createGame() override
+    virtual std::shared_ptr<BattleSeaGame> createGame(std::shared_ptr<EventBus>& bus) override
     {
         const GameConfig& gameConfig = DEFAULT_GAME_CONFIG;
-        return std::make_shared<BattleSeaGame>(gameConfig);
+        return std::make_shared<BattleSeaGame>(gameConfig, bus);
     }
-    virtual std::shared_ptr<IBattleSeaView> createPresenter(std::shared_ptr<BattleSeaGame>& game) override
+    virtual std::shared_ptr<IBattleSeaView> createPresenter(std::weak_ptr<BattleSeaGame> game, std::shared_ptr<EventBus>& bus) override
     {
-        return std::make_shared<TerminalView>(game);
+        return std::make_shared<TerminalView>(game, bus);
     }
-    virtual std::shared_ptr<IController> createController(std::shared_ptr<BattleSeaGame>& game, std::shared_ptr<IBattleSeaView>& view) override
+    virtual std::shared_ptr<IController> createController(std::weak_ptr<BattleSeaGame> game, std::shared_ptr<IBattleSeaView>& view, std::shared_ptr<EventBus>& bus) override
     {
-        return std::make_shared<GameController>(game, view);
+        return std::make_shared<GameController>(game, view, bus);
     }
 };
 
 class HasbroConsoleBattleSeaFactory : public ClassicConsoleBattleSeaFactory
 {
 public:
-    virtual std::shared_ptr<BattleSeaGame> createGame() override
+    virtual std::shared_ptr<BattleSeaGame> createGame(std::shared_ptr<EventBus>& bus) override
     {
         const GameConfig& gameConfig = HASBRO_GAME_CONFIG;
-        return std::make_shared<BattleSeaGame>(gameConfig);
+        return std::make_shared<BattleSeaGame>(gameConfig, bus);
     }
 };
 

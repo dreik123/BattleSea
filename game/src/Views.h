@@ -3,32 +3,33 @@
 #include <string>
 
 #include "Core/CoreTypes.h"     // for CellState, ShotError
+#include "Core/EventBus.h"
 #include "Game/GameGrid.h"      // GameGrid is typedef
 
 class BattleSeaGame;
 class CellIndex;
+class EventBus;
 
-class IBattleSeaView {
+class IBattleSeaView
+{
 public:
-    virtual void renderGreetingToPlayer() = 0;
+    virtual void renderStartScreen() = 0;
     virtual void renderGeneratedShips(const GameGrid& grid) = 0;
     virtual void renderGame() = 0;
     virtual void renderMessage(const std::string msg) = 0;
-    virtual void renderRequestToTurn(const std::string playerName) = 0;
     virtual void renderShotError(const ShotError error) = 0;
     virtual void renderGameOver(const std::string winnerName, const bool isLocalPlayer) = 0;
 };
 
-class TerminalView : public IBattleSeaView 
+class TerminalView : public IBattleSeaView
 {
 public:
-    TerminalView(const std::shared_ptr<BattleSeaGame>& game);
+    TerminalView(const std::weak_ptr<BattleSeaGame>& game, std::shared_ptr<EventBus>& bus);
 
-    virtual void renderGreetingToPlayer() override;
+    virtual void renderStartScreen() override;
     virtual void renderGeneratedShips(const GameGrid& grid) override;
     virtual void renderGame() override;
     virtual void renderMessage(const std::string msg) override;
-    virtual void renderRequestToTurn(const std::string playerName) override;
     virtual void renderShotError(const ShotError error) override;
     virtual void renderGameOver(const std::string winnerName, const bool isLocalPlayer) override;
 
@@ -46,5 +47,6 @@ private:
     void renderSymbolNTimes(const char symbol, const unsigned int times);
 
 protected:
-    const std::shared_ptr<BattleSeaGame> m_game;
+    const std::weak_ptr<BattleSeaGame> m_game; // should i remove it?
+    std::shared_ptr<EventBus> m_eventBus;
 };

@@ -31,13 +31,13 @@ public:
     template <typename EventType>
     void subscribe(const EventListener& listener)
     {
-        listeners[typeid(EventType).hash_code()].push_back(listener);
+        m_listeners[typeid(EventType).hash_code()].push_back(listener);
     }
 
     template <typename DerivedEvent>
     void publish(const DerivedEvent& event)
     {
-        const auto& eventListeners = listeners[typeid(DerivedEvent).hash_code()];
+        const auto& eventListeners = m_listeners[typeid(DerivedEvent).hash_code()];
         for (const auto& listener : eventListeners)
         {
             listener(event);
@@ -46,7 +46,7 @@ public:
 
 private:
     // map<hash_code, listeners>
-    std::unordered_map<size_t, std::vector<EventListener>> listeners;
+    std::unordered_map<size_t, std::vector<EventListener>> m_listeners;
 };
 
 

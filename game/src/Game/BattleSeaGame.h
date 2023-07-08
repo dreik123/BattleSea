@@ -4,9 +4,11 @@
 #include "GameGrid.h"
 #include "WarShip.h"
 
-#include<array>
+#include <array>
 #include <vector>
+#include <memory>
 
+class EventBus;
 
 // Model is shortly presented by 2 game grids (10x10) for 2 players
 
@@ -43,12 +45,11 @@ class BattleSeaGame
 public:
 	constexpr static uint8_t PLAYER_AMOUNT = 2;
 
-	BattleSeaGame(const GameConfig& config);
+	BattleSeaGame(const GameConfig& config, std::shared_ptr<EventBus>& bus);
 
-	// Inherited via IBattleSeaGame
 	bool initShipPositionsForPlayer(const Player player, const std::vector<WarShip>& ships);
 	ShotError shootThePlayerGridAt(const CellIndex& cell);
-	bool startGame(const GameStartSettings& settings);
+	bool startBattle(const GameStartSettings& settings);
 	bool isGameOver() const;
 	Player getCurrentPlayer() const;
 	Player getInitialPlayer() const;
@@ -73,5 +74,6 @@ private:
 	Player m_localPlayer;
 
 	bool m_hasGameFinished;
+	std::shared_ptr<EventBus> m_eventBus;
 };
 
