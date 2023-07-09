@@ -39,5 +39,7 @@ protected:
 private:
     std::vector<CellIndex> m_lastHits;
     Level m_lvl;
+    std::random_device rd;
+    std::mt19937 mt;
 };
 
