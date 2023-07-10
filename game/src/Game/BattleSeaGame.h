@@ -2,7 +2,9 @@
 #include "Core/CoreTypes.h"
 #include "GameConfig.h"
 #include "GameGrid.h"
+#include "GameState.h"
 #include "WarShip.h"
+#include "Events/Events.h"
 
 #include <array>
 #include <vector>
@@ -23,6 +25,14 @@ class EventBus;
 
 // Model must validate order of turns.
 
+// Main functionality in the game in model context
+// - initialization of two grids for players with specified ship positions
+// - grid generation for player
+// - own info about current player and validation turn order
+// - shooting specified cell on the certain grid
+// - game over check
+
+
 struct GameStartSettings
 {
 	Player initialPlayer;
@@ -32,13 +42,29 @@ struct GameStartSettings
 	std::vector<WarShip> shipsForPlayer2;
 };
 
-// Main functionality in the game in model context
-// - initialization of two grids for players with specified ship positions
-// - grid generation for player
-// - own info about current player and validation turn order
-// - shooting specified cell on the certain grid
-// - game over check
+class GameStateMachine
+{
+public:
+	GameStateMachine(std::shared_ptr<EventBus>& bus)
+		: m_eventBus(bus)
+		, m_currentState(GameState::Unitialized)
+	{
 
+	}
+
+	const GameState getCurrentState() const { return m_currentState; }
+	void switchToState(const GameState newState)
+	{
+		GameState oldState = m_currentState;
+		m_currentState = newState;
+
+		events::GameStateChangedEvent gameStateChangedEvent {.oldState = oldState, .newState = newState };
+		m_eventBus->publish(gameStateChangedEvent);
+	}
+private:
+	std::shared_ptr<EventBus> m_eventBus;
+	GameState m_currentState;
+};
 
 class BattleSeaGame
 {
@@ -58,6 +84,7 @@ public:
 	CellState getPlayerGridCellState(const Player player, const CellIndex& cell) const;
 
 	const GameConfig& getAppliedConfig() const;
+	const GameState getCurrentState() const;
 
 private:
 	void setGridCellState(GameGrid& outGrid, const CellIndex& cell, const CellState& state);
@@ -65,6 +92,7 @@ private:
 
 private:
 	GameConfig m_config;
+	GameStateMachine m_stateMachine;
 
 	std::array<GameGrid, PLAYER_AMOUNT> m_playerGrids;
 	std::array<std::vector<WarShip>, PLAYER_AMOUNT> m_playerShips;
@@ -74,6 +102,7 @@ private:
 	Player m_localPlayer;
 
 	bool m_hasGameFinished;
+
 	std::shared_ptr<EventBus> m_eventBus;
 };
 

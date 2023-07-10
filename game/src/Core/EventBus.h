@@ -19,6 +19,7 @@ concept DerivedEvent = std::derived_from<T, Event>;
 
 
 // Very simple version of event bus, without any mutexes, streams, channels
+// TODO make it thread safety if view is going to be in separate thread
 class EventBus
 {
 public:
@@ -27,6 +28,27 @@ public:
 #else
     using EventListener = std::function<void(const Event&)>;
 #endif // EVENTS_STD_ANY_APPROACH
+
+    EventBus() = default;
+    ~EventBus() = default;
+
+    // non-copyable type
+    EventBus(const EventBus&) = delete;
+    EventBus& operator=(const EventBus&) = delete;
+
+    EventBus(EventBus&& other) noexcept(true)
+    {
+        m_listeners = std::move(other.m_listeners);
+    }
+    EventBus& operator=(EventBus&& other) noexcept(true)
+    {
+        if (this == &other)
+        {
+            return *this;
+        }
+
+        m_listeners = std::move(other.m_listeners);
+    }
 
     template <typename EventType>
     void subscribe(const EventListener& listener)
@@ -50,7 +72,13 @@ private:
 };
 
 
-inline EventBus g_eventBus; // hack for now
+#if 0 // tests
+    EventBus bus;
+    //EventBus bus2(bus); // error
+    EventBus bus3(EventBus()); // ok
+    EventBus bus4(std::move(bus)); // ok
+    bus4 = std::move(bus4); // ok
+#endif
 
 
 #if 0 // examples

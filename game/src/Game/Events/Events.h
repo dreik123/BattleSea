@@ -3,6 +3,7 @@
 #include "Core/CoreDefines.h"
 #include "Core/Event.h"
 #include "Game/WarShip.h"
+#include "Game/GameState.h"
 
 
 // TODO consider implementation of all event classes separately and put all includes here
@@ -11,6 +12,15 @@
 // I don't want to create init-ctors for all these events and would like to rely on aggregate (named) initialization
 namespace events
 {
+    struct GameStateChangedEvent final
+#if !EVENTS_STD_ANY_APPROACH
+        : public Event
+#endif
+    {
+        GameState oldState;
+        GameState newState;
+    };
+
     struct StartScreenPassedEvent final
 #if !EVENTS_STD_ANY_APPROACH
         : public Event

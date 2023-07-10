@@ -13,6 +13,7 @@
 
 BattleSeaGame::BattleSeaGame(const GameConfig& config, std::shared_ptr<EventBus>& bus)
     : m_config(config)
+    , m_stateMachine(bus)
     , m_playerGrids{}
     , m_playerShips{}
     , m_currentPlayer(Player::Invalid)
@@ -21,6 +22,10 @@ BattleSeaGame::BattleSeaGame(const GameConfig& config, std::shared_ptr<EventBus>
     , m_hasGameFinished(false)
     , m_eventBus(bus)
 {
+    m_eventBus->subscribe<events::StartScreenPassedEvent>([this](const std::any& _)
+        {
+            m_stateMachine.switchToState(GameState::ShipsSetup);
+        });
 }
 
 bool BattleSeaGame::initShipPositionsForPlayer(const Player player, const std::vector<WarShip>& ships)
@@ -193,6 +198,11 @@ CellState BattleSeaGame::getPlayerGridCellState(const Player player, const CellI
 const GameConfig& BattleSeaGame::getAppliedConfig() const
 {
     return m_config;
+}
+
+const GameState BattleSeaGame::getCurrentState() const
+{
+    return m_stateMachine.getCurrentState();
 }
 
 void BattleSeaGame::setGridCellState(GameGrid& outGrid, const CellIndex& cell, const CellState& state)

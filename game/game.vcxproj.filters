@@ -76,5 +76,6 @@
     <ClInclude Include="src\Core\Event.h" />
     <ClInclude Include="src\Game\Events\Events.h" />
     <ClInclude Include="src\Core\CoreDefines.h" />
+    <ClInclude Include="src\Game\GameState.h" />
   </ItemGroup>
 </Project>
