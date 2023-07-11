@@ -1,6 +1,4 @@
 #include "Views.h"
-#include "Game/GameConfig.h"
-#include "Game/BattleSeaGame.h"
 
 #include <iostream>  // is temporary used for console presentation
 
@@ -31,9 +29,8 @@ constexpr static uint8_t VERTICAL_SYMBOLS_AMOUNT_PER_CELL = 1;
 constexpr static uint8_t SPACES_BETWEEN_GRIDS = 10;
 
 
-TerminalView::TerminalView(const std::weak_ptr<BattleSeaGame>& game, std::shared_ptr<EventBus>& bus)
-    : m_game(game)
-    , m_eventBus(bus)
+TerminalView::TerminalView(std::shared_ptr<EventBus>& bus)
+    : m_eventBus(bus)
 {
 }
 
@@ -42,26 +39,9 @@ void TerminalView::renderStartScreen()
     std::cout << "Welcome to Battle Sea game. Enjoy it.\nPress any key to choose your setup\n";
 }
 
-void TerminalView::renderGame()
+void TerminalView::renderGameGrids(const GameGrid modelData1, const GameGrid modelData2)
 {
-    if (m_game.expired())
-    {
-        std::cerr << "Game instance is invalid. It's improssible to render the game\n";
-        return;
-    }
-
-    auto gameInstance = m_game.lock();
-    // README for now Player1 is user, Player2 is bot
-    // README Multiplayer requires understanding which Player value current player has
-    // Important: Own grid must visualize ships as well, opponent's - no.
-    const GameGrid modelData1 = gameInstance->getPlayerGridInfo(Player::Player1);
-    const GameGrid modelData2 = gameInstance->getPlayerGridInfo(Player::Player2);
     renderTwoGrids(modelData1, modelData2, true);
-}
-
-void TerminalView::renderMessage(const std::string msg)
-{
-    std::cout << msg;
 }
 
 void TerminalView::renderShotError(const ShotError error)

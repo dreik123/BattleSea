@@ -15,8 +15,7 @@ class IBattleSeaView
 public:
     virtual void renderStartScreen() = 0;
     virtual void renderGeneratedShips(const GameGrid& grid) = 0;
-    virtual void renderGame() = 0;
-    virtual void renderMessage(const std::string msg) = 0;
+    virtual void renderGameGrids(const GameGrid modelData1, const GameGrid modelData2) = 0;
     virtual void renderShotError(const ShotError error) = 0;
     virtual void renderGameOver(const std::string winnerName, const bool isLocalPlayer) = 0;
 };
@@ -24,12 +23,11 @@ public:
 class TerminalView : public IBattleSeaView
 {
 public:
-    TerminalView(const std::weak_ptr<BattleSeaGame>& game, std::shared_ptr<EventBus>& bus);
+    TerminalView(std::shared_ptr<EventBus>& bus);
 
     virtual void renderStartScreen() override;
     virtual void renderGeneratedShips(const GameGrid& grid) override;
-    virtual void renderGame() override;
-    virtual void renderMessage(const std::string msg) override;
+    virtual void renderGameGrids(const GameGrid modelData1, const GameGrid modelData2) override;
     virtual void renderShotError(const ShotError error) override;
     virtual void renderGameOver(const std::string winnerName, const bool isLocalPlayer) override;
 
@@ -47,6 +45,5 @@ private:
     void renderSymbolNTimes(const char symbol, const unsigned int times);
 
 protected:
-    const std::weak_ptr<BattleSeaGame> m_game; // should i remove it?
     std::shared_ptr<EventBus> m_eventBus;
 };

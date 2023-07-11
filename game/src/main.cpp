@@ -9,12 +9,11 @@ int main(int argc, char* argv[])
     // Classic MVC (will be redone in the next PRs)
     auto eventBus = std::make_shared<EventBus>();
 
-    auto factory = FactoryInterface::getFactory();
+    auto factory = FactoryInterface::getFactory<ClassicTerminalBattleSeaFactory>();
     auto game = factory->createGame(eventBus);
-    auto presenter = factory->createPresenter(game, eventBus);
-    auto controller = factory->createController(game, presenter, eventBus);
+    auto controller = factory->createController(std::move(game), eventBus);
 
-    controller->runGame();
+    controller->loopGame();
 
     return 0;
 }

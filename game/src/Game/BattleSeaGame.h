@@ -4,13 +4,11 @@
 #include "GameGrid.h"
 #include "GameState.h"
 #include "WarShip.h"
-#include "Events/Events.h"
 
 #include <array>
 #include <vector>
 #include <memory>
 
-class EventBus;
 
 // Model is shortly presented by 2 game grids (10x10) for 2 players
 
@@ -42,25 +40,17 @@ struct GameStartSettings
 	std::vector<WarShip> shipsForPlayer2;
 };
 
+class EventBus;
+
 class GameStateMachine
 {
 public:
-	GameStateMachine(std::shared_ptr<EventBus>& bus)
-		: m_eventBus(bus)
-		, m_currentState(GameState::Unitialized)
-	{
+	GameStateMachine(std::shared_ptr<EventBus>& bus);
 
-	}
+	[[nodiscard]] inline const GameState getCurrentState() const { return m_currentState; }
 
-	const GameState getCurrentState() const { return m_currentState; }
-	void switchToState(const GameState newState)
-	{
-		GameState oldState = m_currentState;
-		m_currentState = newState;
+	void switchToState(const GameState newState);
 
-		events::GameStateChangedEvent gameStateChangedEvent {.oldState = oldState, .newState = newState };
-		m_eventBus->publish(gameStateChangedEvent);
-	}
 private:
 	std::shared_ptr<EventBus> m_eventBus;
 	GameState m_currentState;
@@ -72,6 +62,8 @@ public:
 	constexpr static uint8_t PLAYER_AMOUNT = 2;
 
 	BattleSeaGame(const GameConfig& config, std::shared_ptr<EventBus>& bus);
+
+	void launch();
 
 	bool initShipPositionsForPlayer(const Player player, const std::vector<WarShip>& ships);
 	ShotError shootThePlayerGridAt(const CellIndex& cell);

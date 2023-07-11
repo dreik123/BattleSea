@@ -1,52 +1,48 @@
 #pragma once
 #include "Controllers.h"
 #include "Game/GameConfig.h"
-#include "Game/WarShipGenerators.h"
 #include "Game/BattleSeaGame.h"
 #include "Views.h"
 
 #include <memory>
+
+// TODO rename file (no mvc)
 
 class BattleSeaGame;
 
 class IBattleSeaFactory
 {
 public:
-    virtual std::shared_ptr<BattleSeaGame> createGame(std::shared_ptr<EventBus>& bus) = 0;
-    virtual std::shared_ptr<IBattleSeaView> createPresenter(std::weak_ptr<BattleSeaGame> game, std::shared_ptr<EventBus>& bus) = 0;
+    virtual std::unique_ptr<BattleSeaGame> createGame(std::shared_ptr<EventBus>& bus) = 0;
     virtual std::shared_ptr<IController> createController(
-        std::weak_ptr<BattleSeaGame> game,
-        std::shared_ptr<IBattleSeaView>& view, // need to think
+        std::unique_ptr<BattleSeaGame>&& game,
         std::shared_ptr<EventBus>& bus
     ) = 0;
 };
 
 
-class ClassicConsoleBattleSeaFactory : public IBattleSeaFactory
+class ClassicTerminalBattleSeaFactory : public IBattleSeaFactory
 {
 public:
-    virtual std::shared_ptr<BattleSeaGame> createGame(std::shared_ptr<EventBus>& bus) override
+    virtual std::unique_ptr<BattleSeaGame> createGame(std::shared_ptr<EventBus>& bus) override
     {
         const GameConfig& gameConfig = DEFAULT_GAME_CONFIG;
-        return std::make_shared<BattleSeaGame>(gameConfig, bus);
+        return std::make_unique<BattleSeaGame>(gameConfig, bus);
     }
-    virtual std::shared_ptr<IBattleSeaView> createPresenter(std::weak_ptr<BattleSeaGame> game, std::shared_ptr<EventBus>& bus) override
+    virtual std::shared_ptr<IController> createController(std::unique_ptr<BattleSeaGame>&& game, std::shared_ptr<EventBus>& bus) override
     {
-        return std::make_shared<TerminalView>(game, bus);
-    }
-    virtual std::shared_ptr<IController> createController(std::weak_ptr<BattleSeaGame> game, std::shared_ptr<IBattleSeaView>& view, std::shared_ptr<EventBus>& bus) override
-    {
-        return std::make_shared<GameController>(game, view, bus);
+        std::unique_ptr<IBattleSeaView> terminalRenderer(new TerminalView (bus));
+        return std::make_shared<TerminalController>(std::move(game), std::move(terminalRenderer), bus);
     }
 };
 
-class HasbroConsoleBattleSeaFactory : public ClassicConsoleBattleSeaFactory
+class HasbroTerminalBattleSeaFactory : public ClassicTerminalBattleSeaFactory
 {
 public:
-    virtual std::shared_ptr<BattleSeaGame> createGame(std::shared_ptr<EventBus>& bus) override
+    virtual std::unique_ptr<BattleSeaGame> createGame(std::shared_ptr<EventBus>& bus) override
     {
         const GameConfig& gameConfig = HASBRO_GAME_CONFIG;
-        return std::make_shared<BattleSeaGame>(gameConfig, bus);
+        return std::make_unique<BattleSeaGame>(gameConfig, bus);
     }
 };
 
@@ -54,9 +50,9 @@ public:
 class FactoryInterface
 {
 public:
-    // README Extend functionality with polimophic opportunity if need
+    template<class T>
     static std::unique_ptr<IBattleSeaFactory> getFactory()
     {
-        return std::make_unique<ClassicConsoleBattleSeaFactory>();
+        return std::make_unique<T>();
     }
 };

@@ -17,25 +17,33 @@ class EventBus;
 class IController
 {
 public:
-    virtual void runGame() = 0;
+    virtual void loopGame() = 0;
 };
 
-class GameController : public IController 
+class TerminalController : public IController
 {
 public:
-    GameController(
-        std::weak_ptr<BattleSeaGame>& game,
-        std::shared_ptr<IBattleSeaView>& view,
+    TerminalController(
+        std::unique_ptr<BattleSeaGame>&& game,
+        std::unique_ptr<IBattleSeaView>&& view,
         std::shared_ptr<EventBus>& bus);
 
-    virtual void runGame() override;
+    virtual void loopGame() override;
 
 private:
     IPlayer& getCurrentPlayer(const Player player) const;
 
+    const std::vector<WarShip> getShipsFromPlayer(const Player player);
+
+    // TODO consider these methods as listeners for corresponding events
+    bool onStartScreen();
+    bool onShipsSetup();
+    bool onBattleStarted();
+    bool onBattleFinished();
+
 protected:
-    std::weak_ptr<BattleSeaGame> m_game;
-    std::shared_ptr<IBattleSeaView> m_renderer;
+    std::unique_ptr<BattleSeaGame> m_game;
+    std::unique_ptr<IBattleSeaView> m_renderer;
 
 private:
     std::array<std::unique_ptr<IPlayer>, 2> m_players;

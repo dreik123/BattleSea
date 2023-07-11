@@ -6,10 +6,28 @@
 #include "Game/Events/Events.h"
 
 // TODOs:
-// subscribe to all events
+// subscribe to all events *
 // reduce coupling between, controller and game, controller and view
-// introduce game states
-// rename controller into terminal one
+// put renderer in dedicated thread (conditional var, render instructions)
+// make event bus thread safe
+
+
+GameStateMachine::GameStateMachine(std::shared_ptr<EventBus>& bus)
+    : m_eventBus(bus)
+    , m_currentState(GameState::Unitialized)
+{
+}
+
+void GameStateMachine::switchToState(const GameState newState)
+{
+    GameState oldState = m_currentState;
+    m_currentState = newState;
+
+    events::GameStateChangedEvent gameStateChangedEvent {.oldState = oldState, .newState = newState };
+    m_eventBus->publish(gameStateChangedEvent);
+}
+
+
 
 BattleSeaGame::BattleSeaGame(const GameConfig& config, std::shared_ptr<EventBus>& bus)
     : m_config(config)
@@ -26,6 +44,11 @@ BattleSeaGame::BattleSeaGame(const GameConfig& config, std::shared_ptr<EventBus>
         {
             m_stateMachine.switchToState(GameState::ShipsSetup);
         });
+}
+
+void BattleSeaGame::launch()
+{
+    m_stateMachine.switchToState(GameState::StartScreen);
 }
 
 bool BattleSeaGame::initShipPositionsForPlayer(const Player player, const std::vector<WarShip>& ships)
@@ -102,6 +125,8 @@ ShotError BattleSeaGame::shootThePlayerGridAt(const CellIndex& cell)
 
             if (m_hasGameFinished)
             {
+                m_stateMachine.switchToState(GameState::GameOver);
+
                 events::GameFinishedEvent gameFinishedEvent{.winner = m_currentPlayer, .loser = oppositePlayer};
                 m_eventBus->publish(gameFinishedEvent);
             }
@@ -139,6 +164,8 @@ bool BattleSeaGame::startBattle(const GameStartSettings& settings)
     {
         return false;
     }
+
+    m_stateMachine.switchToState(GameState::Battle);
 
     return true;
 }
