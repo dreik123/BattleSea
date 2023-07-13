@@ -117,7 +117,7 @@
     <ClInclude Include="src\Game\Player\IPlayer.h" />
     <ClInclude Include="src\Game\Player\RealPlayer.h" />
     <ClInclude Include="src\Game\Player\SillyRandomBot.h" />
-    <ClInclude Include="src\MVCFactory.h" />
+    <ClInclude Include="src\GameFactory.h" />
     <ClInclude Include="src\Views.h" />
     <ClInclude Include="src\Game\WarShip.h" />
     <ClInclude Include="src\Game\WarShipGenerators.h" />

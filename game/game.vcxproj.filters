@@ -39,7 +39,7 @@
     <ClInclude Include="src\Controllers.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="src\MVCFactory.h">
+    <ClInclude Include="src\GameFactory.h">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="src\Views.h">

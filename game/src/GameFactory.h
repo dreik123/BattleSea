@@ -6,7 +6,6 @@
 
 #include <memory>
 
-// TODO rename file (no mvc)
 
 class BattleSeaGame;
 
