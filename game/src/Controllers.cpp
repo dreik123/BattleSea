@@ -43,7 +43,6 @@ void GameController::runGame()
     // Game init
     m_players[0].reset(new RealPlayer(Player::Player1));
     //m_players[0].reset(new SillyBotPlayer(Player::Player1, m_game)); // can be useful
-    // TODO AP please replace it with advanced AI bot when it's implemented
     m_players[1].reset(new AIPlayer(Player::Player2, m_game));
 
     GameStartSettings settings;

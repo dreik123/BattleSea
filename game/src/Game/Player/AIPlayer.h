@@ -1,14 +1,16 @@
 #pragma once
 #include "IPlayer.h"
+#include "Game/GameInterfaces.h"
 #include <vector>
 #include <memory>
-#include "Game/GameInterfaces.h"
+#include <random>
 
-enum class Level
+
+enum class AIPlayerState
 {
-    RandomShot,
-    ShotAfterHit,
-    MiddleRandomShot,
+    RandomShooting,
+    ShootingAfterHit,
+    MiddleRandomShooting,
 };
 
 
@@ -21,17 +23,18 @@ public:
 
     virtual bool isLocalPlayer() const override;
 
-    virtual Player getPlayerType() const override;
+    [[nodiscard]] virtual Player getPlayerType() const override;
 
-    virtual InputRequest getInput() override;
+    [[nodiscard]] virtual InputRequest getInput() override;
 
-    InputRequest processEvent();
+private:
+    InputRequest playerState();
 
-    InputRequest randomShot();
+    InputRequest randomShooting();
 
-    InputRequest shotAfterHit();
+    InputRequest shootingAfterHit();
 
-    InputRequest middleRandomShot();
+    InputRequest middleRandomShooting();
 
 protected:
     Player m_currentPlayer;
@@ -39,7 +42,7 @@ protected:
 
 private:
     std::vector<CellIndex> m_lastHits;
-    Level m_lvl;
+    AIPlayerState m_lvl;
     std::random_device rd;
     std::mt19937 mt;
 };
