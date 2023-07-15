@@ -4,8 +4,6 @@
 #include <random>
 #include "Core/CoreTypes.h"
 #include "Game/GameConfig.h"
-#include <iostream> //DEBUG
-
 
 AIPlayer::AIPlayer(const Player player, const std::shared_ptr<IBattleSeaGame>& game)
     : m_currentPlayer(player)
@@ -64,7 +62,6 @@ InputRequest AIPlayer::processEvent()
 
 InputRequest AIPlayer::randomShot()
 {
-    std::cout << "random shot" << std::endl; //DEBUG
     if (!m_lastHits.empty())
     {
         m_lvl = Level::ShotAfterHit;
@@ -74,7 +71,6 @@ InputRequest AIPlayer::randomShot()
 
     CellState state = CellState::Concealed;
 
-    std::cout << "before permission grids" << std::endl; //DEBUG
     auto gameGrid = m_gameInstance->getPlayerGridInfo(opponent);
     std::vector<CellIndex> permissionCells;
     for (int i = 0; i < gameGrid.data.size(); ++i)
@@ -89,42 +85,34 @@ InputRequest AIPlayer::randomShot()
             }
         }
     }
-    std::cout << "after permission grids: " << permissionCells.size() << std::endl; //DEBUG
     std::uniform_int_distribution<int> dist(0, permissionCells.size() - 1);
 
     CellIndex cell(permissionCells.at(dist(mt)));
-    std::cout << "after permission grids: cell " << cell.toString() << std::endl; //DEBUG
     if (m_gameInstance->getPlayerGridCellState(opponent, cell) == CellState::Ship)
     {
         m_lastHits.push_back(cell);
     }
-    std::cout << "after check cell state: " << permissionCells.size() << std::endl; //DEBUG
     InputRequest turn;
     turn.shotCell = cell;
-    std::cout << "shoot cell: " << permissionCells.size() << std::endl; //DEBUG
     return turn;
 }
 
 InputRequest AIPlayer::shotAfterHit()
 {
-    std::cout << "shot after hit" << std::endl; //DEBUG
     const Player opponent = getOppositePlayer(getPlayerType());
     for (auto& h : m_lastHits)
     {
         if (m_gameInstance->getPlayerGridCellState(opponent, h) == CellState::Destroyed)
         {
-            std::cout << "change state" << std::endl; //DEBUG
             m_lastHits.clear();
             m_lvl = Level::RandomShot;
             return randomShot();
         }
     }
 
-
-    std::vector<CellIndex> possibleCellDirections;
+    std::vector<CellIndex> possibleCellShots;
     if (m_lastHits.size() > 1)
     {
-        std::cout << "shot after hit: hits " << m_lastHits.size() << std::endl; //DEBUG
         auto firstHit = m_lastHits.begin();
         auto lastHit = m_lastHits.end() - 1;
 
@@ -132,39 +120,50 @@ InputRequest AIPlayer::shotAfterHit()
         {
             if (firstHit->y() - lastHit->y() > 0)
             {
-                possibleCellDirections.push_back(CellIndex(lastHit->x(), lastHit->y() - 1)); // up
-                possibleCellDirections.push_back(CellIndex(lastHit->x(), firstHit->y() + 1)); // down
+                possibleCellShots = std::vector<CellIndex>{
+                    CellIndex(lastHit->x(), lastHit->y() - 1), // up
+                    CellIndex(lastHit->x(), firstHit->y() + 1) // down
+                };
             }
             else
             {
-                possibleCellDirections.push_back(CellIndex(lastHit->x(), firstHit->y() - 1)); // up
-                possibleCellDirections.push_back(CellIndex(lastHit->x(), lastHit->y() + 1)); // down
+                possibleCellShots = std::vector<CellIndex>{
+                    CellIndex(lastHit->x(), firstHit->y() - 1), // up
+                    CellIndex(lastHit->x(), lastHit->y() + 1) // down
+                };
             }
         }
         else
         {
             if (firstHit->x() - lastHit->x() > 0)
             {
-                possibleCellDirections.push_back(CellIndex(lastHit->x() - 1, lastHit->y())); // left
-                possibleCellDirections.push_back(CellIndex(firstHit->x() + 1, firstHit->y())); // right
+                possibleCellShots = std::vector<CellIndex>{
+                    CellIndex(lastHit->x() - 1, lastHit->y()), // left
+                    CellIndex(firstHit->x() + 1, firstHit->y()) // right
+                };
             }
             else
             {
-                possibleCellDirections.push_back(CellIndex(firstHit->x() - 1, firstHit->y())); // left
-                possibleCellDirections.push_back(CellIndex(lastHit->x() + 1, lastHit->y())); // right
+                possibleCellShots = std::vector<CellIndex>{
+                    CellIndex(firstHit->x() - 1, firstHit->y()), // left
+                    CellIndex(lastHit->x() + 1, lastHit->y()) // right
+                };
             }
         }
     }
     else
     {
         auto firstHit = m_lastHits.begin();
-        possibleCellDirections.push_back(CellIndex(firstHit->x(), firstHit->y() - 1)); // up
-        possibleCellDirections.push_back(CellIndex(firstHit->x(), firstHit->y() + 1)); // down
-        possibleCellDirections.push_back(CellIndex(firstHit->x() - 1, firstHit->y())); // left
-        possibleCellDirections.push_back(CellIndex(firstHit->x() + 1, firstHit->y())); // right
+        possibleCellShots = std::vector<CellIndex>{
+            CellIndex(firstHit->x(), firstHit->y() - 1), // up
+            CellIndex(firstHit->x(), firstHit->y() + 1), // down
+            CellIndex(firstHit->x() - 1, firstHit->y()), // left
+            CellIndex(firstHit->x() + 1, firstHit->y()) // right
+        };
+        
     }
     std::vector<CellIndex> permissionCells;
-    for (auto& c : possibleCellDirections)
+    for (auto& c : possibleCellShots)
     {
         if (c.x() < 0 ||
             c.y() < 0 ||
@@ -181,31 +180,22 @@ InputRequest AIPlayer::shotAfterHit()
 
         permissionCells.push_back(c);
     }
+
     InputRequest turn;
+    CellIndex cell{ permissionCells.at(0) };
+
     if (permissionCells.size() > 1)
     {
-        std::cout << "before random" << std::endl; //DEBUG
         std::uniform_int_distribution<int> dist(0, permissionCells.size() - 1);
-
-        CellIndex cell(permissionCells.at(dist(mt)));
-
-        if (m_gameInstance->getPlayerGridCellState(opponent, cell) == CellState::Ship)
-        {
-            m_lastHits.push_back(cell);
-        }
-
-
-        turn.shotCell = cell;
+        cell = permissionCells.at(dist(mt));
     }
-    else
+
+    if (m_gameInstance->getPlayerGridCellState(opponent, cell) == CellState::Ship)
     {
-        if (m_gameInstance->getPlayerGridCellState(opponent, permissionCells.at(0)) == CellState::Ship)
-        {
-            m_lastHits.push_back(permissionCells.at(0));
-        }
-        turn.shotCell = permissionCells.at(0);
+        m_lastHits.push_back(cell);
     }
 
+    turn.shotCell = cell;
 
     return turn;
 }

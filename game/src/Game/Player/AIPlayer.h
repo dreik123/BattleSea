@@ -22,6 +22,7 @@ public:
     virtual bool isLocalPlayer() const override;
 
     virtual Player getPlayerType() const override;
+
     virtual InputRequest getInput() override;
 
     InputRequest processEvent();
