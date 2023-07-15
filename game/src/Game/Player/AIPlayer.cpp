@@ -4,6 +4,7 @@
 #include <random>
 #include "Core/CoreTypes.h"
 #include "Game/GameConfig.h"
+#include <iostream> //DEBUG
 
 
 AIPlayer::AIPlayer(const Player player, const std::shared_ptr<IBattleSeaGame>& game)
@@ -63,6 +64,7 @@ InputRequest AIPlayer::processEvent()
 
 InputRequest AIPlayer::randomShot()
 {
+    std::cout << "random shot" << std::endl; //DEBUG
     if (!m_lastHits.empty())
     {
         m_lvl = Level::ShotAfterHit;
@@ -72,6 +74,7 @@ InputRequest AIPlayer::randomShot()
 
     CellState state = CellState::Concealed;
 
+    std::cout << "before permission grids" << std::endl; //DEBUG
     auto gameGrid = m_gameInstance->getPlayerGridInfo(opponent);
     std::vector<CellIndex> permissionCells;
     for (int i = 0; i < gameGrid.data.size(); ++i)
@@ -86,34 +89,42 @@ InputRequest AIPlayer::randomShot()
             }
         }
     }
-
+    std::cout << "after permission grids: " << permissionCells.size() << std::endl; //DEBUG
     std::uniform_int_distribution<int> dist(0, permissionCells.size() - 1);
 
     CellIndex cell(permissionCells.at(dist(mt)));
-
+    std::cout << "after permission grids: cell " << cell.toString() << std::endl; //DEBUG
     if (m_gameInstance->getPlayerGridCellState(opponent, cell) == CellState::Ship)
     {
         m_lastHits.push_back(cell);
     }
-
+    std::cout << "after check cell state: " << permissionCells.size() << std::endl; //DEBUG
     InputRequest turn;
     turn.shotCell = cell;
+    std::cout << "shoot cell: " << permissionCells.size() << std::endl; //DEBUG
     return turn;
 }
 
 InputRequest AIPlayer::shotAfterHit()
 {
+    std::cout << "shot after hit" << std::endl; //DEBUG
     const Player opponent = getOppositePlayer(getPlayerType());
-    if (m_gameInstance->getPlayerGridCellState(opponent, m_lastHits.at(0)) == CellState::Destroyed)
+    for (auto& h : m_lastHits)
     {
-        m_lastHits.clear();
-        m_lvl = Level::RandomShot;
-        randomShot();
+        if (m_gameInstance->getPlayerGridCellState(opponent, h) == CellState::Destroyed)
+        {
+            std::cout << "change state" << std::endl; //DEBUG
+            m_lastHits.clear();
+            m_lvl = Level::RandomShot;
+            return randomShot();
+        }
     }
+
 
     std::vector<CellIndex> possibleCellDirections;
     if (m_lastHits.size() > 1)
     {
+        std::cout << "shot after hit: hits " << m_lastHits.size() << std::endl; //DEBUG
         auto firstHit = m_lastHits.begin();
         auto lastHit = m_lastHits.end() - 1;
 
@@ -173,6 +184,7 @@ InputRequest AIPlayer::shotAfterHit()
     InputRequest turn;
     if (permissionCells.size() > 1)
     {
+        std::cout << "before random" << std::endl; //DEBUG
         std::uniform_int_distribution<int> dist(0, permissionCells.size() - 1);
 
         CellIndex cell(permissionCells.at(dist(mt)));
@@ -187,6 +199,10 @@ InputRequest AIPlayer::shotAfterHit()
     }
     else
     {
+        if (m_gameInstance->getPlayerGridCellState(opponent, permissionCells.at(0)) == CellState::Ship)
+        {
+            m_lastHits.push_back(permissionCells.at(0));
+        }
         turn.shotCell = permissionCells.at(0);
     }
 
