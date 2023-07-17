@@ -28,13 +28,13 @@ public:
     [[nodiscard]] virtual InputRequest getInput() override;
 
 private:
-    InputRequest playerState();
+    CellIndex getShootingCell();
 
-    InputRequest randomShooting();
+    CellIndex getRandomShootingCell();
 
-    InputRequest shootingAfterHit();
+    CellIndex getShootingAfterHitCell();
 
-    InputRequest middleRandomShooting();
+    CellIndex getMiddleRandomShootingCell();
 
 protected:
     Player m_currentPlayer;
@@ -42,7 +42,7 @@ protected:
 
 private:
     std::vector<CellIndex> m_lastHits;
-    AIPlayerState m_lvl;
+    AIPlayerState m_state;
     std::random_device rd;
     std::mt19937 mt;
 };

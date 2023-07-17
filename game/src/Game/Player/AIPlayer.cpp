@@ -9,7 +9,7 @@ AIPlayer::AIPlayer(const Player player, const std::shared_ptr<IBattleSeaGame>& g
     : m_currentPlayer(player)
     , m_gameInstance(game)
     , m_lastHits{}
-    , m_lvl(AIPlayerState::RandomShooting)
+    , m_state(AIPlayerState::RandomShooting)
     , rd {}
     , mt(rd())
 {
@@ -33,40 +33,41 @@ std::string AIPlayer::getName() const
 
 InputRequest AIPlayer::getInput()
 {
-    return playerState();
+    InputRequest turn;
+    turn.shotCell = getShootingCell();
+
+    return turn;
 }
 
-InputRequest AIPlayer::playerState()
+CellIndex AIPlayer::getShootingCell()
 {
-    InputRequest turn;
-    switch (m_lvl)
+    switch (m_state)
     {
     case AIPlayerState::RandomShooting:
     {
-        return randomShooting();
+        return getRandomShootingCell();
     }
     case AIPlayerState::ShootingAfterHit:
     {
-        return shootingAfterHit();
+        return getShootingAfterHitCell();
     }
     case AIPlayerState::MiddleRandomShooting:
     {
-        return middleRandomShooting();
+        return getMiddleRandomShootingCell();
     }
     default:
     {
-        assert(m_lvl == AIPlayerState::RandomShooting);
-        return turn;
+        assert(m_state == AIPlayerState::RandomShooting);
     }
     }
 }
 
-InputRequest AIPlayer::randomShooting()
+CellIndex AIPlayer::getRandomShootingCell()
 {
     if (!m_lastHits.empty())
     {
-        m_lvl = AIPlayerState::ShootingAfterHit;
-        return shootingAfterHit();
+        m_state = AIPlayerState::ShootingAfterHit;
+        return getShootingAfterHitCell();
     }
     const Player opponent = getOppositePlayer(getPlayerType());
 
@@ -93,12 +94,10 @@ InputRequest AIPlayer::randomShooting()
     {
         m_lastHits.push_back(cell);
     }
-    InputRequest turn;
-    turn.shotCell = cell;
-    return turn;
+    return cell;
 }
 
-InputRequest AIPlayer::shootingAfterHit()
+CellIndex AIPlayer::getShootingAfterHitCell()
 {
     const Player opponent = getOppositePlayer(getPlayerType());
     for (auto& hit : m_lastHits)
@@ -106,8 +105,8 @@ InputRequest AIPlayer::shootingAfterHit()
         if (m_gameInstance->getPlayerGridCellState(opponent, hit) == CellState::Destroyed)
         {
             m_lastHits.clear();
-            m_lvl = AIPlayerState::RandomShooting;
-            return randomShooting();
+            m_state = AIPlayerState::RandomShooting;
+            return getRandomShootingCell();
         }
     }
 
@@ -193,13 +192,11 @@ InputRequest AIPlayer::shootingAfterHit()
         m_lastHits.push_back(cell);
     }
 
-    turn.shotCell = cell;
-
-    return turn;
+    return cell;
 }
 
-InputRequest AIPlayer::middleRandomShooting()
+CellIndex AIPlayer::getMiddleRandomShootingCell()
 {
     // TODO: write function with ships possible location
-    return randomShooting();
+    return getRandomShootingCell();
 }
