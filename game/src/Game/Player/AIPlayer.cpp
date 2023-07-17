@@ -151,8 +151,9 @@ CellIndex AIPlayer::getShootingAfterHitCell()
             }
         }
     }
-    else // m_lastHits.size() == 1
+    else // m_lastHits.size() <= 1
     {
+        assert(m_lastHits.size() == 1);
         auto firstHit = m_lastHits.begin();
         possibleCellShots = std::vector<CellIndex>{
             CellIndex(firstHit->x(), firstHit->y() - 1), // up
