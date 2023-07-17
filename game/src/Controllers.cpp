@@ -5,6 +5,7 @@
 #include "Game/GridUtilities.h"
 #include "Game/Player/RealPlayer.h"
 #include "Game/Player/SillyRandomBot.h"
+#include "Game/Player/AIPlayer.h"
 
 #include <iostream>
 #include <conio.h>
@@ -41,9 +42,8 @@ void GameController::runGame()
 
     // Game init
     m_players[0].reset(new RealPlayer(Player::Player1));
-    // m_players[0].reset(new SillyBotPlayer(Player::Player1, m_game)); // can be useful
-    // TODO AP please replace it with advanced AI bot when it's implemented
-    m_players[1].reset(new SillyBotPlayer(Player::Player2, m_game));
+    //m_players[0].reset(new SillyBotPlayer(Player::Player1, m_game)); // can be useful
+    m_players[1].reset(new AIPlayer(Player::Player2, m_game));
 
     GameStartSettings settings;
     settings.initialPlayer = Player::Player1;
