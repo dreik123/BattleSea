@@ -22,6 +22,21 @@ TerminalController::TerminalController(
     , m_shipsGenerator(new WarShipGenerator())
     , m_eventBus(bus)
 {
+
+    auto renderThreadFunc = [this](std::stop_token token)
+    {
+        while (!token.stop_requested())
+        {
+            m_renderer->update();
+        }
+    };
+    m_renderThread = std::jthread(std::move(renderThreadFunc));
+    m_renderThread.detach();
+}
+
+TerminalController::~TerminalController()
+{
+    m_renderThread.get_stop_source().request_stop();
 }
 
 void TerminalController::loopGame()
@@ -86,10 +101,10 @@ const std::vector<WarShip> TerminalController::getShipsFromPlayer(const Player _
     do
     {
         playerShips = m_shipsGenerator->generateShips(m_game->getAppliedConfig());
-        const GameGrid gridToPresent = GridUtilities::convertShipsToGrid(playerShips);
-        m_renderer->renderGeneratedShips(gridToPresent);
-        // TODO publish(eventWithShips);
-        std::cout << "Do you like this setup?\nEnter - approve! Any button - regenerate\n";
+        const GameGrid generatedGrid = GridUtilities::convertShipsToGrid(playerShips);
+
+        const events::GridGeneratedEvent gridGeneratedEvent {.playerGridToConfirm = generatedGrid };
+        m_eventBus->publish(gridGeneratedEvent);
 
         playerChoice = _getch();
     } while (playerChoice != '\r' && playerChoice != '\n');
@@ -99,13 +114,10 @@ const std::vector<WarShip> TerminalController::getShipsFromPlayer(const Player _
 
 bool TerminalController::onStartScreen()
 {
-    // should renderer be on separate thread? how to sync threads then?
-    m_renderer->renderStartScreen();
-
     // input from user should be abstraction
     int _ = _getch();
 
-    events::StartScreenPassedEvent startScreenPassedEvent;
+    const events::StartScreenPassedEvent startScreenPassedEvent;
     m_eventBus->publish(startScreenPassedEvent);
 
     return true;
@@ -144,14 +156,15 @@ bool TerminalController::onBattleStarted()
     // README Multiplayer requires understanding which Player value current player has
     // Important: Own grid must visualize ships as well, opponent's - no.
 
-    // Shows grids before first turn
-    m_renderer->renderGameGrids(
-        m_game->getPlayerGridInfo(Player::Player1),
-        m_game->getPlayerGridInfo(Player::Player2)
-    );
+    {
+        const events::FullGridsSyncEvent fullGridsSyncEvent {
+            .firstGrid = m_game->getPlayerGridInfo(Player::Player1),
+                .secondGrid = m_game->getPlayerGridInfo(Player::Player2),
+        };
+        m_eventBus->publish(fullGridsSyncEvent);
+    }
 
-    //bool hasGameBeenInterrupted = false;
-    while (/*!hasGameBeenInterrupted && */!m_game->isGameOver())
+    while (!m_game->isGameOver())
     {
         IPlayer& currentPlayer = getCurrentPlayer(m_game->getCurrentPlayer());
         std::cout << currentPlayer.getName() << " turns:\n";
@@ -163,7 +176,6 @@ bool TerminalController::onBattleStarted()
 
             if (userInput.isQuitRequested)
             {
-                //hasGameBeenInterrupted = true;
                 return false;
             }
 
@@ -171,7 +183,11 @@ bool TerminalController::onBattleStarted()
             {
                 const ShotError result = m_game->shootThePlayerGridAt(userInput.shotCell.value());
 
-                m_renderer->renderShotError(result); // battle state required
+                if (result != ShotError::Ok)
+                {
+                    const events::LocalShotErrorEvent localShotErrorEvent {.errorType = result};
+                    m_eventBus->publish(localShotErrorEvent);
+                }
                 isValidTurn = result == ShotError::Ok;
             }
             else
@@ -180,13 +196,12 @@ bool TerminalController::onBattleStarted()
             }
         } while (!isValidTurn);
 
-        // Clear screen to refresh the grids in place
-        system("cls");
-
-        m_renderer->renderGameGrids(
-            m_game->getPlayerGridInfo(Player::Player1),
-            m_game->getPlayerGridInfo(Player::Player2)
-        );
+        // HACK there is no functionality for terminal renderer to present certain shot, instead it refreshes entire grid
+        const events::FullGridsSyncEvent fullGridsSyncEvent {
+            .firstGrid = m_game->getPlayerGridInfo(Player::Player1),
+                .secondGrid = m_game->getPlayerGridInfo(Player::Player2),
+        };
+        m_eventBus->publish(fullGridsSyncEvent);
     }
     return true;
 }
@@ -195,8 +210,11 @@ bool TerminalController::onBattleFinished()
 {
     // The current player hasn't been changed after last shot.
     IPlayer& winner = getCurrentPlayer(m_game->getCurrentPlayer());
-    m_renderer->renderGameOver(winner.getName(), winner.isLocalPlayer());
-    std::cout << "Please relaunch game if you want to play again\n";
+
+    const events::GameOverEvent gameOverEvent {.winnerName = winner.getName(), .isLocalPlayer = winner.isLocalPlayer()};
+    m_eventBus->publish(gameOverEvent);
+
+    // [OPTIONAL] TODO consider option to restart game without closing it
 
     return true;
 }

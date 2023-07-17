@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
 #include <array>
+#include <thread>
 
 #include "Core/CoreTypes.h"
 #include "Game/Player/IPlayer.h"
@@ -12,8 +13,6 @@ class IBattleSeaView;
 class EventBus;
 
 
-// DS: It's expected to communicate between MVC entries via 'event-based' subsystem, 
-// but for this moment old-school approach should cover our needs
 class IController
 {
 public:
@@ -27,6 +26,8 @@ public:
         std::unique_ptr<BattleSeaGame>&& game,
         std::unique_ptr<IBattleSeaView>&& view,
         std::shared_ptr<EventBus>& bus);
+
+    ~TerminalController();
 
     virtual void loopGame() override;
 
@@ -49,4 +50,6 @@ private:
     std::array<std::unique_ptr<IPlayer>, 2> m_players;
     std::unique_ptr<IWarShipGenerator> m_shipsGenerator;
     std::shared_ptr<EventBus> m_eventBus;
+
+    std::jthread m_renderThread;
 };

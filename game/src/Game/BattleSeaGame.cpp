@@ -6,11 +6,8 @@
 #include "Game/Events/Events.h"
 
 // TODOs:
-// subscribe to all events *
-// reduce coupling between, controller and game, controller and view
 // put renderer in dedicated thread (conditional var, render instructions)
-// make event bus thread safe
-
+// unsubscribe mechanism for event bus
 
 GameStateMachine::GameStateMachine(std::shared_ptr<EventBus>& bus)
     : m_eventBus(bus)
@@ -23,7 +20,7 @@ void GameStateMachine::switchToState(const GameState newState)
     GameState oldState = m_currentState;
     m_currentState = newState;
 
-    events::GameStateChangedEvent gameStateChangedEvent {.oldState = oldState, .newState = newState };
+    const events::GameStateChangedEvent gameStateChangedEvent {.oldState = oldState, .newState = newState };
     m_eventBus->publish(gameStateChangedEvent);
 }
 
@@ -101,7 +98,7 @@ ShotError BattleSeaGame::shootThePlayerGridAt(const CellIndex& cell)
             setGridCellState(oppositeGrid, cell, CellState::Damaged);
 
             // TODO (alternative) subscribe on this event in model as well
-            events::ShipDamagedEvent shipDamagedEvent {.injuredPlayer = oppositePlayer, .ship = ship, .shot = cell};
+            const events::ShipDamagedEvent shipDamagedEvent {.injuredPlayer = oppositePlayer, .ship = ship, .shot = cell};
             m_eventBus->publish(shipDamagedEvent);
         }
         else
@@ -115,7 +112,7 @@ ShotError BattleSeaGame::shootThePlayerGridAt(const CellIndex& cell)
             // Wrap all surrounded cells of the ship in missed
             surroundDestroyedShip(oppositeGrid, ship);
 
-            events::ShipDestroyedEvent shipDestroyedEvent {.injuredPlayer = oppositePlayer, .ship = ship};
+            const events::ShipDestroyedEvent shipDestroyedEvent {.injuredPlayer = oppositePlayer, .ship = ship};
             m_eventBus->publish(shipDestroyedEvent);
 
             m_hasGameFinished = std::all_of(ships.cbegin(), ships.cend(), [](const WarShip& s)
@@ -127,7 +124,7 @@ ShotError BattleSeaGame::shootThePlayerGridAt(const CellIndex& cell)
             {
                 m_stateMachine.switchToState(GameState::GameOver);
 
-                events::GameFinishedEvent gameFinishedEvent{.winner = m_currentPlayer, .loser = oppositePlayer};
+                const events::GameFinishedEvent gameFinishedEvent{.winner = m_currentPlayer, .loser = oppositePlayer};
                 m_eventBus->publish(gameFinishedEvent);
             }
         }
@@ -138,12 +135,12 @@ ShotError BattleSeaGame::shootThePlayerGridAt(const CellIndex& cell)
     if (!successfulShot)
     {
         setGridCellState(oppositeGrid, cell, CellState::Missed);
-        events::ShotMissedEvent shotMissedEvent{.shootingPlayer = m_currentPlayer, .shot = cell};
+        const events::ShotMissedEvent shotMissedEvent{.shootingPlayer = m_currentPlayer, .shot = cell};
         m_eventBus->publish(shotMissedEvent);
 
         const Player prevPlayer = m_currentPlayer;
         m_currentPlayer = getOppositePlayer(m_currentPlayer);
-        events::PlayerSwitchedEvent playerSwitchedEvent{.previousPlayer = prevPlayer, .nextPlayer = m_currentPlayer};
+        const events::PlayerSwitchedEvent playerSwitchedEvent{.previousPlayer = prevPlayer, .nextPlayer = m_currentPlayer};
         m_eventBus->publish(playerSwitchedEvent);
     }
 

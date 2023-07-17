@@ -3,6 +3,7 @@
 #include <functional>
 #include <unordered_map>
 #include <vector>
+#include <mutex>
 
 #include "Core/CoreDefines.h"
 
@@ -18,10 +19,10 @@ concept DerivedEvent = std::derived_from<T, Event>;
 #endif // EVENTS_STD_ANY_APPROACH
 
 
-// Very simple version of event bus, without any mutexes, streams, channels
-// TODO make it thread safety if view is going to be in separate thread
+// Simple version of event bus, without streams, channels
 class EventBus
 {
+    using GuardLocker = std::lock_guard<std::recursive_mutex>;
 public:
 #if EVENTS_STD_ANY_APPROACH
     using EventListener = std::function<void(const std::any&)>;
@@ -38,10 +39,12 @@ public:
 
     EventBus(EventBus&& other) noexcept(true)
     {
+        GuardLocker lock(m_mutex);
         m_listeners = std::move(other.m_listeners);
     }
     EventBus& operator=(EventBus&& other) noexcept(true)
     {
+        GuardLocker lock(m_mutex);
         if (this == &other)
         {
             return *this;
@@ -53,12 +56,14 @@ public:
     template <typename EventType>
     void subscribe(const EventListener& listener)
     {
+        GuardLocker lock(m_mutex);
         m_listeners[typeid(EventType).hash_code()].push_back(listener);
     }
 
     template <typename DerivedEvent>
     void publish(const DerivedEvent& event)
     {
+        GuardLocker lock(m_mutex);
         const auto& eventListeners = m_listeners[typeid(DerivedEvent).hash_code()];
         for (const auto& listener : eventListeners)
         {
@@ -69,6 +74,7 @@ public:
 private:
     // map<hash_code, listeners>
     std::unordered_map<size_t, std::vector<EventListener>> m_listeners;
+    std::recursive_mutex m_mutex; // publish can trigger another public call
 };
 
 

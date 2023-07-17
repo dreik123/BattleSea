@@ -1,4 +1,5 @@
 #include "Views.h"
+#include "Game/Events/Events.h"
 
 #include <iostream>  // is temporary used for console presentation
 
@@ -29,9 +30,12 @@ constexpr static uint8_t VERTICAL_SYMBOLS_AMOUNT_PER_CELL = 1;
 constexpr static uint8_t SPACES_BETWEEN_GRIDS = 10;
 
 
+
+
 TerminalView::TerminalView(std::shared_ptr<EventBus>& bus)
     : m_eventBus(bus)
 {
+    subscribeToEvents();
 }
 
 void TerminalView::renderStartScreen()
@@ -41,6 +45,7 @@ void TerminalView::renderStartScreen()
 
 void TerminalView::renderGameGrids(const GameGrid modelData1, const GameGrid modelData2)
 {
+    system("cls");
     renderTwoGrids(modelData1, modelData2, true);
 }
 
@@ -350,5 +355,72 @@ void TerminalView::renderSymbolNTimes(const char symbol, const unsigned int time
     for (size_t i = 0; i < times; i++)
     {
         std::cout << symbol;
+    }
+}
+
+void TerminalView::subscribeToEvents()
+{
+    m_eventBus->subscribe<events::GameStateChangedEvent>([this](const std::any& any_event)
+        {
+            const auto event = std::any_cast<events::GameStateChangedEvent>(any_event);
+            onGameStateUpdated(event.newState);
+        });
+
+    m_eventBus->subscribe<events::GridGeneratedEvent>([this](const std::any& any_event)
+        {
+            const auto event = std::any_cast<events::GridGeneratedEvent>(any_event);
+            renderGeneratedShips(event.playerGridToConfirm); // TODO thread safe
+            std::cout << "Do you like this setup?\nEnter - approve! Any button - regenerate\n";
+        });
+    m_eventBus->subscribe<events::FullGridsSyncEvent>([this](const std::any& any_event)
+        {
+            const auto event = std::any_cast<events::FullGridsSyncEvent>(any_event);
+            renderGameGrids(event.firstGrid, event.secondGrid); // TODO thread safe
+        });
+    m_eventBus->subscribe<events::LocalShotErrorEvent>([this](const std::any& any_event)
+        {
+            const auto event = std::any_cast<events::LocalShotErrorEvent>(any_event);
+            renderShotError(event.errorType); // TODO thread safe
+        });
+    m_eventBus->subscribe<events::GameOverEvent>([this](const std::any& any_event)
+        {
+            const auto event = std::any_cast<events::GameOverEvent>(any_event);
+            renderGameOver(event.winnerName, event.isLocalPlayer); // TODO thread safe
+            std::cout << "Please relaunch game if you want to play again\n";
+        });
+}
+
+void TerminalView::onGameStateUpdated(const GameState& state)
+{
+    // TODO mutex with lock guard
+    switch (state)
+    {
+    case GameState::Unitialized:
+    {
+        assert(false && "Invalid game state!!!");
+        break;
+    }
+    case GameState::StartScreen:
+    {
+        renderStartScreen();
+        break;
+    }
+    case GameState::ShipsSetup:
+    {
+        std::cout << "Waiting for ships generation...\n";
+        break;
+    }
+    case GameState::Battle:
+    {
+        std::cout << "Waiting for game data...\n";
+        break;
+    }
+    case GameState::GameOver:
+    {
+        return;
+    }
+    default:
+        assert(false && "Unprocessed game state in TerminalView::onGameStateUpdated()");
+        break;
     }
 }

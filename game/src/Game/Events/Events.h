@@ -5,6 +5,8 @@
 #include "Game/WarShip.h"
 #include "Game/GameState.h"
 
+#include <string>
+
 
 // TODO consider implementation of all event classes separately and put all includes here
 
@@ -26,6 +28,23 @@ namespace events
         : public Event
 #endif
     {
+    };
+
+    struct GridGeneratedEvent final
+#if !EVENTS_STD_ANY_APPROACH
+        : public Event
+#endif
+    {
+        GameGrid playerGridToConfirm;
+    };
+
+    struct FullGridsSyncEvent final
+#if !EVENTS_STD_ANY_APPROACH
+        : public Event
+#endif
+    {
+        GameGrid firstGrid;
+        GameGrid secondGrid;
     };
 
     /////////////////////////////////
@@ -66,6 +85,14 @@ namespace events
         const Player nextPlayer;
     };
 
+    struct LocalShotErrorEvent final
+#if !EVENTS_STD_ANY_APPROACH
+        : public Event
+#endif
+    {
+        const ShotError errorType;
+};
+
     struct GameStartedEvent final
 #if !EVENTS_STD_ANY_APPROACH
         : public Event
@@ -81,5 +108,14 @@ namespace events
     {
         const Player winner;
         const Player loser;
+    };
+
+    struct GameOverEvent final
+#if !EVENTS_STD_ANY_APPROACH
+        : public Event
+#endif
+    {
+        const std::string winnerName;
+        const bool isLocalPlayer;
     };
 }
