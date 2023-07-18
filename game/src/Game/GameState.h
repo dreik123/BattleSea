@@ -13,5 +13,7 @@ enum class GameState : uint8_t
 	ShipsSetup,
 	Battle,
 	GameOver,
+	//Restarting, // unused for current implementation
+	QuitGame,
 };
 

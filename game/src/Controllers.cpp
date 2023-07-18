@@ -47,7 +47,7 @@ void TerminalController::loopGame()
     m_game->launch();
 
     // TODO re-impl with event callbacks
-    while (true)
+    while (m_game->getCurrentState() != GameState::QuitGame)
     {
         switch (m_game->getCurrentState())
         {
@@ -163,15 +163,6 @@ bool TerminalController::onBattleStarted()
     // README Multiplayer requires understanding which Player value current player has
     // Important: Own grid must visualize ships as well, opponent's - no.
 
-    {
-        const events::FullGridsSyncEvent fullGridsSyncEvent
-        {
-            .firstGrid = m_game->getPlayerGridInfo(Player::Player1),
-            .secondGrid = m_game->getPlayerGridInfo(Player::Player2),
-        };
-        m_eventBus->publish(fullGridsSyncEvent);
-    }
-
     while (!m_game->isGameOver())
     {
         IPlayer& currentPlayer = getCurrentPlayer(m_game->getCurrentPlayer());
@@ -190,7 +181,10 @@ bool TerminalController::onBattleStarted()
 
             if (userInput.isQuitRequested)
             {
-                return false;
+                const events::QuitGameRequestEvent quitGameRequestEvent;
+                m_eventBus->publish(quitGameRequestEvent);
+
+                return true;
             }
 
             if (userInput.shotCell.has_value())
@@ -210,14 +204,6 @@ bool TerminalController::onBattleStarted()
             }
         } while (!isValidTurn);
 
-        // HACK there is no functionality for terminal renderer to present certain shot, instead it refreshes entire grid
-        const events::FullGridsSyncEvent fullGridsSyncEvent
-        {
-            .firstGrid = m_game->getPlayerGridInfo(Player::Player1),
-            .secondGrid = m_game->getPlayerGridInfo(Player::Player2),
-        };
-        m_eventBus->publish(fullGridsSyncEvent);
-
         // simulate some waiting to let the grids to be rendered without overlapping with input
         using namespace std::chrono_literals;
         std::this_thread::sleep_for(50ms);
@@ -233,7 +219,11 @@ bool TerminalController::onBattleFinished()
     const events::GameOverEvent gameOverEvent {.winnerName = winner.getName(), .isLocalPlayer = winner.isLocalPlayer()};
     m_eventBus->publish(gameOverEvent);
 
+    int _ = _getch();
     // [OPTIONAL] TODO consider option to restart game without closing it
+
+    const events::QuitGameRequestEvent quitGameRequestEvent;
+    m_eventBus->publish(quitGameRequestEvent);
 
     return true;
 }

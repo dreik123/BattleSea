@@ -41,6 +41,10 @@ BattleSeaGame::BattleSeaGame(const GameConfig& config, std::shared_ptr<EventBus>
         {
             m_stateMachine.switchToState(GameState::ShipsSetup);
         });
+    m_eventBus->subscribe<events::QuitGameRequestEvent>([this](const std::any& _)
+        {
+            m_stateMachine.switchToState(GameState::QuitGame);
+        });
 }
 
 void BattleSeaGame::launch()
@@ -119,14 +123,6 @@ ShotError BattleSeaGame::shootThePlayerGridAt(const CellIndex& cell)
                 {
                     return s.isDestroyed();
                 });
-
-            if (m_hasGameFinished)
-            {
-                m_stateMachine.switchToState(GameState::GameOver);
-
-                const events::GameFinishedEvent gameFinishedEvent{.winner = m_currentPlayer, .loser = oppositePlayer};
-                m_eventBus->publish(gameFinishedEvent);
-            }
         }
         successfulShot = true;
         break;
@@ -137,7 +133,25 @@ ShotError BattleSeaGame::shootThePlayerGridAt(const CellIndex& cell)
         setGridCellState(oppositeGrid, cell, CellState::Missed);
         const events::ShotMissedEvent shotMissedEvent{.shootingPlayer = m_currentPlayer, .shot = cell};
         m_eventBus->publish(shotMissedEvent);
+    }
 
+    // HACK there is no functionality for terminal renderer to present certain shot, instead it refreshes entire grid
+    const events::FullGridsSyncEvent fullGridsSyncEvent
+    {
+        .firstGrid = getPlayerGridInfo(Player::Player1),
+        .secondGrid = getPlayerGridInfo(Player::Player2),
+    };
+    m_eventBus->publish(fullGridsSyncEvent);
+
+    if (m_hasGameFinished)
+    {
+        m_stateMachine.switchToState(GameState::GameOver);
+
+        const events::GameFinishedEvent gameFinishedEvent{.winner = m_currentPlayer, .loser = oppositePlayer};
+        m_eventBus->publish(gameFinishedEvent);
+    }
+    else if (!successfulShot)
+    {
         const Player prevPlayer = m_currentPlayer;
         m_currentPlayer = getOppositePlayer(m_currentPlayer);
         const events::PlayerSwitchedEvent playerSwitchedEvent{.previousPlayer = prevPlayer, .nextPlayer = m_currentPlayer};
@@ -163,6 +177,13 @@ bool BattleSeaGame::startBattle(const GameStartSettings& settings)
     }
 
     m_stateMachine.switchToState(GameState::Battle);
+
+    const events::FullGridsSyncEvent fullGridsSyncEvent
+    {
+        .firstGrid = getPlayerGridInfo(Player::Player1),
+        .secondGrid = getPlayerGridInfo(Player::Player2),
+    };
+    m_eventBus->publish(fullGridsSyncEvent);
 
     return true;
 }

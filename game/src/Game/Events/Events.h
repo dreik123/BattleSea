@@ -127,4 +127,11 @@ namespace events
         const std::string winnerName;
         const bool isLocalPlayer;
     };
+
+    struct QuitGameRequestEvent final
+#if !EVENTS_STD_ANY_APPROACH
+        : public Event
+#endif
+    {
+    };
 }
