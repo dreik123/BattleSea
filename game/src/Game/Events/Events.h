@@ -76,6 +76,15 @@ namespace events
         const CellIndex shot;
     };
 
+    struct PlayerTurnsEvent final
+#if !EVENTS_STD_ANY_APPROACH
+        : public Event
+#endif
+    {
+        const std::string playerName;
+        const bool isLocalPlayer;
+    };
+
     struct PlayerSwitchedEvent final
 #if !EVENTS_STD_ANY_APPROACH
         : public Event
@@ -91,7 +100,7 @@ namespace events
 #endif
     {
         const ShotError errorType;
-};
+    };
 
     struct GameStartedEvent final
 #if !EVENTS_STD_ANY_APPROACH

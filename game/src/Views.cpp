@@ -1,7 +1,10 @@
 #include "Views.h"
 #include "Game/Events/Events.h"
 
-#include <iostream>  // is temporary used for console presentation
+#include <iostream>                     // is temporary used for console presentation
+#include <queue>
+#include <variant>
+#include <condition_variable>
 
 // Constants
 namespace
@@ -31,11 +34,215 @@ constexpr static uint8_t SPACES_BETWEEN_GRIDS = 10;
 
 
 
+// helper type for the visitor
+template<class... Ts>
+struct overloaded : Ts... { using Ts::operator()...; };
+// explicit deduction (not needed as of C++20, but just keep it as reminder)
+//template<class... Ts>
+//overloaded(Ts...) -> overloaded<Ts...>;
+
+// This class provided to encapsulate events logic in cpp file and not introduce them to views header.
+class RenderInstructionExecutor
+{
+    // HINT: If you need to extend event type modify PolymophEventType, subscribeToEvents() and processRenderInstruction()
+    using PolymophEventType = std::variant<
+        events::GameStateChangedEvent,
+        events::GridGeneratedEvent,
+        events::PlayerTurnsEvent,
+        events::FullGridsSyncEvent,
+        events::LocalShotErrorEvent,
+        events::GameOverEvent
+    >;
+public:
+    RenderInstructionExecutor(TerminalView* renderer, std::shared_ptr<EventBus>& bus)
+        : m_renderer(renderer)
+        , m_eventBus(bus)
+    {
+        subscribeToEvents();
+    }
+
+    void renderInstructions();
+    void renderInstructions(std::stop_token token);
+
+    // Uses copy on purpose in methods below
+    void addRenderInstruction(PolymophEventType instruction);
+    PolymophEventType popRenderInstruction();
+    PolymophEventType popRenderInstructionUnsafe();
+
+private:
+    void subscribeToEvents();
+    void onGameStateUpdated(const GameState& state);
+
+    void processRenderInstruction(const PolymophEventType& instruction);
+
+private:
+    std::queue<PolymophEventType> m_delayedEvents;
+    TerminalView* m_renderer;
+    std::shared_ptr<EventBus> m_eventBus;
+
+    std::condition_variable m_cv;
+    std::mutex m_cv_mutex;
+};
+
+
+void RenderInstructionExecutor::renderInstructions()
+{
+    std::unique_lock<std::mutex> lk(m_cv_mutex);
+    m_cv.wait(lk, [this] { return m_delayedEvents.size() > 0; });
+
+    const PolymophEventType instructionCopy = popRenderInstructionUnsafe(); // already under lock
+    processRenderInstruction(instructionCopy);
+}
+
+void RenderInstructionExecutor::renderInstructions(std::stop_token token)
+{
+    std::unique_lock<std::mutex> lk(m_cv_mutex);
+    m_cv.wait(lk, [this, &token] { return m_delayedEvents.size() > 0 || token.stop_requested(); });
+
+    // Renderer can be destroyed already after waiting, need to check stop token
+    if (token.stop_requested())
+    {
+        return;
+    }
+
+    const PolymophEventType instructionCopy = popRenderInstructionUnsafe(); // already under lock
+    processRenderInstruction(instructionCopy);
+}
+
+void RenderInstructionExecutor::addRenderInstruction(PolymophEventType instruction)
+{
+    std::unique_lock<std::mutex> lk(m_cv_mutex);
+    m_delayedEvents.push(instruction);
+    lk.unlock();
+    m_cv.notify_one();
+}
+
+RenderInstructionExecutor::PolymophEventType RenderInstructionExecutor::popRenderInstruction()
+{
+    std::unique_lock<std::mutex> lk(m_cv_mutex);
+    assert(!m_delayedEvents.empty());
+    const PolymophEventType instructionCopy = m_delayedEvents.front();
+    m_delayedEvents.pop();
+    lk.unlock();
+
+    return instructionCopy;
+}
+
+RenderInstructionExecutor::PolymophEventType RenderInstructionExecutor::popRenderInstructionUnsafe()
+{
+    assert(!m_delayedEvents.empty());
+    const PolymophEventType instructionCopy = m_delayedEvents.front();
+    m_delayedEvents.pop();
+
+    return instructionCopy;
+}
+
+
+#define SUBSCRIBE_EVENT_AS_RENDER_INSTRUCTION(eventBus, EventClass) \
+eventBus->subscribe<EventClass>([this](const std::any& any_event)   \
+{                                                                   \
+    const auto event = std::any_cast<EventClass>(any_event);        \
+    addRenderInstruction(event);                                    \
+});
+
+void RenderInstructionExecutor::subscribeToEvents()
+{
+    SUBSCRIBE_EVENT_AS_RENDER_INSTRUCTION(m_eventBus, events::GameStateChangedEvent);
+    SUBSCRIBE_EVENT_AS_RENDER_INSTRUCTION(m_eventBus, events::GridGeneratedEvent);
+    SUBSCRIBE_EVENT_AS_RENDER_INSTRUCTION(m_eventBus, events::PlayerTurnsEvent);
+    SUBSCRIBE_EVENT_AS_RENDER_INSTRUCTION(m_eventBus, events::FullGridsSyncEvent);
+    SUBSCRIBE_EVENT_AS_RENDER_INSTRUCTION(m_eventBus, events::LocalShotErrorEvent);
+    SUBSCRIBE_EVENT_AS_RENDER_INSTRUCTION(m_eventBus, events::GameOverEvent);
+
+    // TODO damaged and destroyed ship (instead of FullGridsSyncEvent per frame) when it's possible to render certain shot
+}
+
+void RenderInstructionExecutor::onGameStateUpdated(const GameState& state)
+{
+    // Expected to make this method thread-safe outside
+    switch (state)
+    {
+    case GameState::Unitialized:
+    {
+        assert(false && "Invalid game state!!!");
+        break;
+    }
+    case GameState::StartScreen:
+    {
+        m_renderer->renderStartScreen();
+        break;
+    }
+    case GameState::ShipsSetup:
+    {
+        system("cls");
+        std::cout << "Waiting for ships generation...\n";
+        break;
+    }
+    case GameState::Battle:
+    {
+        system("cls");
+        std::cout << "Waiting for game data...\n";
+        break;
+    }
+    case GameState::GameOver:
+    {
+        return;
+    }
+    default:
+        assert(false && "Unprocessed game state in TerminalView::onGameStateUpdated()");
+        break;
+    }
+}
+
+void RenderInstructionExecutor::processRenderInstruction(const PolymophEventType& instruction)
+{
+    // TODO check is it okay to use ref here in lambdas?
+    std::visit(overloaded{
+        [this](const events::GameStateChangedEvent& event)
+        {
+            onGameStateUpdated(event.newState);
+        },
+        [renderer=m_renderer](const events::GridGeneratedEvent& event)
+        {
+            renderer->renderGeneratedShips(event.playerGridToConfirm);
+            std::cout << "Do you like this setup?\nEnter - approve! Any button - regenerate\n";
+        },
+        [renderer=m_renderer](const events::PlayerTurnsEvent& event)
+        {
+            renderer->renderRequestToTurn(event.playerName, event.isLocalPlayer);
+        },
+        [renderer=m_renderer](const events::FullGridsSyncEvent& event)
+        {
+            renderer->renderGameGrids(event.firstGrid, event.secondGrid);
+        },
+        [renderer=m_renderer](const events::LocalShotErrorEvent& event)
+        {
+            renderer->renderShotError(event.errorType);
+        },
+        [renderer=m_renderer](const events::GameOverEvent& event)
+        {
+            renderer->renderGameOver(event.winnerName, event.isLocalPlayer);
+            std::cout << "Please relaunch game if you want to play again\n";
+        },
+    }, instruction);
+}
+
+
 
 TerminalView::TerminalView(std::shared_ptr<EventBus>& bus)
     : m_eventBus(bus)
+    , m_renderExecutorImpl(new RenderInstructionExecutor(this, bus))
 {
-    subscribeToEvents();
+}
+
+void TerminalView::update()
+{
+    m_renderExecutorImpl->renderInstructions();
+}
+
+void TerminalView::updateWithStopToken(std::stop_token token)
+{
+    m_renderExecutorImpl->renderInstructions(token);
 }
 
 void TerminalView::renderStartScreen()
@@ -77,6 +284,11 @@ void TerminalView::renderGeneratedShips(const GameGrid& grid)
     system("cls");
     std::cout << "Generated the ships for you:\n";
     renderSingleGrid(grid);
+}
+
+void TerminalView::renderRequestToTurn(const std::string playerName, const bool isLocalPlayer)
+{
+    std::cout << playerName << (isLocalPlayer ? "(You)" : "")  << " turns:\n";
 }
 
 // TODO add ships
@@ -358,69 +570,3 @@ void TerminalView::renderSymbolNTimes(const char symbol, const unsigned int time
     }
 }
 
-void TerminalView::subscribeToEvents()
-{
-    m_eventBus->subscribe<events::GameStateChangedEvent>([this](const std::any& any_event)
-        {
-            const auto event = std::any_cast<events::GameStateChangedEvent>(any_event);
-            onGameStateUpdated(event.newState);
-        });
-
-    m_eventBus->subscribe<events::GridGeneratedEvent>([this](const std::any& any_event)
-        {
-            const auto event = std::any_cast<events::GridGeneratedEvent>(any_event);
-            renderGeneratedShips(event.playerGridToConfirm); // TODO thread safe
-            std::cout << "Do you like this setup?\nEnter - approve! Any button - regenerate\n";
-        });
-    m_eventBus->subscribe<events::FullGridsSyncEvent>([this](const std::any& any_event)
-        {
-            const auto event = std::any_cast<events::FullGridsSyncEvent>(any_event);
-            renderGameGrids(event.firstGrid, event.secondGrid); // TODO thread safe
-        });
-    m_eventBus->subscribe<events::LocalShotErrorEvent>([this](const std::any& any_event)
-        {
-            const auto event = std::any_cast<events::LocalShotErrorEvent>(any_event);
-            renderShotError(event.errorType); // TODO thread safe
-        });
-    m_eventBus->subscribe<events::GameOverEvent>([this](const std::any& any_event)
-        {
-            const auto event = std::any_cast<events::GameOverEvent>(any_event);
-            renderGameOver(event.winnerName, event.isLocalPlayer); // TODO thread safe
-            std::cout << "Please relaunch game if you want to play again\n";
-        });
-}
-
-void TerminalView::onGameStateUpdated(const GameState& state)
-{
-    // TODO mutex with lock guard
-    switch (state)
-    {
-    case GameState::Unitialized:
-    {
-        assert(false && "Invalid game state!!!");
-        break;
-    }
-    case GameState::StartScreen:
-    {
-        renderStartScreen();
-        break;
-    }
-    case GameState::ShipsSetup:
-    {
-        std::cout << "Waiting for ships generation...\n";
-        break;
-    }
-    case GameState::Battle:
-    {
-        std::cout << "Waiting for game data...\n";
-        break;
-    }
-    case GameState::GameOver:
-    {
-        return;
-    }
-    default:
-        assert(false && "Unprocessed game state in TerminalView::onGameStateUpdated()");
-        break;
-    }
-}

@@ -11,6 +11,10 @@
 
 #include <iostream>
 #include <conio.h>
+#include <chrono>
+
+
+// TODO input from user should be abstraction, but probably controller should process it instead of player
 
 
 TerminalController::TerminalController(
@@ -22,16 +26,15 @@ TerminalController::TerminalController(
     , m_shipsGenerator(new WarShipGenerator())
     , m_eventBus(bus)
 {
-
-    auto renderThreadFunc = [this](std::stop_token token)
+    auto renderThreadFunc = [renderer = std::move(m_renderer)](std::stop_token token)
     {
         while (!token.stop_requested())
         {
-            m_renderer->update();
+            renderer->updateWithStopToken(token);
         }
     };
     m_renderThread = std::jthread(std::move(renderThreadFunc));
-    m_renderThread.detach();
+    m_renderThread.detach(); // let it lives separately
 }
 
 TerminalController::~TerminalController()
@@ -43,6 +46,7 @@ void TerminalController::loopGame()
 {
     m_game->launch();
 
+    // TODO re-impl with event callbacks
     while (true)
     {
         switch (m_game->getCurrentState())
@@ -107,6 +111,10 @@ const std::vector<WarShip> TerminalController::getShipsFromPlayer(const Player _
         m_eventBus->publish(gridGeneratedEvent);
 
         playerChoice = _getch();
+
+        // simulate some waiting to let it be rendered with overpressing
+        using namespace std::chrono_literals;
+        std::this_thread::sleep_for(50ms);
     } while (playerChoice != '\r' && playerChoice != '\n');
 
     return playerShips;
@@ -114,7 +122,6 @@ const std::vector<WarShip> TerminalController::getShipsFromPlayer(const Player _
 
 bool TerminalController::onStartScreen()
 {
-    // input from user should be abstraction
     int _ = _getch();
 
     const events::StartScreenPassedEvent startScreenPassedEvent;
@@ -157,9 +164,10 @@ bool TerminalController::onBattleStarted()
     // Important: Own grid must visualize ships as well, opponent's - no.
 
     {
-        const events::FullGridsSyncEvent fullGridsSyncEvent {
+        const events::FullGridsSyncEvent fullGridsSyncEvent
+        {
             .firstGrid = m_game->getPlayerGridInfo(Player::Player1),
-                .secondGrid = m_game->getPlayerGridInfo(Player::Player2),
+            .secondGrid = m_game->getPlayerGridInfo(Player::Player2),
         };
         m_eventBus->publish(fullGridsSyncEvent);
     }
@@ -167,7 +175,13 @@ bool TerminalController::onBattleStarted()
     while (!m_game->isGameOver())
     {
         IPlayer& currentPlayer = getCurrentPlayer(m_game->getCurrentPlayer());
-        std::cout << currentPlayer.getName() << " turns:\n";
+
+        const events::PlayerTurnsEvent playerTurnsEvent
+        {
+            .playerName = currentPlayer.getName(),
+            .isLocalPlayer = currentPlayer.isLocalPlayer(),
+        };
+        m_eventBus->publish(playerTurnsEvent);
 
         bool isValidTurn = false;
         do
@@ -197,11 +211,16 @@ bool TerminalController::onBattleStarted()
         } while (!isValidTurn);
 
         // HACK there is no functionality for terminal renderer to present certain shot, instead it refreshes entire grid
-        const events::FullGridsSyncEvent fullGridsSyncEvent {
+        const events::FullGridsSyncEvent fullGridsSyncEvent
+        {
             .firstGrid = m_game->getPlayerGridInfo(Player::Player1),
-                .secondGrid = m_game->getPlayerGridInfo(Player::Player2),
+            .secondGrid = m_game->getPlayerGridInfo(Player::Player2),
         };
         m_eventBus->publish(fullGridsSyncEvent);
+
+        // simulate some waiting to let the grids to be rendered without overlapping with input
+        using namespace std::chrono_literals;
+        std::this_thread::sleep_for(50ms);
     }
     return true;
 }
