@@ -4,19 +4,8 @@
 #include <unordered_map>
 #include <vector>
 #include <mutex>
-
-#include "Core/CoreDefines.h"
-
-
-#if EVENTS_STD_ANY_APPROACH
 #include <any>
-#else
-#include <type_traits>
 
-#include "Event.h"
-template<typename T>
-concept DerivedEvent = std::derived_from<T, Event>;
-#endif // EVENTS_STD_ANY_APPROACH
 
 
 // Simple version of event bus, without streams, channels
@@ -24,11 +13,7 @@ class EventBus
 {
     using GuardLocker = std::lock_guard<std::recursive_mutex>;
 public:
-#if EVENTS_STD_ANY_APPROACH
     using EventListener = std::function<void(const std::any&)>;
-#else
-    using EventListener = std::function<void(const Event&)>;
-#endif // EVENTS_STD_ANY_APPROACH
 
     EventBus() = default;
     ~EventBus() = default;
@@ -89,9 +74,6 @@ private:
 
 #if 0 // examples
 struct TestEvent final
-#if !EVENTS_STD_ANY_APPROACH
-    : public Event
-#endif
 {
     int value = 0;
 };
@@ -99,22 +81,12 @@ struct TestEvent final
 
 EventBus eventBus;
 
-
-#if EVENTS_STD_ANY_APPROACH
 eventBus.subscribe<TestEvent>([](const std::any& event)
     {
         auto evt = std::any_cast<TestEvent>(event);
         std::cout << "Value from event: " << evt.value << std::endl;
     });
-#else
-eventBus.subscribe<TestEvent>([](const Event& event)
-    {
-        // Can't use dynamic_cast since Event is not polymorphic type (no virtual method inside)
-        const TestEvent& castEvent = static_cast<const TestEvent&>(event);
-        std::cout << "Value from event: " << castEvent.value << std::endl;
-    });
-#endif
-//////////////////////
+
 
 TestEvent someEvent{ .value = 4 };
 eventBus.publish(someEvent);
