@@ -62,6 +62,7 @@ public:
 	constexpr static uint8_t PLAYER_AMOUNT = 2;
 
 	BattleSeaGame(const GameConfig& config, std::shared_ptr<EventBus>& bus);
+	~BattleSeaGame();
 
 	void launch();
 
@@ -96,5 +97,8 @@ private:
 	bool m_hasGameFinished;
 
 	std::shared_ptr<EventBus> m_eventBus;
+
+	ListenerHandleId m_startScreenPassedEventHandleId;
+	ListenerHandleId m_quitGameRequestEventHandleId;
 };
 

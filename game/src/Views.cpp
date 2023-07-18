@@ -54,12 +54,8 @@ class RenderInstructionExecutor
         events::GameOverEvent
     >;
 public:
-    RenderInstructionExecutor(TerminalView* renderer, std::shared_ptr<EventBus>& bus)
-        : m_renderer(renderer)
-        , m_eventBus(bus)
-    {
-        subscribeToEvents();
-    }
+    RenderInstructionExecutor(TerminalView* renderer, std::shared_ptr<EventBus>& bus);
+    ~RenderInstructionExecutor();
 
     void renderInstructions();
     void renderInstructions(std::stop_token token);
@@ -71,6 +67,7 @@ public:
 
 private:
     void subscribeToEvents();
+    void unsubscribeFromEvents();
     void onGameStateUpdated(const GameState& state);
 
     void processRenderInstruction(const PolymophEventType& instruction);
@@ -82,8 +79,29 @@ private:
 
     std::condition_variable m_cv;
     std::mutex m_cv_mutex;
+
+private:
+    ListenerHandleId m_gameStateChangedEventHandleId;
+    ListenerHandleId m_gridGeneratedEventHandleId;
+    ListenerHandleId m_playerTurnsEventHandleId;
+    ListenerHandleId m_fullGridsSyncEventHandleId;
+    ListenerHandleId m_localShotErrorEventHandleId;
+    ListenerHandleId m_gameOverEventHandleId;
 };
 
+
+RenderInstructionExecutor::RenderInstructionExecutor(TerminalView* renderer, std::shared_ptr<EventBus>& bus)
+    : m_renderer(renderer)
+    , m_eventBus(bus)
+{
+    subscribeToEvents();
+}
+
+RenderInstructionExecutor::~RenderInstructionExecutor()
+{
+    // probably will not be triggered even
+    unsubscribeFromEvents();
+}
 
 void RenderInstructionExecutor::renderInstructions()
 {
@@ -147,14 +165,24 @@ eventBus->subscribe<EventClass>([this](const std::any& any_event)   \
 
 void RenderInstructionExecutor::subscribeToEvents()
 {
-    SUBSCRIBE_EVENT_AS_RENDER_INSTRUCTION(m_eventBus, events::GameStateChangedEvent);
-    SUBSCRIBE_EVENT_AS_RENDER_INSTRUCTION(m_eventBus, events::GridGeneratedEvent);
-    SUBSCRIBE_EVENT_AS_RENDER_INSTRUCTION(m_eventBus, events::PlayerTurnsEvent);
-    SUBSCRIBE_EVENT_AS_RENDER_INSTRUCTION(m_eventBus, events::FullGridsSyncEvent);
-    SUBSCRIBE_EVENT_AS_RENDER_INSTRUCTION(m_eventBus, events::LocalShotErrorEvent);
-    SUBSCRIBE_EVENT_AS_RENDER_INSTRUCTION(m_eventBus, events::GameOverEvent);
+    m_gameStateChangedEventHandleId = SUBSCRIBE_EVENT_AS_RENDER_INSTRUCTION(m_eventBus, events::GameStateChangedEvent);
+    m_gridGeneratedEventHandleId = SUBSCRIBE_EVENT_AS_RENDER_INSTRUCTION(m_eventBus, events::GridGeneratedEvent);
+    m_playerTurnsEventHandleId = SUBSCRIBE_EVENT_AS_RENDER_INSTRUCTION(m_eventBus, events::PlayerTurnsEvent);
+    m_fullGridsSyncEventHandleId = SUBSCRIBE_EVENT_AS_RENDER_INSTRUCTION(m_eventBus, events::FullGridsSyncEvent);
+    m_localShotErrorEventHandleId = SUBSCRIBE_EVENT_AS_RENDER_INSTRUCTION(m_eventBus, events::LocalShotErrorEvent);
+    m_gameOverEventHandleId = SUBSCRIBE_EVENT_AS_RENDER_INSTRUCTION(m_eventBus, events::GameOverEvent);
 
     // TODO damaged and destroyed ship (instead of FullGridsSyncEvent per frame) when it's possible to render certain shot
+}
+
+void RenderInstructionExecutor::unsubscribeFromEvents()
+{
+    m_eventBus->unsubscribe<events::GameStateChangedEvent>(m_gameStateChangedEventHandleId);
+    m_eventBus->unsubscribe<events::GridGeneratedEvent>(m_gridGeneratedEventHandleId);
+    m_eventBus->unsubscribe<events::PlayerTurnsEvent>(m_playerTurnsEventHandleId);
+    m_eventBus->unsubscribe<events::FullGridsSyncEvent>(m_fullGridsSyncEventHandleId);
+    m_eventBus->unsubscribe<events::LocalShotErrorEvent>(m_localShotErrorEventHandleId);
+    m_eventBus->unsubscribe<events::GameOverEvent>(m_gameOverEventHandleId);
 }
 
 void RenderInstructionExecutor::onGameStateUpdated(const GameState& state)

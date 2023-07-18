@@ -25,6 +25,7 @@ TerminalController::TerminalController(
     , m_shipsGenerator(new WarShipGenerator())
     , m_eventBus(bus)
 {
+    // TODO If game restart will be implemented, then probably need to keep renderer in controller to take ownership
     auto renderThreadFunc = [renderer = std::move(view)](std::stop_token token)
     {
         while (!token.stop_requested())

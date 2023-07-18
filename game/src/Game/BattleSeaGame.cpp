@@ -34,14 +34,20 @@ BattleSeaGame::BattleSeaGame(const GameConfig& config, std::shared_ptr<EventBus>
     , m_hasGameFinished(false)
     , m_eventBus(bus)
 {
-    m_eventBus->subscribe<events::StartScreenPassedEvent>([this](const std::any& _)
+    m_startScreenPassedEventHandleId = m_eventBus->subscribe<events::StartScreenPassedEvent>([this](const std::any& _)
         {
             m_stateMachine.switchToState(GameState::ShipsSetup);
         });
-    m_eventBus->subscribe<events::QuitGameRequestEvent>([this](const std::any& _)
+    m_quitGameRequestEventHandleId = m_eventBus->subscribe<events::QuitGameRequestEvent>([this](const std::any& _)
         {
             m_stateMachine.switchToState(GameState::QuitGame);
         });
+}
+
+BattleSeaGame::~BattleSeaGame()
+{
+    m_eventBus->unsubscribe<events::StartScreenPassedEvent>(m_startScreenPassedEventHandleId);
+    m_eventBus->unsubscribe<events::QuitGameRequestEvent>(m_quitGameRequestEventHandleId);
 }
 
 void BattleSeaGame::launch()
