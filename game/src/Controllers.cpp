@@ -22,11 +22,10 @@ TerminalController::TerminalController(
     std::unique_ptr<IBattleSeaView>&& view,
     std::shared_ptr<EventBus>& bus)
     : m_game(std::move(game))
-    , m_renderer(std::move(view))
     , m_shipsGenerator(new WarShipGenerator())
     , m_eventBus(bus)
 {
-    auto renderThreadFunc = [renderer = std::move(m_renderer)](std::stop_token token)
+    auto renderThreadFunc = [renderer = std::move(view)](std::stop_token token)
     {
         while (!token.stop_requested())
         {
@@ -46,7 +45,7 @@ void TerminalController::loopGame()
 {
     m_game->launch();
 
-    // TODO re-impl with event callbacks
+    // TODO [optional] re-impl with event callbacks (BE AWARE: onBattleStarted contains while (game not over))
     while (m_game->getCurrentState() != GameState::QuitGame)
     {
         switch (m_game->getCurrentState())

@@ -5,9 +5,6 @@
 #include "Core/EventBus.h"
 #include "Game/Events/Events.h"
 
-// TODOs:
-// put renderer in dedicated thread (conditional var, render instructions)
-// unsubscribe mechanism for event bus
 
 GameStateMachine::GameStateMachine(std::shared_ptr<EventBus>& bus)
     : m_eventBus(bus)
@@ -101,7 +98,6 @@ ShotError BattleSeaGame::shootThePlayerGridAt(const CellIndex& cell)
         {
             setGridCellState(oppositeGrid, cell, CellState::Damaged);
 
-            // TODO (alternative) subscribe on this event in model as well
             const events::ShipDamagedEvent shipDamagedEvent {.injuredPlayer = oppositePlayer, .ship = ship, .shot = cell};
             m_eventBus->publish(shipDamagedEvent);
         }

@@ -6,7 +6,7 @@
 #include <mutex>
 #include <any>
 
-
+using ListenerHandleId = size_t;
 
 // Simple version of event bus, without streams, channels
 class EventBus
@@ -39,10 +39,28 @@ public:
     }
 
     template <typename EventType>
-    void subscribe(const EventListener& listener)
+    ListenerHandleId subscribe(const EventListener& listener)
+    {
+        m_mutex.lock();
+        const ListenerHandleId listenerHandleId = generateListenerId();
+        m_listeners[typeid(EventType).hash_code()].emplace_back(listener, listenerHandleId);
+        m_mutex.unlock();
+
+        return listenerHandleId;
+    }
+
+    template <typename EventType>
+    void unsubscribe(const ListenerHandleId& handleId)
     {
         GuardLocker lock(m_mutex);
-        m_listeners[typeid(EventType).hash_code()].push_back(listener);
+        auto& eventListeners = m_listeners[typeid(EventType).hash_code()];
+        auto it = std::find_if(eventListeners.begin(), eventListeners.end(),
+            [&handleId](const auto& pair) { return pair.second == handleId; });
+
+        if (it != eventListeners.end())
+        {
+            eventListeners.erase(it);
+        }
     }
 
     template <typename DerivedEvent>
@@ -50,15 +68,26 @@ public:
     {
         GuardLocker lock(m_mutex);
         const auto& eventListeners = m_listeners[typeid(DerivedEvent).hash_code()];
-        for (const auto& listener : eventListeners)
+        for (const auto& [listener, _] : eventListeners)
         {
             listener(event);
         }
     }
 
 private:
+    // Pair of listener and unique identifier
+    using ListenerHandle = std::pair<EventListener, std::size_t>;
+
+    // Generates a unique identifier for each listener
+    ListenerHandleId generateListenerId() const
+    {
+        static ListenerHandleId idCounter = 0;
+        return idCounter++;
+    }
+
+private:
     // map<hash_code, listeners>
-    std::unordered_map<size_t, std::vector<EventListener>> m_listeners;
+    std::unordered_map<size_t, std::vector<ListenerHandle>> m_listeners;
     std::recursive_mutex m_mutex; // publish can trigger another public call
 };
 

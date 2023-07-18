@@ -36,7 +36,7 @@ private:
 
     const std::vector<WarShip> getShipsFromPlayer(const Player player);
 
-    // TODO consider these methods as listeners for corresponding events
+    // TODO [optional] consider these methods as listeners for corresponding events
     bool onStartScreen();
     bool onShipsSetup();
     bool onBattleStarted();
@@ -44,12 +44,11 @@ private:
 
 protected:
     std::unique_ptr<BattleSeaGame> m_game;
-    std::unique_ptr<IBattleSeaView> m_renderer;
+    std::shared_ptr<EventBus> m_eventBus;
 
 private:
     std::array<std::unique_ptr<IPlayer>, 2> m_players;
-    std::unique_ptr<IWarShipGenerator> m_shipsGenerator;
-    std::shared_ptr<EventBus> m_eventBus;
+    std::unique_ptr<IWarShipGenerator> m_shipsGenerator; // TODO need to think about delegating this to game (maybe static)
 
     std::jthread m_renderThread;
 };
