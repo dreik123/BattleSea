@@ -373,7 +373,7 @@ void TerminalView::renderSingleGrid(const GameGrid& grid)
     for (int i(0); i < rowCount; i++)
     {
         renderVerticalDelimitersPerCell();
-        const CellIndex index = CellIndex(rowCount - 1, i);
+        const CellIndex index = CellIndex((int)rowCount - 1, i);
         renderCell(index, grid.at(index));
     }
 
@@ -491,7 +491,7 @@ void TerminalView::renderTwoGrids(const GameGrid& gridLeft, const GameGrid& grid
         for (int i(0); i < colCount; i++)
         {
             renderVerticalDelimitersPerCell();
-            const CellIndex index = CellIndex(colCount - 1, i);
+            const CellIndex index = CellIndex((int)colCount - 1, i);
             renderCell(index, grids[count].at(index));
         }
 

@@ -36,6 +36,8 @@ private:
 
     CellIndex getMiddleRandomShootingCell();
 
+    void simulateThinking();
+
 protected:
     Player m_currentPlayer;
     const BattleSeaGame* m_gameInstance;
