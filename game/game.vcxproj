@@ -80,6 +80,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalIncludeDirectories>$(ProjectDir)src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -103,18 +104,20 @@
     <ClInclude Include="src\Controllers.h" />
     <ClInclude Include="src\Core\BitMask.h" />
     <ClInclude Include="src\Core\CharUtilities.h" />
+    <ClInclude Include="src\Core\EventBus.h" />
+    <ClInclude Include="src\Game\Events\Events.h" />
     <ClInclude Include="src\Game\GameGrid.h" />
+    <ClInclude Include="src\Game\GameState.h" />
     <ClInclude Include="src\Game\GridUtilities.h" />
     <ClInclude Include="src\Game\BattleSeaGame.h" />
     <ClInclude Include="src\Core\CellIndex.h" />
     <ClInclude Include="src\Core\CoreTypes.h" />
-    <ClInclude Include="src\Game\GameInterfaces.h" />
     <ClInclude Include="src\Game\GameConfig.h" />
     <ClInclude Include="src\Game\Player\AIPlayer.h" />
     <ClInclude Include="src\Game\Player\IPlayer.h" />
     <ClInclude Include="src\Game\Player\RealPlayer.h" />
     <ClInclude Include="src\Game\Player\SillyRandomBot.h" />
-    <ClInclude Include="src\MVCFactory.h" />
+    <ClInclude Include="src\GameFactory.h" />
     <ClInclude Include="src\Views.h" />
     <ClInclude Include="src\Game\WarShip.h" />
     <ClInclude Include="src\Game\WarShipGenerators.h" />

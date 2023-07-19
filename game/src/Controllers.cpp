@@ -1,49 +1,144 @@
 #include "Controllers.h"
 #include "Views.h"
 
-#include "Game/GameInterfaces.h"
+#include "Game/BattleSeaGame.h"
 #include "Game/GridUtilities.h"
 #include "Game/Player/RealPlayer.h"
 #include "Game/Player/SillyRandomBot.h"
 #include "Game/Player/AIPlayer.h"
 
+#include "Core/EventBus.h"
+#include "Game/Events/Events.h"
+
 #include <iostream>
 #include <conio.h>
+#include <chrono>
 
 
-GameController::GameController(std::shared_ptr<IBattleSeaGame>& game, std::shared_ptr<IBattleSeaView>& view)
-    : m_game(game)
-    , m_view(view)
+TerminalController::TerminalController(
+    std::unique_ptr<BattleSeaGame>&& game,
+    std::unique_ptr<IBattleSeaView>&& view,
+    std::shared_ptr<EventBus>& bus)
+    : m_game(std::move(game))
     , m_shipsGenerator(new WarShipGenerator())
+    , m_eventBus(bus)
 {
+    // TODO If game restart will be implemented, then probably need to keep renderer in controller to take ownership
+    auto renderThreadFunc = [renderer = std::move(view)](std::stop_token token)
+    {
+        while (!token.stop_requested())
+        {
+            renderer->updateWithStopToken(token);
+        }
+    };
+    m_renderThread = std::jthread(std::move(renderThreadFunc));
+    m_renderThread.detach(); // let it lives separately
 }
 
-void GameController::runGame()
+TerminalController::~TerminalController()
 {
-    m_view->renderGreetingToPlayer();
+    m_renderThread.get_stop_source().request_stop();
+}
 
-    // README For now ships generation is performed here in controller,
-    // but potentially it might be carried out to IPlayer interface.
+void TerminalController::loopGame()
+{
+    m_game->launch();
 
+    // TODO [optional] re-impl with event callbacks (BE AWARE: onBattleStarted contains while (game not over))
+    while (m_game->getCurrentState() != GameState::QuitGame)
+    {
+        switch (m_game->getCurrentState())
+        {
+        case GameState::Unitialized:
+        {
+            assert(false && "Invalid game state!!!");
+            break;
+        }
+        case GameState::StartScreen:
+        {
+            onStartScreen();
+            break;
+        }
+        case GameState::ShipsSetup:
+        {
+            if (!onShipsSetup())
+            {
+                return;
+            }
+            break;
+        }
+        case GameState::Battle:
+        {
+            if (!onBattleStarted())
+            {
+                return;
+            }
+            break;
+        }
+        case GameState::GameOver:
+        {
+            assert(m_game->isGameOver());
+
+            onBattleFinished();
+            return;
+        }
+        default:
+            assert(false && "Unprocessed game state in TerminalController::loopGame()");
+            break;
+        }
+    }
+}
+
+IPlayer& TerminalController::getCurrentPlayer(const Player player) const
+{
+    const int index = getIndexFromPlayer(player);
+    return *m_players[index];
+}
+
+const std::vector<WarShip> TerminalController::getShipsFromPlayer(const Player _)
+{
     // Regenerate ships for player while space is pressed (until enter)
     std::vector<WarShip> playerShips;
     char playerChoice = 0;
     do
     {
         playerShips = m_shipsGenerator->generateShips(m_game->getAppliedConfig());
-        const GameGrid gridToPresent = GridUtilities::convertShipsToGrid(playerShips);
-        m_view->renderGeneratedShips(gridToPresent);
-        m_view->renderMessage("Do you like this setup?\nEnter - approve! Any button - regenerate\n");
+        const GameGrid generatedGrid = GridUtilities::convertShipsToGrid(playerShips);
+
+        const events::GridGeneratedEvent gridGeneratedEvent {.playerGridToConfirm = generatedGrid };
+        m_eventBus->publish(gridGeneratedEvent);
 
         playerChoice = _getch();
+
+        // simulate some waiting to let it be rendered with overpressing
+        using namespace std::chrono_literals;
+        std::this_thread::sleep_for(50ms);
     } while (playerChoice != '\r' && playerChoice != '\n');
+
+    return playerShips;
+}
+
+bool TerminalController::onStartScreen()
+{
+    int _ = _getch();
+
+    const events::StartScreenPassedEvent startScreenPassedEvent;
+    m_eventBus->publish(startScreenPassedEvent);
+
+    return true;
+}
+
+bool TerminalController::onShipsSetup()
+{
+    // Encapsulated logic of getting ships from controller
+    const std::vector<WarShip> playerShips = getShipsFromPlayer(Player::Player1);
 
     system("cls");
 
     // Game init
     m_players[0].reset(new RealPlayer(Player::Player1));
-    //m_players[0].reset(new SillyBotPlayer(Player::Player1, m_game)); // can be useful
-    m_players[1].reset(new AIPlayer(Player::Player2, m_game));
+    //m_players[0].reset(new AIPlayer(Player::Player1, m_game)); // can be useful
+    m_players[1].reset(new AIPlayer(Player::Player2, m_game.get()));
 
     GameStartSettings settings;
     settings.initialPlayer = Player::Player1;
@@ -51,20 +146,30 @@ void GameController::runGame()
     settings.shipsForPlayer1 = playerShips;
     settings.shipsForPlayer2 = m_shipsGenerator->generateShips(m_game->getAppliedConfig());
 
-    if (!m_game->startGame(settings))
+    if (!m_game->startBattle(settings))
     {
         std::cerr << "Invalid settings for game start!\n";
-        return;
+        return false;
     }
 
-    // Shows grids before first turn
-    m_view->renderGame();
+    return true;
+}
 
-    bool hasGameBeenInterrupted = false;
-    while (!hasGameBeenInterrupted && !m_game->isGameOver())
+bool TerminalController::onBattleStarted()
+{
+    // README Multiplayer requires understanding which Player value current player has
+    // Important: Own grid must visualize ships as well, opponent's - no.
+
+    while (!m_game->isGameOver())
     {
         IPlayer& currentPlayer = getCurrentPlayer(m_game->getCurrentPlayer());
-        m_view->renderRequestToTurn(currentPlayer.getName());
+
+        const events::PlayerTurnsEvent playerTurnsEvent
+        {
+            .playerName = currentPlayer.getName(),
+            .isLocalPlayer = currentPlayer.isLocalPlayer(),
+        };
+        m_eventBus->publish(playerTurnsEvent);
 
         bool isValidTurn = false;
         do
@@ -73,40 +178,49 @@ void GameController::runGame()
 
             if (userInput.isQuitRequested)
             {
-                hasGameBeenInterrupted = true;
-                break;
+                const events::QuitGameRequestEvent quitGameRequestEvent;
+                m_eventBus->publish(quitGameRequestEvent);
+
+                return true;
             }
 
             if (userInput.shotCell.has_value())
             {
                 const ShotError result = m_game->shootThePlayerGridAt(userInput.shotCell.value());
 
-                m_view->renderShotError(result);
+                if (result != ShotError::Ok)
+                {
+                    const events::LocalShotErrorEvent localShotErrorEvent {.errorType = result};
+                    m_eventBus->publish(localShotErrorEvent);
+                }
                 isValidTurn = result == ShotError::Ok;
             }
             else
             {
-                m_view->renderMessage("WTF have you entered?!?\n");
+                std::cout << "WTF have you entered?!?\n";
             }
         } while (!isValidTurn);
 
-        // Clear screen to refresh the grids in place
-        system("cls");
-
-        m_view->renderGame();
+        // simulate some waiting to let the grids to be rendered without overlapping with input
+        using namespace std::chrono_literals;
+        std::this_thread::sleep_for(50ms);
     }
-
-    if (m_game->isGameOver())
-    {
-        // The current player hasn't been changed after last shot.
-        IPlayer& winner = getCurrentPlayer(m_game->getCurrentPlayer());
-        m_view->renderGameOver(winner.getName(), winner.isLocalPlayer());
-        m_view->renderMessage("Please relaunch game if you want to play again\n");
-    }
+    return true;
 }
 
-IPlayer& GameController::getCurrentPlayer(const Player player) const
+bool TerminalController::onBattleFinished()
 {
-    const int index = getIndexFromPlayer(player);
-    return *m_players[index];
+    // The current player hasn't been changed after last shot.
+    IPlayer& winner = getCurrentPlayer(m_game->getCurrentPlayer());
+
+    const events::GameOverEvent gameOverEvent {.winnerName = winner.getName(), .isLocalPlayer = winner.isLocalPlayer()};
+    m_eventBus->publish(gameOverEvent);
+
+    int _ = _getch();
+    // [OPTIONAL] TODO consider option to restart game without closing it
+
+    const events::QuitGameRequestEvent quitGameRequestEvent;
+    m_eventBus->publish(quitGameRequestEvent);
+
+    return true;
 }

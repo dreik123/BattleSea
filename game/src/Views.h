@@ -1,34 +1,45 @@
 #pragma once
 #include <memory>
 #include <string>
+#include <stop_token>
 
 #include "Core/CoreTypes.h"     // for CellState, ShotError
-#include "Game/GameGrid.h"      // GameGrid is typedef
+#include "Core/EventBus.h"
+#include "Game/GameGrid.h"      // passing GameGrid as copy, so forward decl is impossible in such approach
+#include "Game/GameState.h"
 
-class IBattleSeaGame;
 class CellIndex;
+class EventBus;
 
-class IBattleSeaView {
+class IBattleSeaView
+{
 public:
-    virtual void renderGreetingToPlayer() = 0;
+    virtual void update() = 0;
+    virtual void updateWithStopToken(std::stop_token token) = 0;
+
+
+    virtual void renderStartScreen() = 0;
     virtual void renderGeneratedShips(const GameGrid& grid) = 0;
-    virtual void renderGame() = 0;
-    virtual void renderMessage(const std::string msg) = 0;
-    virtual void renderRequestToTurn(const std::string playerName) = 0;
+    virtual void renderRequestToTurn(const std::string playerName, const bool isLocalPlayer) = 0;
+    virtual void renderGameGrids(const GameGrid modelData1, const GameGrid modelData2) = 0;
     virtual void renderShotError(const ShotError error) = 0;
     virtual void renderGameOver(const std::string winnerName, const bool isLocalPlayer) = 0;
 };
 
-class TerminalView : public IBattleSeaView 
+
+class TerminalView : public IBattleSeaView
 {
 public:
-    TerminalView(const std::shared_ptr<IBattleSeaGame>& game);
+    TerminalView(std::shared_ptr<EventBus>& bus);
 
-    virtual void renderGreetingToPlayer() override;
+    virtual void update() override;
+    virtual void updateWithStopToken(std::stop_token token) override;
+
+    // Don't see any problem with keeping these methods as public (RenderInstructionExecutor may be friend instead)
+    virtual void renderStartScreen() override;
     virtual void renderGeneratedShips(const GameGrid& grid) override;
-    virtual void renderGame() override;
-    virtual void renderMessage(const std::string msg) override;
-    virtual void renderRequestToTurn(const std::string playerName) override;
+    virtual void renderRequestToTurn(const std::string playerName, const bool isLocalPlayer) override;
+    virtual void renderGameGrids(const GameGrid modelData1, const GameGrid modelData2) override;
     virtual void renderShotError(const ShotError error) override;
     virtual void renderGameOver(const std::string winnerName, const bool isLocalPlayer) override;
 
@@ -46,5 +57,6 @@ private:
     void renderSymbolNTimes(const char symbol, const unsigned int times);
 
 protected:
-    const std::shared_ptr<IBattleSeaGame> m_game;
+    std::shared_ptr<EventBus> m_eventBus;
+    std::unique_ptr<class RenderInstructionExecutor> m_renderExecutorImpl;
 };

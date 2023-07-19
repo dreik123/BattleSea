@@ -2,21 +2,62 @@
 #include "Game/WarShipGenerators.h"
 #include "Game/WarShip.h"
 
+#include "Core/EventBus.h"
+#include "Game/Events/Events.h"
 
-BattleSeaGame::BattleSeaGame(const GameConfig& config)
+
+GameStateMachine::GameStateMachine(std::shared_ptr<EventBus>& bus)
+    : m_eventBus(bus)
+    , m_currentState(GameState::Unitialized)
+{
+}
+
+void GameStateMachine::switchToState(const GameState newState)
+{
+    GameState oldState = m_currentState;
+    m_currentState = newState;
+
+    const events::GameStateChangedEvent gameStateChangedEvent {.oldState = oldState, .newState = newState };
+    m_eventBus->publish(gameStateChangedEvent);
+}
+
+
+
+BattleSeaGame::BattleSeaGame(const GameConfig& config, std::shared_ptr<EventBus>& bus)
     : m_config(config)
+    , m_stateMachine(bus)
     , m_playerGrids{}
     , m_playerShips{}
     , m_currentPlayer(Player::Invalid)
     , m_initialPlayer(Player::Invalid)
     , m_localPlayer(Player::Invalid)
     , m_hasGameFinished(false)
+    , m_eventBus(bus)
 {
+    m_startScreenPassedEventHandleId = m_eventBus->subscribe<events::StartScreenPassedEvent>([this](const std::any& _)
+        {
+            m_stateMachine.switchToState(GameState::ShipsSetup);
+        });
+    m_quitGameRequestEventHandleId = m_eventBus->subscribe<events::QuitGameRequestEvent>([this](const std::any& _)
+        {
+            m_stateMachine.switchToState(GameState::QuitGame);
+        });
+}
+
+BattleSeaGame::~BattleSeaGame()
+{
+    m_eventBus->unsubscribe<events::StartScreenPassedEvent>(m_startScreenPassedEventHandleId);
+    m_eventBus->unsubscribe<events::QuitGameRequestEvent>(m_quitGameRequestEventHandleId);
+}
+
+void BattleSeaGame::launch()
+{
+    m_stateMachine.switchToState(GameState::StartScreen);
 }
 
 bool BattleSeaGame::initShipPositionsForPlayer(const Player player, const std::vector<WarShip>& ships)
 {
-    // TODO [MUST HAVE] validate ships position at least under some macro definition (debug for ex.)
+    // TODO [MP MUST HAVE] validate ships position at least under some macro definition (debug for ex.)
     const bool isValidated = true;
     if (!isValidated)
     {
@@ -32,7 +73,8 @@ ShotError BattleSeaGame::shootThePlayerGridAt(const CellIndex& cell)
 {
     assert(getCurrentPlayer() != Player::Invalid);
 
-    const int oppositePlayerIndex = getIndexFromPlayer(getOppositePlayer(getCurrentPlayer()));
+    const Player oppositePlayer = getOppositePlayer(getCurrentPlayer());
+    const int oppositePlayerIndex = getIndexFromPlayer(oppositePlayer);
     GameGrid& oppositeGrid = m_playerGrids[oppositePlayerIndex];
     std::vector<WarShip>& ships = m_playerShips[oppositePlayerIndex];
 
@@ -47,7 +89,7 @@ ShotError BattleSeaGame::shootThePlayerGridAt(const CellIndex& cell)
         return ShotError::RepeatedShot;
     }
 
-    bool playerSwitch = true;
+    bool successfulShot = false;
 
     for (WarShip& ship : ships)
     {
@@ -61,6 +103,9 @@ ShotError BattleSeaGame::shootThePlayerGridAt(const CellIndex& cell)
         if (!ship.isDestroyed())
         {
             setGridCellState(oppositeGrid, cell, CellState::Damaged);
+
+            const events::ShipDamagedEvent shipDamagedEvent {.injuredPlayer = oppositePlayer, .ship = ship, .shot = cell};
+            m_eventBus->publish(shipDamagedEvent);
         }
         else
         {
@@ -73,25 +118,52 @@ ShotError BattleSeaGame::shootThePlayerGridAt(const CellIndex& cell)
             // Wrap all surrounded cells of the ship in missed
             surroundDestroyedShip(oppositeGrid, ship);
 
+            const events::ShipDestroyedEvent shipDestroyedEvent {.injuredPlayer = oppositePlayer, .ship = ship};
+            m_eventBus->publish(shipDestroyedEvent);
+
             m_hasGameFinished = std::all_of(ships.cbegin(), ships.cend(), [](const WarShip& s)
                 {
                     return s.isDestroyed();
                 });
         }
-        playerSwitch = false; // continue shooting
+        successfulShot = true;
         break;
     }
 
-    if (playerSwitch)
+    if (!successfulShot)
     {
         setGridCellState(oppositeGrid, cell, CellState::Missed);
+        const events::ShotMissedEvent shotMissedEvent{.shootingPlayer = m_currentPlayer, .shot = cell};
+        m_eventBus->publish(shotMissedEvent);
+    }
+
+    // HACK there is no functionality for terminal renderer to present certain shot, instead it refreshes entire grid
+    const events::FullGridsSyncEvent fullGridsSyncEvent
+    {
+        .firstGrid = getPlayerGridInfo(Player::Player1),
+        .secondGrid = getPlayerGridInfo(Player::Player2),
+    };
+    m_eventBus->publish(fullGridsSyncEvent);
+
+    if (m_hasGameFinished)
+    {
+        m_stateMachine.switchToState(GameState::GameOver);
+
+        const events::GameFinishedEvent gameFinishedEvent{.winner = m_currentPlayer, .loser = oppositePlayer};
+        m_eventBus->publish(gameFinishedEvent);
+    }
+    else if (!successfulShot)
+    {
+        const Player prevPlayer = m_currentPlayer;
         m_currentPlayer = getOppositePlayer(m_currentPlayer);
+        const events::PlayerSwitchedEvent playerSwitchedEvent{.previousPlayer = prevPlayer, .nextPlayer = m_currentPlayer};
+        m_eventBus->publish(playerSwitchedEvent);
     }
 
     return ShotError::Ok;
 }
 
-bool BattleSeaGame::startGame(const GameStartSettings& settings)
+bool BattleSeaGame::startBattle(const GameStartSettings& settings)
 {
     m_initialPlayer = settings.initialPlayer;
     m_currentPlayer = settings.initialPlayer;
@@ -105,6 +177,15 @@ bool BattleSeaGame::startGame(const GameStartSettings& settings)
     {
         return false;
     }
+
+    m_stateMachine.switchToState(GameState::Battle);
+
+    const events::FullGridsSyncEvent fullGridsSyncEvent
+    {
+        .firstGrid = getPlayerGridInfo(Player::Player1),
+        .secondGrid = getPlayerGridInfo(Player::Player2),
+    };
+    m_eventBus->publish(fullGridsSyncEvent);
 
     return true;
 }
@@ -164,6 +245,11 @@ CellState BattleSeaGame::getPlayerGridCellState(const Player player, const CellI
 const GameConfig& BattleSeaGame::getAppliedConfig() const
 {
     return m_config;
+}
+
+const GameState BattleSeaGame::getCurrentState() const
+{
+    return m_stateMachine.getCurrentState();
 }
 
 void BattleSeaGame::setGridCellState(GameGrid& outGrid, const CellIndex& cell, const CellState& state)

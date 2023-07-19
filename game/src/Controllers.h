@@ -1,38 +1,54 @@
 #pragma once
 #include <memory>
 #include <array>
+#include <thread>
 
 #include "Core/CoreTypes.h"
 #include "Game/Player/IPlayer.h"
 #include "Game/WarShipGenerators.h"
 
-class IBattleSeaGame;
+class BattleSeaGame;
 class IBattleSeaView;
 
+class EventBus;
 
-// DS: It's expected to communicate between MVC entries via 'event-based' subsystem, 
-// but for this moment old-school approach should cover our needs
+
 class IController
 {
 public:
-    virtual void runGame() = 0;
+    virtual void loopGame() = 0;
 };
 
-class GameController : public IController 
+class TerminalController : public IController
 {
 public:
-    GameController(std::shared_ptr<IBattleSeaGame>& game, std::shared_ptr<IBattleSeaView>& view);
+    TerminalController(
+        std::unique_ptr<BattleSeaGame>&& game,
+        std::unique_ptr<IBattleSeaView>&& view,
+        std::shared_ptr<EventBus>& bus);
 
-    virtual void runGame() override;
+    ~TerminalController();
+
+    virtual void loopGame() override;
 
 private:
     IPlayer& getCurrentPlayer(const Player player) const;
 
+    const std::vector<WarShip> getShipsFromPlayer(const Player player);
+
+    // TODO [optional] consider these methods as listeners for corresponding events
+    bool onStartScreen();
+    bool onShipsSetup();
+    bool onBattleStarted();
+    bool onBattleFinished();
+
 protected:
-    std::shared_ptr<IBattleSeaGame> m_game;
-    std::shared_ptr<IBattleSeaView> m_view;
+    std::unique_ptr<BattleSeaGame> m_game;
+    std::shared_ptr<EventBus> m_eventBus;
 
 private:
     std::array<std::unique_ptr<IPlayer>, 2> m_players;
-    std::unique_ptr<IWarShipGenerator> m_shipsGenerator;
+    std::unique_ptr<IWarShipGenerator> m_shipsGenerator; // TODO need to think about delegating this to game (maybe static)
+
+    std::jthread m_renderThread;
 };

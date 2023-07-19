@@ -1,11 +1,14 @@
 #include "AIPlayer.h"
 
 #include <string>
+#include <thread>
+#include <chrono>
 
 #include "Core/CoreTypes.h"
 #include "Game/GameConfig.h"
+#include "Game/BattleSeaGame.h"
 
-AIPlayer::AIPlayer(const Player player, const std::shared_ptr<IBattleSeaGame>& game)
+AIPlayer::AIPlayer(const Player player, const BattleSeaGame* game)
     : m_currentPlayer(player)
     , m_gameInstance(game)
     , m_lastHits{}
@@ -36,6 +39,8 @@ InputRequest AIPlayer::getInput()
     InputRequest turn;
     turn.shotCell = getShootingCell();
 
+    simulateThinking();
+
     return turn;
 }
 
@@ -57,7 +62,7 @@ CellIndex AIPlayer::getShootingCell()
     }
     default:
     {
-        assert(m_state == AIPlayerState::RandomShooting);
+        assert(false && "Unprocessed AIPlayerState. Take care of it!");
     }
     }
 }
@@ -71,6 +76,8 @@ CellIndex AIPlayer::getRandomShootingCell()
     }
     const Player opponent = getOppositePlayer(getPlayerType());
 
+    // TODO should be removed after event-based approach implemented
+    assert(m_gameInstance);
     auto gameGrid = m_gameInstance->getPlayerGridInfo(opponent);
     std::vector<CellIndex> permissionCells;
     for (int i = 0; i < gameGrid.data.size(); ++i)
@@ -85,7 +92,7 @@ CellIndex AIPlayer::getRandomShootingCell()
             }
         }
     }
-    std::uniform_int_distribution<int> dist(0, permissionCells.size() - 1);
+    std::uniform_int_distribution<int> dist(0, (int)permissionCells.size() - 1);
 
     CellIndex cell(permissionCells.at(dist(mt)));
 
@@ -185,7 +192,7 @@ CellIndex AIPlayer::getShootingAfterHitCell()
     InputRequest turn;
     CellIndex cell{ allowedCells.at(0) };
 
-    std::uniform_int_distribution<int> dist(0, allowedCells.size() - 1);
+    std::uniform_int_distribution<int> dist(0, (int)allowedCells.size() - 1);
     cell = allowedCells.at(dist(mt));
 
     if (m_gameInstance->getPlayerGridCellState(opponent, cell) == CellState::Ship)
@@ -200,4 +207,11 @@ CellIndex AIPlayer::getMiddleRandomShootingCell()
 {
     // TODO: write function with ships possible location
     return getRandomShootingCell();
+}
+
+void AIPlayer::simulateThinking()
+{
+    using namespace std::chrono_literals;
+    constexpr auto thinkingTime = 350ms;
+    std::this_thread::sleep_for(thinkingTime);
 }

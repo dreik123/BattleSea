@@ -1,6 +1,5 @@
 #pragma once
 #include "IPlayer.h"
-#include "Game/GameInterfaces.h"
 #include <vector>
 #include <memory>
 #include <random>
@@ -13,11 +12,12 @@ enum class AIPlayerState
     MiddleRandomShooting,
 };
 
+class BattleSeaGame;
 
 class AIPlayer : public IPlayer
 {
 public:
-    AIPlayer(const Player player, const std::shared_ptr<IBattleSeaGame>& game);
+    AIPlayer(const Player player, const BattleSeaGame* game);
 
     virtual std::string getName() const override;
 
@@ -36,9 +36,11 @@ private:
 
     CellIndex getMiddleRandomShootingCell();
 
+    void simulateThinking();
+
 protected:
     Player m_currentPlayer;
-    const std::shared_ptr<IBattleSeaGame> m_gameInstance;
+    const BattleSeaGame* m_gameInstance;
 
 private:
     std::vector<CellIndex> m_lastHits;

@@ -40,7 +40,7 @@
     <ClInclude Include="src\Controllers.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="src\MVCFactory.h">
+    <ClInclude Include="src\GameFactory.h">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="src\Views.h">
@@ -56,9 +56,6 @@
       <Filter>src\Game</Filter>
     </ClInclude>
     <ClInclude Include="src\Game\GameConfig.h">
-      <Filter>src\Game</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Game\GameInterfaces.h">
       <Filter>src\Game</Filter>
     </ClInclude>
     <ClInclude Include="src\Game\WarShip.h">
@@ -77,5 +74,8 @@
     <ClInclude Include="src\Core\CharUtilities.h" />
     <ClInclude Include="src\Game\Player\AIPlayer.h" />
     <ClInclude Include="src\Game\GameGrid.h" />
+    <ClInclude Include="src\Core\EventBus.h" />
+    <ClInclude Include="src\Game\Events\Events.h" />
+    <ClInclude Include="src\Game\GameState.h" />
   </ItemGroup>
 </Project>
