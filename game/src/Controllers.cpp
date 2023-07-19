@@ -5,6 +5,7 @@
 #include "Game/GridUtilities.h"
 #include "Game/Player/RealPlayer.h"
 #include "Game/Player/SillyRandomBot.h"
+#include "Game/Player/AIPlayer.h"
 
 #include "Core/EventBus.h"
 #include "Game/Events/Events.h"
@@ -136,9 +137,8 @@ bool TerminalController::onShipsSetup()
 
     // Game init
     m_players[0].reset(new RealPlayer(Player::Player1));
-    //m_players[0].reset(new SillyBotPlayer(Player::Player1, m_game.get())); // can be useful
-   // TODO AP please replace it with advanced AI bot when it's implemented
-    m_players[1].reset(new SillyBotPlayer(Player::Player2, m_game.get()));
+    //m_players[0].reset(new AIPlayer(Player::Player1, m_game)); // can be useful
+    m_players[1].reset(new AIPlayer(Player::Player2, m_game.get()));
 
     GameStartSettings settings;
     settings.initialPlayer = Player::Player1;
