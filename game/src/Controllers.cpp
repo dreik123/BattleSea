@@ -14,9 +14,6 @@
 #include <chrono>
 
 
-// TODO input from user should be abstraction, but probably controller should process it instead of player
-
-
 TerminalController::TerminalController(
     std::unique_ptr<BattleSeaGame>&& game,
     std::unique_ptr<IBattleSeaView>&& view,

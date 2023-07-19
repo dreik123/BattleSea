@@ -57,7 +57,7 @@ void BattleSeaGame::launch()
 
 bool BattleSeaGame::initShipPositionsForPlayer(const Player player, const std::vector<WarShip>& ships)
 {
-    // TODO [MUST HAVE] validate ships position at least under some macro definition (debug for ex.)
+    // TODO [MP MUST HAVE] validate ships position at least under some macro definition (debug for ex.)
     const bool isValidated = true;
     if (!isValidated)
     {

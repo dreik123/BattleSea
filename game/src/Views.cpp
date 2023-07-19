@@ -319,7 +319,6 @@ void TerminalView::renderRequestToTurn(const std::string playerName, const bool 
     std::cout << playerName << (isLocalPlayer ? "(You)" : "")  << " turns:\n";
 }
 
-// TODO add ships
 void TerminalView::renderSingleGrid(const GameGrid& grid)
 {
     assert(grid.data.size() != 0 && grid.data.front().size() != 0);

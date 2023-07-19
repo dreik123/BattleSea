@@ -5,7 +5,7 @@
 
 #include "Core/CoreTypes.h"     // for CellState, ShotError
 #include "Core/EventBus.h"
-#include "Game/GameGrid.h"      // CONSIDER FWD DECLARATION
+#include "Game/GameGrid.h"      // passing GameGrid as copy, so forward decl is impossible in such approach
 #include "Game/GameState.h"
 
 class CellIndex;
@@ -35,7 +35,7 @@ public:
     virtual void update() override;
     virtual void updateWithStopToken(std::stop_token token) override;
 
-    // TODO friend executor and private methods or keep public
+    // Don't see any problem with keeping these methods as public (RenderInstructionExecutor may be friend instead)
     virtual void renderStartScreen() override;
     virtual void renderGeneratedShips(const GameGrid& grid) override;
     virtual void renderRequestToTurn(const std::string playerName, const bool isLocalPlayer) override;
