@@ -106,8 +106,6 @@ const std::vector<WarShip> WarShipGenerator::generateShips(const GameConfig& par
     std::vector<std::vector<int>> cells(params.rowsCount, temp);
 
     std::vector<WarShip> resWarships;
-    std::vector<uint8_t> numberOfMultiDeckShips = params.numberOfMultiDeckShips;
-    std::sort(numberOfMultiDeckShips.begin(), numberOfMultiDeckShips.end(), std::greater());
     for (auto shipIt = params.numberOfMultiDeckShips.crbegin();
         shipIt != params.numberOfMultiDeckShips.crend();
         ++shipIt)
