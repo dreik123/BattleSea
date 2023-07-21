@@ -36,7 +36,6 @@ private:
 
     const std::vector<WarShip> getShipsFromPlayer(const Player player);
 
-    // TODO [optional] consider these methods as listeners for corresponding events
     bool onStartScreen();
     bool onShipsSetup();
     bool onBattleStarted();

@@ -6,7 +6,6 @@
 #include <mutex>
 #include <any>
 
-// TODO [optional] as potential improvement, it might contains info about type_hash as well. Then unsubscribe call will be minimized
 using ListenerHandleId = size_t;
 
 // Simple version of event bus, without streams, channels
@@ -50,24 +49,25 @@ public:
         return listenerHandleId;
     }
 
-    template <typename EventType>
     void unsubscribe(const ListenerHandleId& handleId)
     {
         GuardLocker lock(m_mutex);
-        const size_t TypeHash = typeid(EventType).hash_code();
-        auto& eventListeners = m_listeners[TypeHash];
-        auto it = std::find_if(eventListeners.begin(), eventListeners.end(),
-            [&handleId](const auto& pair) { return pair.second == handleId; });
-
-        if (it != eventListeners.end())
+        for (auto& [typeHash, eventListeners] : m_listeners)
         {
-            eventListeners.erase(it);
-        }
+            auto it = std::find_if(eventListeners.begin(), eventListeners.end(),
+                [&handleId](const auto& pair) { return pair.second == handleId; });
 
-        // Don't see significant improvement in removing empty bucket per type, but just to keep code clean let's do it
-        if (eventListeners.empty())
-        {
-            m_listeners.erase(TypeHash);
+            if (it != eventListeners.end())
+            {
+                eventListeners.erase(it);
+
+                // Don't see significant improvement in removing empty bucket per type, but just to keep code clean let's do it
+                if (eventListeners.empty())
+                {
+                    m_listeners.erase(typeHash); // iterators got invalidated, but execution is interrupted with break
+                }
+                break;
+            }
         }
     }
 

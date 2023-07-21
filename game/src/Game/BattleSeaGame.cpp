@@ -46,8 +46,8 @@ BattleSeaGame::BattleSeaGame(const GameConfig& config, std::shared_ptr<EventBus>
 
 BattleSeaGame::~BattleSeaGame()
 {
-    m_eventBus->unsubscribe<events::StartScreenPassedEvent>(m_startScreenPassedEventHandleId);
-    m_eventBus->unsubscribe<events::QuitGameRequestEvent>(m_quitGameRequestEventHandleId);
+    m_eventBus->unsubscribe(m_startScreenPassedEventHandleId);
+    m_eventBus->unsubscribe(m_quitGameRequestEventHandleId);
 }
 
 void BattleSeaGame::launch()

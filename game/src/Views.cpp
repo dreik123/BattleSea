@@ -177,12 +177,12 @@ void RenderInstructionExecutor::subscribeToEvents()
 
 void RenderInstructionExecutor::unsubscribeFromEvents()
 {
-    m_eventBus->unsubscribe<events::GameStateChangedEvent>(m_gameStateChangedEventHandleId);
-    m_eventBus->unsubscribe<events::GridGeneratedEvent>(m_gridGeneratedEventHandleId);
-    m_eventBus->unsubscribe<events::PlayerTurnsEvent>(m_playerTurnsEventHandleId);
-    m_eventBus->unsubscribe<events::FullGridsSyncEvent>(m_fullGridsSyncEventHandleId);
-    m_eventBus->unsubscribe<events::LocalShotErrorEvent>(m_localShotErrorEventHandleId);
-    m_eventBus->unsubscribe<events::GameOverEvent>(m_gameOverEventHandleId);
+    m_eventBus->unsubscribe(m_gameStateChangedEventHandleId);
+    m_eventBus->unsubscribe(m_gridGeneratedEventHandleId);
+    m_eventBus->unsubscribe(m_playerTurnsEventHandleId);
+    m_eventBus->unsubscribe(m_fullGridsSyncEventHandleId);
+    m_eventBus->unsubscribe(m_localShotErrorEventHandleId);
+    m_eventBus->unsubscribe(m_gameOverEventHandleId);
 }
 
 void RenderInstructionExecutor::onGameStateUpdated(const GameState& state)
