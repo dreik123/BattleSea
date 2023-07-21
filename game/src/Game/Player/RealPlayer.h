@@ -49,6 +49,12 @@ public:
             request.isQuitRequested = true;
             return request;
         }
+        else if (userInput == "r" || userInput == "restart")
+        {
+            request.isRestartRequested = true;
+            return request;
+        }
+
 
         if (validateUserInput(userInput))
         {

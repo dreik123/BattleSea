@@ -250,7 +250,7 @@ void RenderInstructionExecutor::processRenderInstruction(const PolymophEventType
         [renderer=m_renderer](const events::GameOverEvent& event)
         {
             renderer->renderGameOver(event.winnerName, event.isLocalPlayer);
-            std::cout << "Please relaunch game if you want to play again\n";
+            std::cout << "Press <space> if you want restart the game. Any other button will close it.\n";
         },
     }, instruction);
 }

@@ -17,6 +17,7 @@ class IController
 {
 public:
     virtual void loopGame() = 0;
+    virtual bool hasRestartRequested() = 0;
 };
 
 class TerminalController : public IController
@@ -30,6 +31,8 @@ public:
     ~TerminalController();
 
     virtual void loopGame() override;
+
+    virtual bool hasRestartRequested() override;
 
 private:
     IPlayer& getCurrentPlayer(const Player player) const;
@@ -50,4 +53,6 @@ private:
     std::unique_ptr<IWarShipGenerator> m_shipsGenerator; // TODO need to think about delegating this to game (maybe static)
 
     std::jthread m_renderThread;
+
+    bool m_restartRequested;
 };
