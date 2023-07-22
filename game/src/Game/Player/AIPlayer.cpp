@@ -4,13 +4,14 @@
 #include <thread>
 #include <chrono>
 
-#include "Core/CoreTypes.h"
-#include "Game/GameConfig.h"
-#include "Game/BattleSeaGame.h"
+#include "Game/Events/Events.h"
+
 #include <iostream> //DEBUG
-AIPlayer::AIPlayer(const Player player, const BattleSeaGame* game)
+AIPlayer::AIPlayer(const Player player, const BattleSeaGame* game, const GameConfig& config, std::shared_ptr<EventBus>& bus)
     : m_currentPlayer(player)
     , m_gameInstance(game)
+    , m_opponentGrid{}
+    , m_eventBus(bus)
     , m_lastHits{}
     , m_state(AIPlayerState::RandomShooting)
     , m_enemiesShips(game->getAppliedConfig().numberOfMultiDeckShips)
@@ -18,6 +19,57 @@ AIPlayer::AIPlayer(const Player player, const BattleSeaGame* game)
     , mt(rd())
 {
     std::sort(m_enemiesShips.begin(), m_enemiesShips.end(), std::greater<uint8_t>());
+    m_shotMissedEventHandleId = m_eventBus->subscribe<events::ShotMissedEvent>([this](const std::any& anyEvent)
+        {
+            const auto event = any_cast<events::ShotMissedEvent>(anyEvent);
+            if (event.shootingPlayer != getPlayerType())
+            {
+                return;
+            }
+
+            m_opponentGrid.at(event.shot) = CellState::Missed;
+
+            // switch to random shooting
+        });
+    m_shipDamagedEventHandleId = m_eventBus->subscribe<events::ShipDamagedEvent>([this](const std::any& anyEvent)
+        {
+            const auto event = any_cast<events::ShipDamagedEvent>(anyEvent);
+            if (event.injuredPlayer != getOppositePlayer(getPlayerType()))
+            {
+                return;
+            }
+            m_opponentGrid.at(event.shot) = CellState::Damaged;
+
+            // switch to state after hit state
+        });
+        m_shipDestroyedEventHandleId = m_eventBus->subscribe<events::ShipDestroyedEvent>([this](const std::any& anyEvent)
+            {
+                const auto event = any_cast<events::ShipDestroyedEvent>(anyEvent);
+                if (event.injuredPlayer != getOppositePlayer(getPlayerType()))
+                {
+                    return;
+                }
+
+                // Mark the whole ship in destroyed
+                for (const CellIndex& shipCell : event.ship.getOccupiedCells())
+                {
+                    m_opponentGrid.at(shipCell) = CellState::Destroyed;
+                }
+
+                for (const CellIndex& cellAround : event.surroundedCells)
+                {
+                    m_opponentGrid.at(cellAround) = CellState::Missed;
+                }
+
+                // analyze left ships
+            });
+}
+
+AIPlayer::~AIPlayer()
+{
+    m_eventBus->unsubscribe(m_shotMissedEventHandleId);
+    m_eventBus->unsubscribe(m_shipDamagedEventHandleId);
+    m_eventBus->unsubscribe(m_shipDestroyedEventHandleId);
 }
 
 bool AIPlayer::isLocalPlayer() const

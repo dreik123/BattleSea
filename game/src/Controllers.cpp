@@ -146,7 +146,7 @@ bool TerminalController::onShipsSetup()
     // Game init
     m_players[0].reset(new RealPlayer(Player::Player1));
     //m_players[0].reset(new AIPlayer(Player::Player1, m_game.get())); // can be useful
-    m_players[1].reset(new AIPlayer(Player::Player2, m_game.get()));
+    m_players[1].reset(new AIPlayer(Player::Player2, m_game.get(), m_game->getAppliedConfig(), m_eventBus));
 
     GameStartSettings settings;
     settings.initialPlayer = Player::Player1;
