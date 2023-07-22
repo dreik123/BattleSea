@@ -45,6 +45,7 @@ protected:
 private:
     std::vector<CellIndex> m_lastHits;
     AIPlayerState m_state;
+    std::vector<uint8_t> m_enemiesShips;
     std::random_device rd;
     std::mt19937 mt;
 };

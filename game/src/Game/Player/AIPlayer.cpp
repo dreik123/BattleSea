@@ -13,6 +13,7 @@ AIPlayer::AIPlayer(const Player player, const BattleSeaGame* game)
     , m_gameInstance(game)
     , m_lastHits{}
     , m_state(AIPlayerState::RandomShooting)
+    , m_enemiesShips(game->getAppliedConfig().numberOfMultiDeckShips)
     , rd {}
     , mt(rd())
 {

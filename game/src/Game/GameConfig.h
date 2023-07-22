@@ -1,11 +1,11 @@
 #pragma once
 #include <stdint.h>
-#include <set>
+#include <vector>
 #include <array>
 
 struct GameConfig
 {
-    std::multiset<uint8_t> numberOfMultiDeckShips;
+    std::vector<uint8_t> numberOfMultiDeckShips;
 
     uint8_t rowsCount;
     uint8_t columnsCount;
@@ -35,7 +35,7 @@ constexpr static std::array<char, 10> ROW_AXIS_NAMES = generateNCharSequence<10>
 
 static const GameConfig DEFAULT_GAME_CONFIG = GameConfig
 {
-    std::multiset<uint8_t>{ 4, 3, 3, 2, 2, 2, 1, 1, 1, 1 },
+    std::vector<uint8_t>{ 4, 3, 3, 2, 2, 2, 1, 1, 1, 1 },
     CLASSIC_GRID_ROW_COUNT,
     CLASSIC_GRID_COLUMN_COUNT,
 };
@@ -43,7 +43,7 @@ static const GameConfig DEFAULT_GAME_CONFIG = GameConfig
 
 static const GameConfig HASBRO_GAME_CONFIG = GameConfig
 {
-    std::multiset<uint8_t>{ 5, 4, 3, 2, 1 },
+    std::vector<uint8_t>{ 5, 4, 3, 2, 1 },
     CLASSIC_GRID_ROW_COUNT,
     CLASSIC_GRID_COLUMN_COUNT,
 };
