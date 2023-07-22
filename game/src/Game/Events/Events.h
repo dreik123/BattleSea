@@ -14,8 +14,8 @@ namespace events
 {
     struct GameStateChangedEvent final
     {
-        GameState oldState;
-        GameState newState;
+        const GameState oldState;
+        const GameState newState;
     };
 
     struct StartScreenPassedEvent final
@@ -24,13 +24,13 @@ namespace events
 
     struct GridGeneratedEvent final
     {
-        GameGrid playerGridToConfirm;
+        const GameGrid playerGridToConfirm;
     };
 
     struct FullGridsSyncEvent final
     {
-        GameGrid firstGrid;
-        GameGrid secondGrid;
+        const GameGrid firstGrid;
+        const GameGrid secondGrid;
     };
 
     struct ShotMissedEvent final
@@ -43,12 +43,12 @@ namespace events
     {
         const Player injuredPlayer;
         const WarShip ship;
+        const std::set<CellIndex> surroundedCells;
     };
 
     struct ShipDamagedEvent final
     {
         const Player injuredPlayer;
-        const WarShip ship;
         const CellIndex shot;
     };
 

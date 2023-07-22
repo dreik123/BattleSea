@@ -7,6 +7,7 @@
 
 #include <array>
 #include <vector>
+#include <set>
 #include <memory>
 
 
@@ -81,7 +82,7 @@ public:
 
 private:
 	void setGridCellState(GameGrid& outGrid, const CellIndex& cell, const CellState& state);
-	void surroundDestroyedShip(GameGrid& outGrid, const WarShip& ship);
+	void surroundDestroyedShip(GameGrid& outGrid, const WarShip& ship, std::set<CellIndex>& outSurroundedCells);
 
 private:
 	GameConfig m_config;
