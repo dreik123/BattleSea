@@ -1,6 +1,8 @@
 #pragma once
 #include "IPlayer.h"
 #include "Core/CoreTypes.h"
+#include "Core/EventBus.h"
+#include "Game/Events/Events.h"
 #include "Game/GameConfig.h"
 #include "Game/BattleSeaGame.h"
 
@@ -15,19 +17,68 @@
 class SillyBotPlayer : public IPlayer
 {
 public:
-    SillyBotPlayer(const Player player, const BattleSeaGame* game)
+    SillyBotPlayer(const Player player, const GameConfig& config, std::shared_ptr<EventBus>& bus)
         : m_currentPlayer(player)
-        , m_gameInstance(game)
+        , m_eventBus(bus)
+        , m_opponentGrid{} // default with all cells concealed
     {
-        if (m_gameInstance)
-        {
-            const GameConfig& config = m_gameInstance->getAppliedConfig();
-            for (int i = 0; i < config.rowsCount; i++)
+        // TODO [optional] need to guarantee thread-safety ideally, but while view doesn't push any event we are totally safe
+        //m_eventBus->subscribe<events::LocalShotErrorEvent>([](const std::any _)
+        //    {
+        //        // TODO process incorrect shoot if need
+        //    });
+
+        m_shotMissedEventHandleId = m_eventBus->subscribe<events::ShotMissedEvent>([this](const std::any& anyEvent)
             {
-                for (int j = 0; j < config.columnsCount; j++)
+                const auto event = any_cast<events::ShotMissedEvent>(anyEvent);
+                if (event.shootingPlayer != getPlayerType())
                 {
-                    m_sequenceTurns.emplace_back(i, j);
+                    return;
                 }
+
+                m_opponentGrid.at(event.shot) = CellState::Missed;
+
+                // switch to random shooting
+            });
+        m_shipDamagedEventHandleId = m_eventBus->subscribe<events::ShipDamagedEvent>([this](const std::any& anyEvent)
+            {
+                const auto event = any_cast<events::ShipDamagedEvent>(anyEvent);
+                if (event.injuredPlayer != getOppositePlayer(getPlayerType()))
+                {
+                    return;
+                }
+                m_opponentGrid.at(event.shot) = CellState::Damaged;
+
+                // switch to state after hit state
+            });
+        m_shipDestroyedEventHandleId = m_eventBus->subscribe<events::ShipDestroyedEvent>([this](const std::any& anyEvent)
+            {
+                const auto event = any_cast<events::ShipDestroyedEvent>(anyEvent);
+                if (event.injuredPlayer != getOppositePlayer(getPlayerType()))
+                {
+                    return;
+                }
+                
+                // Mark the whole ship in destroyed
+                for (const CellIndex& shipCell : event.ship.getOccupiedCells())
+                {
+                    m_opponentGrid.at(shipCell) = CellState::Destroyed;
+                }
+
+                for (const CellIndex& cellAround : event.surroundedCells)
+                {
+                    m_opponentGrid.at(cellAround) = CellState::Missed;
+                }
+                
+                // analyze left ships
+            });
+
+
+        for (int i = 0; i < config.rowsCount; i++)
+        {
+            for (int j = 0; j < config.columnsCount; j++)
+            {
+                m_sequenceTurns.emplace_back(i, j);
             }
         }
         assert(!m_sequenceTurns.empty());
@@ -37,6 +88,13 @@ public:
 
         std::shuffle(m_sequenceTurns.begin(), m_sequenceTurns.end(), g);
     }
+    ~SillyBotPlayer()
+    {
+        m_eventBus->unsubscribe(m_shotMissedEventHandleId);
+        m_eventBus->unsubscribe(m_shipDamagedEventHandleId);
+        m_eventBus->unsubscribe(m_shipDestroyedEventHandleId);
+    }
+
     virtual std::string getName() const override
     {
         return std::string("Bot");
@@ -52,10 +110,6 @@ public:
     virtual InputRequest getInput() override
     {
         InputRequest turn;
-        if (!m_gameInstance)
-        {
-            return turn;
-        }
 
         const Player opponent = getOppositePlayer(getPlayerType());
         CellState state = CellState::Concealed;
@@ -69,8 +123,7 @@ public:
             turn.shotCell = m_sequenceTurns[0];
             m_sequenceTurns.pop_front();
 
-            // That's CHEATING! Ideally to use separate local grid and fill it by info from shooting
-            state = m_gameInstance->getPlayerGridCellState(opponent, *turn.shotCell);
+            state = m_opponentGrid.at(*turn.shotCell);
         } while (state != CellState::Concealed && state != CellState::Ship);
 
         using namespace std::chrono_literals;
@@ -80,9 +133,15 @@ public:
 
 protected:
     Player m_currentPlayer;
-    const BattleSeaGame* m_gameInstance;
+    std::shared_ptr<EventBus> m_eventBus;
+
+    GameGrid m_opponentGrid;
 
 private:
     std::deque<CellIndex> m_sequenceTurns;
+
+    ListenerHandleId m_shotMissedEventHandleId;
+    ListenerHandleId m_shipDamagedEventHandleId;
+    ListenerHandleId m_shipDestroyedEventHandleId;
 };
 
