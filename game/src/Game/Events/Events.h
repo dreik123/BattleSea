@@ -86,6 +86,10 @@ namespace events
         const bool isLocalPlayer;
     };
 
+    struct GameRestartRequestEvent final
+    {
+    };
+
     struct QuitGameRequestEvent final
     {
     };

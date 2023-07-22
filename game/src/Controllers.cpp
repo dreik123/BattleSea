@@ -22,6 +22,7 @@ TerminalController::TerminalController(
     : m_game(std::move(game))
     , m_shipsGenerator(new WarShipGenerator())
     , m_eventBus(bus)
+    , m_restartRequested(false)
 {
     // TODO If game restart will be implemented, then probably need to keep renderer in controller to take ownership
     auto renderThreadFunc = [renderer = std::move(view)](std::stop_token token)
@@ -42,6 +43,8 @@ TerminalController::~TerminalController()
 
 void TerminalController::loopGame()
 {
+    system("cls"); // clean after possible restart
+
     m_game->launch();
 
     // TODO [optional] re-impl with event callbacks (BE AWARE: onBattleStarted contains while (game not over))
@@ -87,6 +90,11 @@ void TerminalController::loopGame()
             break;
         }
     }
+}
+
+bool TerminalController::hasRestartRequested()
+{
+    return m_restartRequested;
 }
 
 IPlayer& TerminalController::getCurrentPlayer(const Player player) const
@@ -137,7 +145,7 @@ bool TerminalController::onShipsSetup()
 
     // Game init
     m_players[0].reset(new RealPlayer(Player::Player1));
-    //m_players[0].reset(new AIPlayer(Player::Player1, m_game)); // can be useful
+    //m_players[0].reset(new AIPlayer(Player::Player1, m_game.get())); // can be useful
     m_players[1].reset(new AIPlayer(Player::Player2, m_game.get()));
 
     GameStartSettings settings;
@@ -181,7 +189,17 @@ bool TerminalController::onBattleStarted()
                 const events::QuitGameRequestEvent quitGameRequestEvent;
                 m_eventBus->publish(quitGameRequestEvent);
 
-                return true;
+                return false;
+            }
+
+            if (userInput.isRestartRequested)
+            {
+                const events::GameRestartRequestEvent gameRestartRequestEvent;
+                m_eventBus->publish(gameRestartRequestEvent);
+
+                m_restartRequested = true;
+
+                return false; // need to interrupt the execution
             }
 
             if (userInput.shotCell.has_value())
@@ -216,11 +234,20 @@ bool TerminalController::onBattleFinished()
     const events::GameOverEvent gameOverEvent {.winnerName = winner.getName(), .isLocalPlayer = winner.isLocalPlayer()};
     m_eventBus->publish(gameOverEvent);
 
-    int _ = _getch();
-    // [OPTIONAL] TODO consider option to restart game without closing it
+    int playerChoice = _getch();
 
-    const events::QuitGameRequestEvent quitGameRequestEvent;
-    m_eventBus->publish(quitGameRequestEvent);
+    m_restartRequested = playerChoice == 0x20; // space
+
+    if (m_restartRequested)
+    {
+        const events::GameRestartRequestEvent gameRestartRequestEvent;
+        m_eventBus->publish(gameRestartRequestEvent);
+    }
+    else
+    {
+        const events::QuitGameRequestEvent quitGameRequestEvent;
+        m_eventBus->publish(quitGameRequestEvent);
+    }
 
     return true;
 }

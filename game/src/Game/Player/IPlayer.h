@@ -10,6 +10,7 @@ struct InputRequest
 {
     std::optional<CellIndex> shotCell;
     bool isQuitRequested = false;
+    bool isRestartRequested = false;
 };
 
 
