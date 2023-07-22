@@ -36,6 +36,8 @@ private:
 
     CellIndex getMiddleRandomShootingCell();
 
+    CellIndex getMiddleRandomShootingCell(const std::vector<CellIndex>& permissionCells, const Player& oponent);
+
     void simulateThinking();
 
 protected:
