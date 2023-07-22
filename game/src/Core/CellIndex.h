@@ -25,6 +25,7 @@ public:
 
     [[nodiscard]] const std::string toString(const bool isUpperCase = false) const;
 
+    friend bool operator<(const CellIndex& c1, const CellIndex& c2);
     friend bool operator==(const CellIndex& c1, const CellIndex& c2);
     friend bool operator!=(const CellIndex& c1, const CellIndex& c2);
 
@@ -32,6 +33,10 @@ private:
     std::pair<int8_t, int8_t> m_internalCoordinates;
 };
 
+inline bool operator<(const CellIndex& c1, const CellIndex& c2)
+{
+    return c1.m_internalCoordinates < c2.m_internalCoordinates;
+}
 
 inline bool operator==(const CellIndex& c1, const CellIndex& c2)
 {

@@ -4,7 +4,7 @@
 #include "Game/BattleSeaGame.h"
 #include "Game/GridUtilities.h"
 #include "Game/Player/RealPlayer.h"
-#include "Game/Player/SillyRandomBot.h"
+//#include "Game/Player/SillyRandomBot.h" // use for testing
 #include "Game/Player/AIPlayer.h"
 
 #include "Core/EventBus.h"
@@ -147,6 +147,7 @@ bool TerminalController::onShipsSetup()
     m_players[0].reset(new RealPlayer(Player::Player1));
     //m_players[0].reset(new AIPlayer(Player::Player1, m_game.get())); // can be useful
     m_players[1].reset(new AIPlayer(Player::Player2, m_game.get(), m_game->getAppliedConfig(), m_eventBus));
+    //m_players[1].reset(new SillyBotPlayer(Player::Player2, m_game->getAppliedConfig(), m_eventBus)); // can be useful
 
     GameStartSettings settings;
     settings.initialPlayer = Player::Player1;
@@ -154,8 +155,7 @@ bool TerminalController::onShipsSetup()
     settings.shipsForPlayer1 = playerShips;
     settings.shipsForPlayer2 = m_shipsGenerator->generateShips(m_game->getAppliedConfig());
 
-    if (!m_game->startBattle(settings))
-    {
+    if (!m_game->startBattle(settings))    {
         std::cerr << "Invalid settings for game start!\n";
         return false;
     }

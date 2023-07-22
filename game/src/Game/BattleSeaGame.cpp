@@ -5,6 +5,8 @@
 #include "Core/EventBus.h"
 #include "Game/Events/Events.h"
 
+#include "Game/GridUtilities.h"
+
 
 GameStateMachine::GameStateMachine(std::shared_ptr<EventBus>& bus)
     : m_eventBus(bus)
@@ -104,7 +106,7 @@ ShotError BattleSeaGame::shootThePlayerGridAt(const CellIndex& cell)
         {
             setGridCellState(oppositeGrid, cell, CellState::Damaged);
 
-            const events::ShipDamagedEvent shipDamagedEvent {.injuredPlayer = oppositePlayer, .ship = ship, .shot = cell};
+            const events::ShipDamagedEvent shipDamagedEvent {.injuredPlayer = oppositePlayer, .shot = cell};
             m_eventBus->publish(shipDamagedEvent);
         }
         else
@@ -116,14 +118,15 @@ ShotError BattleSeaGame::shootThePlayerGridAt(const CellIndex& cell)
             }
 
             // Wrap all surrounded cells of the ship in missed
-            surroundDestroyedShip(oppositeGrid, ship);
+            std::set<CellIndex> surroundedCells;
+            surroundDestroyedShip(oppositeGrid, ship, surroundedCells);
 
-            const events::ShipDestroyedEvent shipDestroyedEvent {.injuredPlayer = oppositePlayer, .ship = ship};
+            const events::ShipDestroyedEvent shipDestroyedEvent {.injuredPlayer = oppositePlayer, .ship = ship, .surroundedCells = surroundedCells};
             m_eventBus->publish(shipDestroyedEvent);
 
-            m_hasGameFinished = std::all_of(ships.cbegin(), ships.cend(), [](const WarShip& s)
+            m_hasGameFinished = std::all_of(ships.cbegin(), ships.cend(), [](const WarShip& ship)
                 {
-                    return s.isDestroyed();
+                    return ship.isDestroyed();
                 });
         }
         successfulShot = true;
@@ -257,38 +260,23 @@ void BattleSeaGame::setGridCellState(GameGrid& outGrid, const CellIndex& cell, c
     outGrid.at(cell) = state;
 }
 
-void BattleSeaGame::surroundDestroyedShip(GameGrid& outGrid, const WarShip& ship)
+void BattleSeaGame::surroundDestroyedShip(GameGrid& outGrid, const WarShip& ship, std::set<CellIndex>& outSurroundedCells)
 {
-    // Example of class template auto deduction (CTAD)
-    constexpr std::array possibleDirections =
-    {
-        std::make_pair(-1, 0),      // up
-        std::make_pair(-1, -1),     // up-left
-        std::make_pair(-1, 1),      // up-right
-        std::make_pair(0, -1),      // left
-        std::make_pair(0, 1),       // right
-        std::make_pair(1, 0),       // down
-        std::make_pair(1, -1),      // down-left
-        std::make_pair(1, 1),       // down-right
-    };
-
     // Forehead solution
     for (const CellIndex& cell : ship.getOccupiedCells())
     {
-        const auto& [x, y] = cell.asIndexesPair();
-        for (const auto& [dX, dY] : possibleDirections)
+        GridUtilities::safeCellWalkthrough(cell, [&outGrid, &outSurroundedCells](int newX, int newY)
         {
-            const int newX = x + dX;
-            const int newY = y + dY;
-            if (newX < 0 || newY < 0 || newX >= CLASSIC_GRID_ROW_COUNT || newY >= CLASSIC_GRID_COLUMN_COUNT)
-            {
-                continue;
-            }
-
             if (outGrid[newX][newY] == CellState::Concealed)
             {
                 outGrid[newX][newY] = CellState::Missed;
             }
-        }
+
+            // Missed is checked here to cover all cells arounds even missed ones
+            if (outGrid[newX][newY] == CellState::Concealed || outGrid[newX][newY] == CellState::Missed)
+            {
+                outSurroundedCells.insert(CellIndex{ newX, newY });
+            }
+        });
     }
 }
