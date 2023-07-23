@@ -52,7 +52,7 @@ private:
     std::shared_ptr<EventBus> m_eventBus;
     std::vector<CellIndex> m_lastHits;
     AIPlayerState m_state;
-    std::vector<uint8_t> m_enemiesShips;
+    std::vector<uint8_t> m_opponentShipDecks;
     std::random_device rd;
     std::mt19937 mt;
     const int m_middleGameCoeff;

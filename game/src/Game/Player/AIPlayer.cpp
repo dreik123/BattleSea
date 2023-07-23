@@ -13,12 +13,12 @@ AIPlayer::AIPlayer(const Player player, const GameConfig& config, std::shared_pt
     , m_eventBus(bus)
     , m_lastHits{}
     , m_state(AIPlayerState::RandomShooting)
-    , m_enemiesShips(config.numberOfMultiDeckShips)
+    , m_opponentShipDecks(config.numberOfMultiDeckShips)
     , rd {}
     , mt(rd())
     , m_middleGameCoeff((m_opponentGrid.data.size()* m_opponentGrid.data.at(0).size()) / 2)
 {
-    std::sort(m_enemiesShips.begin(), m_enemiesShips.end(), std::greater<uint8_t>());
+    std::sort(m_opponentShipDecks.begin(), m_opponentShipDecks.end(), std::greater<uint8_t>());
     m_shotMissedEventHandleId = m_eventBus->subscribe<events::ShotMissedEvent>([this](const std::any& anyEvent)
         {
             const auto event = any_cast<events::ShotMissedEvent>(anyEvent);
@@ -40,8 +40,8 @@ AIPlayer::AIPlayer(const Player player, const GameConfig& config, std::shared_pt
             }
             m_opponentGrid.at(event.shot) = CellState::Damaged;
             m_lastHits.push_back(event.shot);
-            m_state = AIPlayerState::ShootingAfterHit;
             // switch to state after hit state
+            m_state = AIPlayerState::ShootingAfterHit;
         });
         m_shipDestroyedEventHandleId = m_eventBus->subscribe<events::ShipDestroyedEvent>([this](const std::any& anyEvent)
             {
@@ -62,11 +62,10 @@ AIPlayer::AIPlayer(const Player player, const GameConfig& config, std::shared_pt
                 {
                     m_opponentGrid.at(cellAround) = CellState::Missed;
                 }
-                auto destroyedShipIt = std::find(m_enemiesShips.begin(), m_enemiesShips.end(), (uint8_t)m_lastHits.size());
-                m_enemiesShips.erase(destroyedShipIt);
+                auto destroyedShipIt = std::find(m_opponentShipDecks.begin(), m_opponentShipDecks.end(), (uint8_t)m_lastHits.size());
+                m_opponentShipDecks.erase(destroyedShipIt);
                 m_lastHits.clear();
                 m_state = AIPlayerState::RandomShooting;
-                // analyze left ships
             });
 }
 
@@ -129,7 +128,7 @@ CellIndex AIPlayer::getRandomShootingCell()
 {
     const Player opponent = getOppositePlayer(getPlayerType());
 
-    std::vector<CellIndex> permissionCells;
+    std::vector<CellIndex> concealedCells;
 
     for (int i = 0; i < m_opponentGrid.data.size(); ++i)
     {
@@ -137,20 +136,20 @@ CellIndex AIPlayer::getRandomShootingCell()
         {
             if (m_opponentGrid.data[i][j] == CellState::Concealed)
             {
-                permissionCells.push_back(CellIndex(i, j));
+                concealedCells.push_back(CellIndex(i, j));
             }
         }
     }
 
-    if (permissionCells.size() < m_middleGameCoeff)
+    if (concealedCells.size() < m_middleGameCoeff)
     {
         m_state = AIPlayerState::MiddleGameRandomShooting;
         return getMiddleGameRandomShootingCell();
     }
 
-    std::uniform_int_distribution<int> dist(0, (int)permissionCells.size() - 1);
+    std::uniform_int_distribution<int> dist(0, (int)concealedCells.size() - 1);
 
-    CellIndex cell(permissionCells.at(dist(mt)));
+    const CellIndex cell(concealedCells.at(dist(mt)));
 
     return cell;
 }
@@ -162,7 +161,7 @@ CellIndex AIPlayer::getShootingAfterHitCell()
     std::vector<CellIndex> possibleCellShots;
     if (m_lastHits.size() > 1)
     {
-        std::sort(m_lastHits.begin(), m_lastHits.end(), [](CellIndex a, CellIndex b)
+        std::sort(m_lastHits.begin(), m_lastHits.end(), [](const CellIndex& a, const CellIndex& b)
             {
                 return b < a;
             });
@@ -235,10 +234,9 @@ CellIndex AIPlayer::getShootingAfterHitCell()
         allowedCells.push_back(c);
     }
 
-    CellIndex cell{ allowedCells.at(0) };
 
     std::uniform_int_distribution<int> dist(0, (int)allowedCells.size() - 1);
-    cell = allowedCells.at(dist(mt));
+    const CellIndex cell{ allowedCells.at(dist(mt)) };
 
     return cell;
 }
@@ -253,26 +251,22 @@ CellIndex AIPlayer::getMiddleGameRandomShootingCell()
         std::vector<CellIndex> allowedCells;
         for (int j = 0; j < m_opponentGrid.data[i].size(); ++j)
         {
-            if (m_opponentGrid.data[i][j] != CellState::Damaged &&
-                m_opponentGrid.data[i][j] != CellState::Missed &&
-                m_opponentGrid.data[i][j] != CellState::Destroyed)
+            if (m_opponentGrid.data[i][j] == CellState::Concealed)
             {
                 allowedCells.push_back(CellIndex(i, j));
             }
-            else
+            else // m_opponentGrid.data[i][j] != CellState::Concealed
             {
-                if (!allowedCells.empty())
+                // exclude groups of cells where size less than max opponent ship
+                if (allowedCells.size() >= m_opponentShipDecks.at(0))
                 {
-                    if (allowedCells.size() >= m_enemiesShips.at(0))
-                    {
-                        allowedCellsGroups.push_back(allowedCells);
-                    }
-                    allowedCells.clear();
+                    allowedCellsGroups.push_back(allowedCells);
                 }
+                allowedCells.clear();
             }
         }
-
-        if (!allowedCells.empty() && allowedCells.size() >= m_enemiesShips.at(0))
+        // if cells combo doesn't stop to the end of row
+        if (!allowedCells.empty() && allowedCells.size() >= m_opponentShipDecks.at(0))
         {
             allowedCellsGroups.push_back(allowedCells);
         }
@@ -288,49 +282,43 @@ CellIndex AIPlayer::getMiddleGameRandomShootingCell()
             {
                 allowedCells.push_back(CellIndex(j, i));
             }
-            else
+            else // m_opponentGrid.data[j][i] != CellState::Concealed
             {
-                if (!allowedCells.empty())
+                // exclude groups of cells where size less than max opponent ship
+                if (allowedCells.size() >= m_opponentShipDecks.at(0))
                 {
-                    if (allowedCells.size() >= m_enemiesShips.at(0))
-                    {
-                        allowedCellsGroups.push_back(allowedCells);
-                    }
-                    allowedCells.clear();
+                    allowedCellsGroups.push_back(allowedCells);
                 }
+                allowedCells.clear();
             }
         }
-
-        if (!allowedCells.empty() && allowedCells.size() >= m_enemiesShips.at(0))
+        // if cells combo doesn't stop to the end of column
+        if (!allowedCells.empty() && allowedCells.size() >= m_opponentShipDecks.at(0))
         {
             allowedCellsGroups.push_back(allowedCells);
         }
     }
 
-    std::vector<CellIndex> selectedCells;
+    std::vector<CellIndex> selectedCellGroup;
     if (allowedCellsGroups.size() > 1)
     {
         std::uniform_int_distribution<int> dist(0, (int)allowedCellsGroups.size() - 1);
-        selectedCells = allowedCellsGroups.at(dist(mt));
+        selectedCellGroup = allowedCellsGroups.at(dist(mt));
     }
     else // allowedCellsGroups.size() == 1
     {
-        selectedCells = allowedCellsGroups.at(0);
+        selectedCellGroup = allowedCellsGroups.at(0);
     }
     
-    if (selectedCells.size() > 1)
+    if (selectedCellGroup.size() > 1)
     {
-        std::uniform_int_distribution<int> dist2(0, (int)selectedCells.size() - 1);
-
-        CellIndex cell(selectedCells.at(dist2(mt)));
-        return cell;
+        std::uniform_int_distribution<int> dist2(0, (int)selectedCellGroup.size() - 1);
+        return CellIndex(selectedCellGroup.at(dist2(mt)));
     }
-    else // selectedCells.size() == 1
+    else // selectedCellGroup.size() == 1
     {
-        CellIndex cell(selectedCells.at(0));
-        return cell;
+        return CellIndex(selectedCellGroup.at(0));
     }
-
 }
 
 
