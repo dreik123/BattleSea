@@ -6,14 +6,14 @@ There are still several improvements to do covered in main.cpp file.
 
 --------
 There is a list of used features and places where you can take a look at them(please check extended examples below):
-**C++17**
+- **C++17**
     - std::variant (implementing of runtime polymorphysm)
     - class templace argument deduction
     - [[nodiscard]] attribute
     - std::any (for EventBus listeners implementation)
     - std::optional (for possible shot which may be unset in InputRequest)
     - constexpr variables and functions
-**C++20**
+- **C++20**
     - concepts
     - std::jthread (thread with std::stop_token)
     - named parameters
