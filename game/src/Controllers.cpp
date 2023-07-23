@@ -4,7 +4,7 @@
 #include "Game/BattleSeaGame.h"
 #include "Game/GridUtilities.h"
 #include "Game/Player/RealPlayer.h"
-//#include "Game/Player/SillyRandomBot.h" // use for testing
+#include "Game/Player/SillyRandomBot.h" // use for testing
 #include "Game/Player/AIPlayer.h"
 
 #include "Core/EventBus.h"
@@ -145,9 +145,10 @@ bool TerminalController::onShipsSetup()
 
     // Game init
     m_players[0].reset(new RealPlayer(Player::Player1));
-    //m_players[0].reset(new AIPlayer(Player::Player1, m_game.get())); // can be useful
-    m_players[1].reset(new AIPlayer(Player::Player2, m_game.get(), m_game->getAppliedConfig(), m_eventBus));
-    //m_players[1].reset(new SillyBotPlayer(Player::Player2, m_game->getAppliedConfig(), m_eventBus)); // can be useful
+    //m_players[0].reset(new SillyBotPlayer(Player::Player1, m_game->getAppliedConfig(), m_eventBus)); // can be useful
+    m_players[1].reset(new AIPlayer(Player::Player2, m_game->getAppliedConfig(), m_eventBus));
+    //m_players[1].reset(new AIPlayer(Player::Player2, m_game->getAppliedConfig(), m_eventBus)); // can be useful
+    
 
     GameStartSettings settings;
     settings.initialPlayer = Player::Player1;

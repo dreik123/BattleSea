@@ -4,7 +4,7 @@
 #include "Game/GameState.h"
 
 #include <string>
-
+#include <set>
 
 // TODO consider implementation of all event classes separately and put all includes here
 
@@ -43,6 +43,7 @@ namespace events
     {
         const Player injuredPlayer;
         const WarShip ship;
+        const CellIndex lastHit;
         const std::set<CellIndex> surroundedCells;
     };
 

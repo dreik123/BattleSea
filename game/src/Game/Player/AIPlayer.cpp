@@ -7,16 +7,16 @@
 #include "Game/Events/Events.h"
 
 #include <iostream> //DEBUG
-AIPlayer::AIPlayer(const Player player, const BattleSeaGame* game, const GameConfig& config, std::shared_ptr<EventBus>& bus)
+AIPlayer::AIPlayer(const Player player, const GameConfig& config, std::shared_ptr<EventBus>& bus)
     : m_currentPlayer(player)
-    , m_gameInstance(game)
     , m_opponentGrid{}
     , m_eventBus(bus)
     , m_lastHits{}
     , m_state(AIPlayerState::RandomShooting)
-    , m_enemiesShips(game->getAppliedConfig().numberOfMultiDeckShips)
+    , m_enemiesShips(config.numberOfMultiDeckShips)
     , rd {}
     , mt(rd())
+    , m_middleGameCoeff((m_opponentGrid.data.size()* m_opponentGrid.data.at(0).size()) / 2)
 {
     std::sort(m_enemiesShips.begin(), m_enemiesShips.end(), std::greater<uint8_t>());
     m_shotMissedEventHandleId = m_eventBus->subscribe<events::ShotMissedEvent>([this](const std::any& anyEvent)
@@ -39,7 +39,8 @@ AIPlayer::AIPlayer(const Player player, const BattleSeaGame* game, const GameCon
                 return;
             }
             m_opponentGrid.at(event.shot) = CellState::Damaged;
-
+            m_lastHits.push_back(event.shot);
+            m_state = AIPlayerState::ShootingAfterHit;
             // switch to state after hit state
         });
         m_shipDestroyedEventHandleId = m_eventBus->subscribe<events::ShipDestroyedEvent>([this](const std::any& anyEvent)
@@ -49,6 +50,7 @@ AIPlayer::AIPlayer(const Player player, const BattleSeaGame* game, const GameCon
                 {
                     return;
                 }
+                m_lastHits.push_back(event.lastHit);
 
                 // Mark the whole ship in destroyed
                 for (const CellIndex& shipCell : event.ship.getOccupiedCells())
@@ -60,7 +62,10 @@ AIPlayer::AIPlayer(const Player player, const BattleSeaGame* game, const GameCon
                 {
                     m_opponentGrid.at(cellAround) = CellState::Missed;
                 }
-
+                auto destroyedShipIt = std::find(m_enemiesShips.begin(), m_enemiesShips.end(), (uint8_t)m_lastHits.size());
+                m_enemiesShips.erase(destroyedShipIt);
+                m_lastHits.clear();
+                m_state = AIPlayerState::RandomShooting;
                 // analyze left ships
             });
 }
@@ -109,9 +114,9 @@ CellIndex AIPlayer::getShootingCell()
     {
         return getShootingAfterHitCell();
     }
-    case AIPlayerState::MiddleRandomShooting:
+    case AIPlayerState::MiddleGameRandomShooting:
     {
-        return getMiddleRandomShootingCell();
+        return getMiddleGameRandomShootingCell();
     }
     default:
     {
@@ -122,67 +127,45 @@ CellIndex AIPlayer::getShootingCell()
 
 CellIndex AIPlayer::getRandomShootingCell()
 {
-    if (!m_lastHits.empty())
-    {
-        m_state = AIPlayerState::ShootingAfterHit;
-        return getShootingAfterHitCell();
-    }
     const Player opponent = getOppositePlayer(getPlayerType());
 
-    // TODO should be removed after event-based approach implemented
-    assert(m_gameInstance);
-    auto gameGrid = m_gameInstance->getPlayerGridInfo(opponent);
     std::vector<CellIndex> permissionCells;
-    for (int i = 0; i < gameGrid.data.size(); ++i)
+
+    for (int i = 0; i < m_opponentGrid.data.size(); ++i)
     {
-        for (int j = 0; j < gameGrid.data[i].size(); ++j)
+        for (int j = 0; j < m_opponentGrid.data[i].size(); ++j)
         {
-            if (gameGrid.data[i][j] != CellState::Damaged &&
-                gameGrid.data[i][j] != CellState::Missed &&
-                gameGrid.data[i][j] != CellState::Destroyed)
+            if (m_opponentGrid.data[i][j] == CellState::Concealed)
             {
                 permissionCells.push_back(CellIndex(i, j));
             }
         }
     }
 
-    if (permissionCells.size() < (m_gameInstance->getAppliedConfig().columnsCount * m_gameInstance->getAppliedConfig().rowsCount) / 2)
+    if (permissionCells.size() < m_middleGameCoeff)
     {
-        m_state = AIPlayerState::MiddleRandomShooting;
-        return getMiddleRandomShootingCell();
+        m_state = AIPlayerState::MiddleGameRandomShooting;
+        return getMiddleGameRandomShootingCell();
     }
 
     std::uniform_int_distribution<int> dist(0, (int)permissionCells.size() - 1);
 
     CellIndex cell(permissionCells.at(dist(mt)));
 
-    // TODO: HACK will be implemented after events about hit and missed shot are ready
-    if (m_gameInstance->getPlayerGridCellState(opponent, cell) == CellState::Ship)
-    {
-        m_lastHits.push_back(cell);
-    }
     return cell;
 }
 
 CellIndex AIPlayer::getShootingAfterHitCell()
 {
     const Player opponent = getOppositePlayer(getPlayerType());
-    for (auto& hit : m_lastHits)
-    {
-        if (m_gameInstance->getPlayerGridCellState(opponent, hit) == CellState::Destroyed)
-        {
-            auto rdestroyedShip = std::remove(m_enemiesShips.begin(), m_enemiesShips.end(), (uint8_t)m_lastHits.size());
-            m_enemiesShips.erase(rdestroyedShip, m_enemiesShips.end());
-            m_lastHits.clear();
-            m_state = AIPlayerState::RandomShooting;
-
-            return getRandomShootingCell();
-        }
-    }
 
     std::vector<CellIndex> possibleCellShots;
     if (m_lastHits.size() > 1)
     {
+        std::sort(m_lastHits.begin(), m_lastHits.end(), [](CellIndex a, CellIndex b)
+            {
+                return b < a;
+            });
         auto firstHit = m_lastHits.begin();
         auto lastHit = m_lastHits.end() - 1;
 
@@ -238,14 +221,13 @@ CellIndex AIPlayer::getShootingAfterHitCell()
     {
         if (c.x() < 0 ||
             c.y() < 0 ||
-            c.x() >= m_gameInstance->getAppliedConfig().columnsCount ||
-            c.y() >= m_gameInstance->getAppliedConfig().rowsCount)
+            c.x() >= m_opponentGrid.data.at(0).size() ||
+            c.y() >= m_opponentGrid.data.size())
         {
             continue;
         }
-        if (m_gameInstance->getPlayerGridCellState(opponent, c) == CellState::Missed ||
-            m_gameInstance->getPlayerGridCellState(opponent, c) == CellState::Concealed ||
-            m_gameInstance->getPlayerGridCellState(opponent, c) == CellState::Damaged)
+        if (m_opponentGrid.at(c) == CellState::Missed ||
+            m_opponentGrid.at(c) == CellState::Damaged)
         {
             continue;
         }
@@ -253,98 +235,102 @@ CellIndex AIPlayer::getShootingAfterHitCell()
         allowedCells.push_back(c);
     }
 
-    InputRequest turn;
     CellIndex cell{ allowedCells.at(0) };
 
     std::uniform_int_distribution<int> dist(0, (int)allowedCells.size() - 1);
     cell = allowedCells.at(dist(mt));
 
-    if (m_gameInstance->getPlayerGridCellState(opponent, cell) == CellState::Ship)
-    {
-        m_lastHits.push_back(cell);
-    }
-
     return cell;
 }
 
-CellIndex AIPlayer::getMiddleRandomShootingCell()
+CellIndex AIPlayer::getMiddleGameRandomShootingCell()
 {
-    if (!m_lastHits.empty())
-    {
-        m_state = AIPlayerState::ShootingAfterHit;
-        return getShootingAfterHitCell();
-    }
     const Player opponent = getOppositePlayer(getPlayerType());
 
-    // TODO should be removed after event-based approach implemented
-    assert(m_gameInstance);
-    auto gameGrid = m_gameInstance->getPlayerGridInfo(opponent);
-    std::vector<std::vector<CellIndex>> permissionCellsGroups;
-    for (int i = 0; i < m_gameInstance->getAppliedConfig().rowsCount; ++i)
+    std::vector<std::vector<CellIndex>> allowedCellsGroups;
+    for (int i = 0; i < m_opponentGrid.data.size(); ++i)
     {
-        std::vector<CellIndex> permissionCells;
-        for (int j = 0; j < m_gameInstance->getAppliedConfig().columnsCount; ++j)
+        std::vector<CellIndex> allowedCells;
+        for (int j = 0; j < m_opponentGrid.data[i].size(); ++j)
         {
-            if (gameGrid.data[i][j] != CellState::Damaged &&
-                gameGrid.data[i][j] != CellState::Missed &&
-                gameGrid.data[i][j] != CellState::Destroyed)
+            if (m_opponentGrid.data[i][j] != CellState::Damaged &&
+                m_opponentGrid.data[i][j] != CellState::Missed &&
+                m_opponentGrid.data[i][j] != CellState::Destroyed)
             {
-                permissionCells.push_back(CellIndex(i, j));
+                allowedCells.push_back(CellIndex(i, j));
             }
             else
             {
-                if (!permissionCells.empty())
+                if (!allowedCells.empty())
                 {
-                    if (static_cast<uint8_t>(permissionCells.size()) >= *(m_enemiesShips.begin()))
+                    if (allowedCells.size() >= m_enemiesShips.at(0))
                     {
-                        permissionCellsGroups.push_back(permissionCells);
+                        allowedCellsGroups.push_back(allowedCells);
                     }
-                    permissionCells.clear();
+                    allowedCells.clear();
                 }
             }
         }
+
+        if (!allowedCells.empty() && allowedCells.size() >= m_enemiesShips.at(0))
+        {
+            allowedCellsGroups.push_back(allowedCells);
+        }
+
     }
 
-    for (int i = 0; i < m_gameInstance->getAppliedConfig().columnsCount; ++i)
+    for (int i = 0; i < m_opponentGrid.data[0].size(); ++i)
     {
-        std::vector<CellIndex> permissionCells;
-        for (int j = 0; j < m_gameInstance->getAppliedConfig().rowsCount; ++j)
+        std::vector<CellIndex> allowedCells;
+        for (int j = 0; j < m_opponentGrid.data.size(); ++j)
         {
-            if (gameGrid.data[j][i] != CellState::Damaged &&
-                gameGrid.data[j][i] != CellState::Missed &&
-                gameGrid.data[j][i] != CellState::Destroyed)
+            if (m_opponentGrid.data[j][i] == CellState::Concealed)
             {
-                permissionCells.push_back(CellIndex(j, i));
+                allowedCells.push_back(CellIndex(j, i));
             }
             else
             {
-                if (!permissionCells.empty())
+                if (!allowedCells.empty())
                 {
-                    if (permissionCells.size() >= *std::max_element(m_enemiesShips.begin(), m_enemiesShips.end()))
+                    if (allowedCells.size() >= m_enemiesShips.at(0))
                     {
-                        permissionCellsGroups.push_back(permissionCells);
+                        allowedCellsGroups.push_back(allowedCells);
                     }
-                    permissionCells.clear();
+                    allowedCells.clear();
                 }
             }
         }
+
+        if (!allowedCells.empty() && allowedCells.size() >= m_enemiesShips.at(0))
+        {
+            allowedCellsGroups.push_back(allowedCells);
+        }
     }
 
-
-    std::uniform_int_distribution<int> dist(0, (int)permissionCellsGroups.size() - 1);
+    std::vector<CellIndex> selectedCells;
+    if (allowedCellsGroups.size() > 1)
+    {
+        std::uniform_int_distribution<int> dist(0, (int)allowedCellsGroups.size() - 1);
+        selectedCells = allowedCellsGroups.at(dist(mt));
+    }
+    else // allowedCellsGroups.size() == 1
+    {
+        selectedCells = allowedCellsGroups.at(0);
+    }
     
-    std::vector<CellIndex> cells(permissionCellsGroups.at(dist(mt)));
-    std::uniform_int_distribution<int> dist2(0, (int)cells.size() - 1);
-
-    CellIndex cell(cells.at(dist2(mt)));
-
-
-    // TODO: HACK will be implemented after events about hit and missed shot are ready
-    if (m_gameInstance->getPlayerGridCellState(opponent, cell) == CellState::Ship)
+    if (selectedCells.size() > 1)
     {
-        m_lastHits.push_back(cell);
+        std::uniform_int_distribution<int> dist2(0, (int)selectedCells.size() - 1);
+
+        CellIndex cell(selectedCells.at(dist2(mt)));
+        return cell;
     }
-    return cell;
+    else // selectedCells.size() == 1
+    {
+        CellIndex cell(selectedCells.at(0));
+        return cell;
+    }
+
 }
 
 

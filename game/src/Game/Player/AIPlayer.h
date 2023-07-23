@@ -13,7 +13,7 @@ enum class AIPlayerState
 {
     RandomShooting,
     ShootingAfterHit,
-    MiddleRandomShooting,
+    MiddleGameRandomShooting,
 };
 
 class BattleSeaGame;
@@ -21,7 +21,7 @@ class BattleSeaGame;
 class AIPlayer : public IPlayer
 {
 public:
-    AIPlayer(const Player player, const BattleSeaGame* game, const GameConfig& config, std::shared_ptr<EventBus>& bus);
+    AIPlayer(const Player player, const GameConfig& config, std::shared_ptr<EventBus>& bus);
 
     ~AIPlayer();
 
@@ -40,15 +40,12 @@ private:
 
     CellIndex getShootingAfterHitCell();
 
-    CellIndex getMiddleRandomShootingCell();
-
-    CellIndex getMiddleRandomShootingCell(const std::vector<CellIndex>& permissionCells, const Player& oponent);
+    CellIndex getMiddleGameRandomShootingCell();
 
     void simulateThinking();
 
 protected:
     Player m_currentPlayer;
-    const BattleSeaGame* m_gameInstance;
 
 private:
     GameGrid m_opponentGrid;
@@ -58,7 +55,7 @@ private:
     std::vector<uint8_t> m_enemiesShips;
     std::random_device rd;
     std::mt19937 mt;
-
+    const int m_middleGameCoeff;
     ListenerHandleId m_shotMissedEventHandleId;
     ListenerHandleId m_shipDamagedEventHandleId;
     ListenerHandleId m_shipDestroyedEventHandleId;
