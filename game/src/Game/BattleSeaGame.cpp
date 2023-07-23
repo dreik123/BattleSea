@@ -114,14 +114,14 @@ ShotError BattleSeaGame::shootThePlayerGridAt(const CellIndex& cell)
             // Mark the whole ship in destroyed
             for (const CellIndex& shipCell : ship.getOccupiedCells())
             {
-                setGridCellState(oppositeGrid, cell, CellState::Destroyed);
+                setGridCellState(oppositeGrid, shipCell, CellState::Destroyed);
             }
 
             // Wrap all surrounded cells of the ship in missed
             std::set<CellIndex> surroundedCells;
             surroundDestroyedShip(oppositeGrid, ship, surroundedCells);
 
-            const events::ShipDestroyedEvent shipDestroyedEvent {.injuredPlayer = oppositePlayer, .ship = ship, .surroundedCells = surroundedCells};
+            const events::ShipDestroyedEvent shipDestroyedEvent {.injuredPlayer = oppositePlayer, .ship = ship, .lastHit = cell, .surroundedCells = surroundedCells};
             m_eventBus->publish(shipDestroyedEvent);
 
             m_hasGameFinished = std::all_of(ships.cbegin(), ships.cend(), [](const WarShip& ship)
