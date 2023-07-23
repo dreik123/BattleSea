@@ -6,7 +6,6 @@
 
 #include "Game/Events/Events.h"
 
-#include <iostream> //DEBUG
 AIPlayer::AIPlayer(const Player player, const GameConfig& config, std::shared_ptr<EventBus>& bus)
     : m_currentPlayer(player)
     , m_opponentGrid{}
