@@ -71,11 +71,11 @@ public:
         }
     }
 
-    template <typename DerivedEvent>
-    void publish(const DerivedEvent& event)
+    template <typename EventType>
+    void publish(const EventType& event)
     {
         GuardLocker lock(m_mutex);
-        const auto& eventListeners = m_listeners[typeid(DerivedEvent).hash_code()];
+        const auto& eventListeners = m_listeners[typeid(EventType).hash_code()];
         for (const auto& [listener, _] : eventListeners)
         {
             listener(event);
