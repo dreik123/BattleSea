@@ -4,19 +4,75 @@
 #include <thread>
 #include <chrono>
 
-#include "Core/CoreTypes.h"
-#include "Game/GameConfig.h"
-#include "Game/BattleSeaGame.h"
+#include "Game/Events/Events.h"
 
-AIPlayer::AIPlayer(const Player player, const BattleSeaGame* game)
+AIPlayer::AIPlayer(const Player player, const GameConfig& config, std::shared_ptr<EventBus>& bus)
     : m_currentPlayer(player)
-    , m_gameInstance(game)
+    , m_opponentGrid{}
+    , m_eventBus(bus)
     , m_lastHits{}
     , m_state(AIPlayerState::RandomShooting)
+    , m_opponentShipDecks(config.numberOfMultiDeckShips)
     , rd {}
     , mt(rd())
+    , m_middleGameCoeff((m_opponentGrid.data.size()* m_opponentGrid.data.at(0).size()) / 2)
 {
-    
+    std::sort(m_opponentShipDecks.begin(), m_opponentShipDecks.end(), std::greater<uint8_t>());
+    m_shotMissedEventHandleId = m_eventBus->subscribe<events::ShotMissedEvent>([this](const std::any& anyEvent)
+        {
+            const auto event = any_cast<events::ShotMissedEvent>(anyEvent);
+            if (event.shootingPlayer != getPlayerType())
+            {
+                return;
+            }
+
+            m_opponentGrid.at(event.shot) = CellState::Missed;
+
+            // switch to random shooting
+        });
+    m_shipDamagedEventHandleId = m_eventBus->subscribe<events::ShipDamagedEvent>([this](const std::any& anyEvent)
+        {
+            const auto event = any_cast<events::ShipDamagedEvent>(anyEvent);
+            if (event.injuredPlayer != getOppositePlayer(getPlayerType()))
+            {
+                return;
+            }
+            m_opponentGrid.at(event.shot) = CellState::Damaged;
+            m_lastHits.push_back(event.shot);
+            // switch to state after hit state
+            m_state = AIPlayerState::ShootingAfterHit;
+        });
+        m_shipDestroyedEventHandleId = m_eventBus->subscribe<events::ShipDestroyedEvent>([this](const std::any& anyEvent)
+            {
+                const auto event = any_cast<events::ShipDestroyedEvent>(anyEvent);
+                if (event.injuredPlayer != getOppositePlayer(getPlayerType()))
+                {
+                    return;
+                }
+                m_lastHits.push_back(event.lastHit);
+
+                // Mark the whole ship in destroyed
+                for (const CellIndex& shipCell : event.ship.getOccupiedCells())
+                {
+                    m_opponentGrid.at(shipCell) = CellState::Destroyed;
+                }
+
+                for (const CellIndex& cellAround : event.surroundedCells)
+                {
+                    m_opponentGrid.at(cellAround) = CellState::Missed;
+                }
+                auto destroyedShipIt = std::find(m_opponentShipDecks.begin(), m_opponentShipDecks.end(), (uint8_t)m_lastHits.size());
+                m_opponentShipDecks.erase(destroyedShipIt);
+                m_lastHits.clear();
+                m_state = AIPlayerState::RandomShooting;
+            });
+}
+
+AIPlayer::~AIPlayer()
+{
+    m_eventBus->unsubscribe(m_shotMissedEventHandleId);
+    m_eventBus->unsubscribe(m_shipDamagedEventHandleId);
+    m_eventBus->unsubscribe(m_shipDestroyedEventHandleId);
 }
 
 bool AIPlayer::isLocalPlayer() const
@@ -56,9 +112,9 @@ CellIndex AIPlayer::getShootingCell()
     {
         return getShootingAfterHitCell();
     }
-    case AIPlayerState::MiddleRandomShooting:
+    case AIPlayerState::MiddleGameRandomShooting:
     {
-        return getMiddleRandomShootingCell();
+        return getMiddleGameRandomShootingCell();
     }
     default:
     {
@@ -69,57 +125,45 @@ CellIndex AIPlayer::getShootingCell()
 
 CellIndex AIPlayer::getRandomShootingCell()
 {
-    if (!m_lastHits.empty())
-    {
-        m_state = AIPlayerState::ShootingAfterHit;
-        return getShootingAfterHitCell();
-    }
     const Player opponent = getOppositePlayer(getPlayerType());
 
-    // TODO should be removed after event-based approach implemented
-    assert(m_gameInstance);
-    auto gameGrid = m_gameInstance->getPlayerGridInfo(opponent);
-    std::vector<CellIndex> permissionCells;
-    for (int i = 0; i < gameGrid.data.size(); ++i)
+    std::vector<CellIndex> concealedCells;
+
+    for (int i = 0; i < m_opponentGrid.data.size(); ++i)
     {
-        for (int j = 0; j < gameGrid.data[i].size(); ++j)
+        for (int j = 0; j < m_opponentGrid.data[i].size(); ++j)
         {
-            if (gameGrid.data[i][j] != CellState::Damaged &&
-                gameGrid.data[i][j] != CellState::Missed &&
-                gameGrid.data[i][j] != CellState::Destroyed)
+            if (m_opponentGrid.data[i][j] == CellState::Concealed)
             {
-                permissionCells.push_back(CellIndex(i, j));
+                concealedCells.push_back(CellIndex(i, j));
             }
         }
     }
-    std::uniform_int_distribution<int> dist(0, (int)permissionCells.size() - 1);
 
-    CellIndex cell(permissionCells.at(dist(mt)));
-
-    // TODO: HACK will be implemented after events about hit and missed shot are ready
-    if (m_gameInstance->getPlayerGridCellState(opponent, cell) == CellState::Ship)
+    if (concealedCells.size() < m_middleGameCoeff)
     {
-        m_lastHits.push_back(cell);
+        m_state = AIPlayerState::MiddleGameRandomShooting;
+        return getMiddleGameRandomShootingCell();
     }
+
+    std::uniform_int_distribution<int> dist(0, (int)concealedCells.size() - 1);
+
+    const CellIndex cell(concealedCells.at(dist(mt)));
+
     return cell;
 }
 
 CellIndex AIPlayer::getShootingAfterHitCell()
 {
     const Player opponent = getOppositePlayer(getPlayerType());
-    for (auto& hit : m_lastHits)
-    {
-        if (m_gameInstance->getPlayerGridCellState(opponent, hit) == CellState::Destroyed)
-        {
-            m_lastHits.clear();
-            m_state = AIPlayerState::RandomShooting;
-            return getRandomShootingCell();
-        }
-    }
 
     std::vector<CellIndex> possibleCellShots;
     if (m_lastHits.size() > 1)
     {
+        std::sort(m_lastHits.begin(), m_lastHits.end(), [](const CellIndex& a, const CellIndex& b)
+            {
+                return b < a;
+            });
         auto firstHit = m_lastHits.begin();
         auto lastHit = m_lastHits.end() - 1;
 
@@ -175,13 +219,13 @@ CellIndex AIPlayer::getShootingAfterHitCell()
     {
         if (c.x() < 0 ||
             c.y() < 0 ||
-            c.x() >= m_gameInstance->getAppliedConfig().columnsCount ||
-            c.y() >= m_gameInstance->getAppliedConfig().rowsCount)
+            c.x() >= m_opponentGrid.data.at(0).size() ||
+            c.y() >= m_opponentGrid.data.size())
         {
             continue;
         }
-        if (m_gameInstance->getPlayerGridCellState(opponent, c) == CellState::Missed ||
-            m_gameInstance->getPlayerGridCellState(opponent, c) == CellState::Damaged)
+        if (m_opponentGrid.at(c) == CellState::Missed ||
+            m_opponentGrid.at(c) == CellState::Damaged)
         {
             continue;
         }
@@ -189,25 +233,93 @@ CellIndex AIPlayer::getShootingAfterHitCell()
         allowedCells.push_back(c);
     }
 
-    InputRequest turn;
-    CellIndex cell{ allowedCells.at(0) };
 
     std::uniform_int_distribution<int> dist(0, (int)allowedCells.size() - 1);
-    cell = allowedCells.at(dist(mt));
-
-    if (m_gameInstance->getPlayerGridCellState(opponent, cell) == CellState::Ship)
-    {
-        m_lastHits.push_back(cell);
-    }
+    const CellIndex cell{ allowedCells.at(dist(mt)) };
 
     return cell;
 }
 
-CellIndex AIPlayer::getMiddleRandomShootingCell()
+CellIndex AIPlayer::getMiddleGameRandomShootingCell()
 {
-    // TODO: write function with ships possible location
-    return getRandomShootingCell();
+    const Player opponent = getOppositePlayer(getPlayerType());
+
+    std::vector<std::vector<CellIndex>> allowedCellsGroups;
+    for (int i = 0; i < m_opponentGrid.data.size(); ++i)
+    {
+        std::vector<CellIndex> allowedCells;
+        for (int j = 0; j < m_opponentGrid.data[i].size(); ++j)
+        {
+            if (m_opponentGrid.data[i][j] == CellState::Concealed)
+            {
+                allowedCells.push_back(CellIndex(i, j));
+            }
+            else // m_opponentGrid.data[i][j] != CellState::Concealed
+            {
+                // exclude groups of cells where size less than max opponent ship
+                if (allowedCells.size() >= m_opponentShipDecks.at(0))
+                {
+                    allowedCellsGroups.push_back(allowedCells);
+                }
+                allowedCells.clear();
+            }
+        }
+        // if cells combo doesn't stop to the end of row
+        if (!allowedCells.empty() && allowedCells.size() >= m_opponentShipDecks.at(0))
+        {
+            allowedCellsGroups.push_back(allowedCells);
+        }
+
+    }
+
+    for (int i = 0; i < m_opponentGrid.data[0].size(); ++i)
+    {
+        std::vector<CellIndex> allowedCells;
+        for (int j = 0; j < m_opponentGrid.data.size(); ++j)
+        {
+            if (m_opponentGrid.data[j][i] == CellState::Concealed)
+            {
+                allowedCells.push_back(CellIndex(j, i));
+            }
+            else // m_opponentGrid.data[j][i] != CellState::Concealed
+            {
+                // exclude groups of cells where size less than max opponent ship
+                if (allowedCells.size() >= m_opponentShipDecks.at(0))
+                {
+                    allowedCellsGroups.push_back(allowedCells);
+                }
+                allowedCells.clear();
+            }
+        }
+        // if cells combo doesn't stop to the end of column
+        if (!allowedCells.empty() && allowedCells.size() >= m_opponentShipDecks.at(0))
+        {
+            allowedCellsGroups.push_back(allowedCells);
+        }
+    }
+
+    std::vector<CellIndex> selectedCellGroup;
+    if (allowedCellsGroups.size() > 1)
+    {
+        std::uniform_int_distribution<int> dist(0, (int)allowedCellsGroups.size() - 1);
+        selectedCellGroup = allowedCellsGroups.at(dist(mt));
+    }
+    else // allowedCellsGroups.size() == 1
+    {
+        selectedCellGroup = allowedCellsGroups.at(0);
+    }
+    
+    if (selectedCellGroup.size() > 1)
+    {
+        std::uniform_int_distribution<int> dist2(0, (int)selectedCellGroup.size() - 1);
+        return CellIndex(selectedCellGroup.at(dist2(mt)));
+    }
+    else // selectedCellGroup.size() == 1
+    {
+        return CellIndex(selectedCellGroup.at(0));
+    }
 }
+
 
 void AIPlayer::simulateThinking()
 {
