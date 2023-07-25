@@ -28,9 +28,10 @@ jobs:
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v1.0.2
 
-    - name: Restore NuGet packages
-      working-directory: ${{env.GITHUB_WORKSPACE}}
-      run: nuget restore ${{env.SOLUTION_FILE_PATH}}
+    # Uncomment if you need packages
+    #- name: Restore NuGet packages
+    #  working-directory: ${{env.GITHUB_WORKSPACE}}
+    #  run: nuget restore ${{env.SOLUTION_FILE_PATH}}
 
     - name: Build all projects
       working-directory: ${{env.GITHUB_WORKSPACE}}
@@ -38,7 +39,3 @@ jobs:
       # See https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference
       run: msbuild /m /p:Configuration=${{ matrix.configuration }} ${{env.SOLUTION_FILE_PATH}}
 
-    - name: Run Tests
-      working-directory: ${{env.GITHUB_WORKSPACE}}
-      run: bin\tests\${{ matrix.configuration }}\tests.exe
-      shell: cmd

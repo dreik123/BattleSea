@@ -10,7 +10,8 @@
 // Current TerminalView implementation can't render single shot and refresh entire grids.
 //      (I'd rather introduce graphical library than will fix it in console).
 // Talking about some graphics it makes sense to try SDL or SFML in the game | Graphics Controller and View should be implemented then.
-// In-place assertations should be moved to 'tests' project.
+// Unittests are preferrable to have, we ran out of time alloted for this, but that was a goal initially
+// In-place assertations should be moved to 'tests' project then
 
 
 int main(int argc, char* argv[])
