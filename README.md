@@ -117,12 +117,11 @@ build and launch
 It's kind of simple project for implementation practice mostly, so main platform is Windows.
 The project is developed to be used with Visual Studio, you may find .sln file in repo.
 
-There are two projects in the solution: game and tests.
+
 Technically it's possible to launch it from cmd:
 
 ```c
 git clone <project>
-nuget restore
 msbuild /m /p:Configuration=Release .
 bin\game\Release\BattleSeaGame.exe
 ```
@@ -130,4 +129,3 @@ bin\game\Release\BattleSeaGame.exe
 license
 ----------------------
 The game project is under MIT license, so you are free to copy, reuse modify this code in your needs (projects, work).
-The tests project is written with googletests usage which uses BSD-3 clause. The proper copyright code added to test source files.
